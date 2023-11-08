@@ -1,0 +1,27 @@
+# JetBrains IDEs
+.idea_modules
+.idea/
+*.iml
+*.ipr
+*.iws
+out/
+
+# node dependencies
+/node_modules
+
+# compiled output
+/dist
+/out
+/build
+
+# logs and databases
+*.log
+*.sqlite
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# VS Code Workspace
+.vscode/
+*.code-workspace
