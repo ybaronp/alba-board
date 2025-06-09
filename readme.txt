@@ -1,95 +1,97 @@
-=== AlbaBoard - WordPress Task Manager ===
-Contributors: (this should be a list of wordpress.org userid's)
-Donate link: https://example.com/
-Tags: tag1, tag2
-Requires at least: 4.7
-Tested up to: 6.4.1
-Stable tag: 4.3
-Requires PHP: 7.0
-License: GPLv2 or later
-License URI: https://www.gnu.org/licenses/gpl-2.0.html
+=== Alba Board ===
+Contributors: alejo  
+Tags: kanban, board, project management, todo, task,
+Requires at least: 5.8  
+Tested up to: 6.8.1  
+Requires PHP: 7.2  
+Stable tag: 1.0  
+License: GPLv2 or later  
+License URI: https://www.gnu.org/licenses/gpl-2.0.html  
 
-Here is a short description of the plugin.  This should be no more than 150 characters.  No markup here.
+Custom Kanban system for WordPress with boards, lists, cards, dynamic user assignment, tags and extensibility via add-ons.
 
 == Description ==
 
-This is the long description.  No limit, and you can use Markdown (as well as in the following sections).
+**Alba Board** brings a flexible Kanban board to your WordPress admin and (optionally) to the frontend.Desktop and Mobile friendly.  
+Create, organize, and manage boards, lists, and cards, assign tasks, add custom fields and tags, and extend with official add-ons.
 
-For backwards compatibility, if this section is missing, the full length of the short description will be used, and
-Markdown parsed.
+== Features ==
 
-A few notes about the sections above:
+* Kanban-style board view in WordPress admin
+* Cards with title, description, assignee, colored tags, custom fields
+* Drag & drop cards between lists
+* Fast modal editing (backend): edit title, description, assignee, and meta
+* Frontend add/delete cards (when add-on enabled)
+* AJAX-powered updates
+* All registered users can be assigned as card assignees (Select2 live search)
+* Colored tag support (with the Card Tags add-on)
+* Secure: all actions require proper permissions and nonces
+* Extendable via official add-ons
 
-* "Contributors" is a comma separated list of wordpress.org usernames
-* "Tags" is a comma separated list of tags that apply to the plugin
-* "Requires at least" is the lowest version that the plugin will work on
-* "Tested up to" is the highest version that you've *successfully used to test the plugin*
-* Stable tag must indicate the Subversion "tag" of the latest stable version
+== Permissions and Capabilities ==
 
-Note that the `readme.txt` value of stable tag is the one that is the defining one for the plugin.  If the `/trunk/readme.txt` file says that the stable tag is `4.3`, then it is `/tags/4.3/readme.txt` that'll be used for displaying information about the plugin.
+Upon activation, **Alba Board** automatically assigns all necessary capabilities for boards, lists, and cards to the Administrator and Editor roles.  
+This ensures these users can always see and manage Alba Board content, even on a fresh WordPress install.
 
-If you develop in trunk, you can update the trunk `readme.txt` to reflect changes in your in-development version, without having that information incorrectly disclosed about the current stable version that lacks those changes -- as long as the trunk's `readme.txt` points to the correct stable tag.
+You may also use plugins like **User Role Editor** to manage these capabilities visually.
 
-If no stable tag is provided, your users may not get the correct version of your code.
+== Add-ons ==
+
+Alba Board’s power can be expanded with official add-ons. The following are included and maintained by the author:
+
+* **Alba Board Frontend Interactions**  
+  - Enables card creation and deletion from the frontend (public site).
+  - Can be activated or deactivated independently.
+  - When deactivated, the frontend buttons for adding/removing cards are hidden.
+
+* **Alba Card Tags**  
+  - Lets you create colored tags and assign them to cards for easier categorization and filtering.
+  - You can manage tag colors and assign multiple tags per card.
+
+> More add-ons are planned! Developers can also create their own add-ons using WordPress hooks and Alba Board’s modular structure.
+
+== Installation ==
+
+1. Upload the `alba-board` directory to `/wp-content/plugins/`.
+2. Activate **Alba Board** from the Plugins menu.
+3. Optionally activate any official add-ons you need (`Alba Board Frontend Interactions`, `Alba Card Tags`).
+4. Access your board in the admin via "Tableros > Vista Tablero".
+5. To use Select2 for assignee dropdown, ensure `select2.min.js` and `select2.min.css` are present and enqueued in admin.
 
 == Frequently Asked Questions ==
 
-= A question that someone might have =
+= Can I extend Alba Board? =  
+Yes! Use hooks or create add-ons for new functionality.
 
-An answer to that question.
+= How do I enable frontend card creation and deletion? =  
+Activate the "Alba Board Frontend Interactions" add-on from the Add-ons folder.
 
-= What about foo bar? =
+= How do I use colored tags? =  
+Activate the "Alba Card Tags" add-on. You will then be able to create, assign, and manage colored tags for each card.
 
-Answer to foo bar dilemma.
-
-== Screenshots ==
-
-1. This screen shot description corresponds to screenshot-1.(png|jpg|jpeg|gif). Screenshots are stored in the /assets directory.
-2. This is the second screen shot
+= Is frontend card creation secure? =  
+Yes. AJAX actions are protected by WordPress nonces and capability checks.
 
 == Changelog ==
 
 = 1.0 =
-* A change since the previous version.
-* Another change.
-
-= 0.5 =
-* List versions from most recent at top to oldest at bottom.
+* Initial release.
+* Backend Kanban board.
+* Modal editing for cards (title, content, assignee, custom fields).
+* All users available for assignment (Select2 search).
+* Frontend add/delete with add-on.
+* Colored tags with add-on.
+* Bugfixes and improved UI.
 
 == Upgrade Notice ==
 
 = 1.0 =
-Upgrade notices describe the reason a user should upgrade.  No more than 300 characters.
+First stable release.
 
-= 0.5 =
-This version fixes a security related bug.  Upgrade immediately.
+== Screenshots ==
 
-== A brief Markdown Example ==
-
-Markdown is what the parser uses to process much of the readme file.
-
-[markdown syntax]: https://daringfireball.net/projects/markdown/syntax
-
-Ordered list:
-
-1. Some feature
-1. Another feature
-1. Something else about the plugin
-
-Unordered list:
-
-* something
-* something else
-* third thing
-
-Links require brackets and parenthesis:
-
-Here's a link to [WordPress](https://wordpress.org/ "Your favorite software") and one to [Markdown's Syntax Documentation][markdown syntax]. Link titles are optional, naturally.
-
-Blockquotes are email style:
-
-> Asterisks for *emphasis*. Double it up  for **strong**.
-
-And Backticks for code:
-
-`<?php code(); ?>`
+1. Kanban board admin view
+2. Modal card editor (backend)
+3. Card assignment with Select2 live search
+4. Colored tags with Card Tags add-on
+5. Frontend add/delete with Frontend Interactions add-on
