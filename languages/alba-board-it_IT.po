@@ -1,0 +1,212 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Alba Board 1.0\n"
+"Report-Msgid-Bugs-To: https://yourpluginurl.com/\n"
+"POT-Creation-Date: 2025-06-05 00:00+0000\n"
+"PO-Revision-Date: 2025-06-05 11:26-0500\n"
+"Last-Translator: Il Tuo Nome <tua@email.it>\n"
+"Language-Team: Italiano <tua@email.it>\n"
+"Language: it_IT\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 3.6\n"
+"X-Domain: alba-board\n"
+
+#: cards.php
+msgid "Cards"
+msgstr "Schede"
+
+#: cards.php
+msgid "Card"
+msgstr "Scheda"
+
+#: cards.php
+msgid "Add New"
+msgstr "Aggiungi nuovo"
+
+#: cards.php
+msgid "Add New Card"
+msgstr "Aggiungi nuova scheda"
+
+#: cards.php
+msgid "Edit Card"
+msgstr "Modifica scheda"
+
+#: cards.php
+msgid "New Card"
+msgstr "Nuova scheda"
+
+#: cards.php
+msgid "View Card"
+msgstr "Visualizza scheda"
+
+#: cards.php
+msgid "Search Cards"
+msgstr "Cerca schede"
+
+#: cards.php
+msgid "No cards found"
+msgstr "Nessuna scheda trovata"
+
+#: cards.php
+msgid "No cards found in Trash"
+msgstr "Nessuna scheda trovata nel cestino"
+
+#: cards.php
+msgid "Related List"
+msgstr "Lista collegata"
+
+#: cards.php
+msgid "-- Select list --"
+msgstr "-- Seleziona lista --"
+
+#: lists.php
+msgid "Lists"
+msgstr "Liste"
+
+#: lists.php
+msgid "List"
+msgstr "Lista"
+
+#: lists.php
+msgid "Add New List"
+msgstr "Aggiungi nuova lista"
+
+#: lists.php
+msgid "Edit List"
+msgstr "Modifica lista"
+
+#: lists.php
+msgid "New List"
+msgstr "Nuova lista"
+
+#: lists.php
+msgid "View List"
+msgstr "Visualizza lista"
+
+#: lists.php
+msgid "Search Lists"
+msgstr "Cerca liste"
+
+#: lists.php
+msgid "No lists found"
+msgstr "Nessuna lista trovata"
+
+#: lists.php
+msgid "No lists found in Trash"
+msgstr "Nessuna lista trovata nel cestino"
+
+#: lists.php
+msgid "Related Board"
+msgstr "Bacheca collegata"
+
+#: lists.php
+msgid "-- Select board --"
+msgstr "-- Seleziona bacheca --"
+
+#: boards.php
+msgid "Shortcode"
+msgstr "Shortcode"
+
+#: notifications.php
+msgid "New card created: %s"
+msgstr "Nuova scheda creata: %s"
+
+#: notifications.php
+msgid ""
+"Hello %s,\n"
+"A new card has been created in the Alba Board system.\n"
+"\n"
+"Title: %s\n"
+"Content: %s\n"
+"\n"
+"You can view it here: %s"
+msgstr ""
+"Ciao %s,\n"
+"È stata creata una nuova scheda nel sistema Alba Board.\n"
+"\n"
+"Titolo: %s\n"
+"Contenuto: %s\n"
+"\n"
+"Puoi visualizzarla qui: %s"
+
+#: security.php
+msgid "You do not have permission to perform this action."
+msgstr "Non hai il permesso di eseguire questa azione."
+
+#: security.php
+msgid "The file exceeds the maximum allowed size (5MB)."
+msgstr "Il file supera la dimensione massima consentita (5 MB)."
+
+#: security.php
+msgid "File type not allowed."
+msgstr "Tipo di file non consentito."
+
+#: settings.php
+msgid "Alba Board Settings"
+msgstr "Impostazioni Alba Board"
+
+#: settings.php
+msgid "Limits & Parameters"
+msgstr "Limiti e parametri"
+
+#: settings.php
+msgid "Maximum cards per list"
+msgstr "Numero massimo di schede per lista"
+
+#: settings.php
+msgid "Notifications"
+msgstr "Notifiche"
+
+#: settings.php
+msgid "Notify when creating a new card"
+msgstr "Notifica alla creazione di una nuova scheda"
+
+#: settings.php
+msgid "Enable email notifications"
+msgstr "Abilita notifiche email"
+
+#: shortcodes.php
+msgid "Invalid board ID"
+msgstr "ID bacheca non valido"
+
+#: shortcodes.php
+msgid "Loading..."
+msgstr "Caricamento in corso..."
+
+#: shortcodes.php
+msgid "Delete"
+msgstr "Elimina"
+
+#: shortcodes.php assets/js/alba-board-kanban.js
+msgid "Could not move the card."
+msgstr "Impossibile spostare la scheda."
+
+#: shortcodes.php
+msgid "Are you sure you want to delete this card?"
+msgstr "Sei sicuro di voler eliminare questa scheda?"
+
+#: shortcodes.php
+msgid "Error deleting card"
+msgstr "Errore durante l'eliminazione della scheda"
+
+#: assets/js/alba-backend-kanban.js
+msgid "Could not move card"
+msgstr "Impossibile spostare la scheda"
+
+#: assets/js/alba-backend-kanban.js
+msgid "Unknown error."
+msgstr "Errore sconosciuto."
+
+#: assets/js/alba-backend-kanban.js
+msgid "An error occurred while communicating with the server."
+msgstr "Si è verificato un errore durante la comunicazione con il server."
+
+#: assets/js/alba-backend-kanban.js
+msgid "Failed to save."
+msgstr "Salvataggio non riuscito."
+
+#: assets/js/alba-backend-kanban.js
+msgid "Request failed!"
+msgstr "Richiesta fallita!"
