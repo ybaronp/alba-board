@@ -1,5 +1,5 @@
 <?php
-// lists.php
+// includes/lists.php
 
 // Prevent direct access
 if ( ! defined( 'ABSPATH' ) ) {
@@ -10,16 +10,16 @@ if ( ! defined( 'ABSPATH' ) ) {
 function alba_board_register_list_post_type() {
     register_post_type('alba_list', [
         'labels' => [
-            'name'                  => __('Lists', 'alba-board'),
-            'singular_name'         => __('List', 'alba-board'),
-            'add_new'               => __('Add New', 'alba-board'),
-            'add_new_item'          => __('Add New List', 'alba-board'),
-            'edit_item'             => __('Edit List', 'alba-board'),
-            'new_item'              => __('New List', 'alba-board'),
-            'view_item'             => __('View List', 'alba-board'),
-            'search_items'          => __('Search Lists', 'alba-board'),
-            'not_found'             => __('No lists found', 'alba-board'),
-            'not_found_in_trash'    => __('No lists found in Trash', 'alba-board')
+            'name'                  => esc_html__('Lists', 'alba-board'),
+            'singular_name'         => esc_html__('List', 'alba-board'),
+            'add_new'               => esc_html__('Add New', 'alba-board'),
+            'add_new_item'          => esc_html__('Add New List', 'alba-board'),
+            'edit_item'             => esc_html__('Edit List', 'alba-board'),
+            'new_item'              => esc_html__('New List', 'alba-board'),
+            'view_item'             => esc_html__('View List', 'alba-board'),
+            'search_items'          => esc_html__('Search Lists', 'alba-board'),
+            'not_found'             => esc_html__('No lists found', 'alba-board'),
+            'not_found_in_trash'    => esc_html__('No lists found in Trash', 'alba-board')
         ],
         'public'            => false,
         'show_ui'           => true,
@@ -43,14 +43,17 @@ function alba_board_register_list_post_type() {
 }
 add_action('init', 'alba_board_register_list_post_type');
 
-// Save list-board relationship via custom field
+// Save list-board relationship via custom field (with nonce)
 function alba_board_save_list_relationship($post_id, $post, $update) {
     // Verify correct post type
     if ($post->post_type !== 'alba_list') return;
 
-    if (isset($_POST['alba_board_parent'])) {
-        // Sanitize and update meta
-        update_post_meta($post_id, 'alba_board_parent', intval($_POST['alba_board_parent']));
+    if (isset($_POST['alba_board_parent']) && isset($_POST['alba_list_board_nonce'])) {
+        $nonce = sanitize_text_field(wp_unslash($_POST['alba_list_board_nonce']));
+        if (wp_verify_nonce($nonce, 'alba_list_board_action')) {
+            // Sanitize and update meta
+            update_post_meta($post_id, 'alba_board_parent', intval($_POST['alba_board_parent']));
+        }
     }
 }
 add_action('save_post', 'alba_board_save_list_relationship', 10, 3);
@@ -59,7 +62,7 @@ add_action('save_post', 'alba_board_save_list_relationship', 10, 3);
 function alba_board_list_meta_box() {
     add_meta_box(
         'alba_board_list_board_meta',
-        __('Related Board', 'alba-board'),
+        esc_html__('Related Board', 'alba-board'),
         'alba_board_list_board_meta_callback',
         'alba_list',
         'side'
@@ -70,20 +73,25 @@ add_action('add_meta_boxes', 'alba_board_list_meta_box');
 function alba_board_list_board_meta_callback($post) {
     $selected_board = get_post_meta($post->ID, 'alba_board_parent', true);
     $boards = get_posts(['post_type' => 'alba_board', 'numberposts' => -1]);
-
+    // Nonce for board select/save
+    wp_nonce_field('alba_list_board_action', 'alba_list_board_nonce');
     echo '<select name="alba_board_parent">';
     echo '<option value="">' . esc_html__('-- Select board --', 'alba-board') . '</option>';
     foreach ($boards as $board) {
-        $selected = ($selected_board == $board->ID) ? 'selected' : '';
-        echo '<option value="' . esc_attr($board->ID) . '" ' . esc_attr($selected) . '>' . esc_html($board->post_title) . '</option>';
+        echo '<option value="' . esc_attr($board->ID) . '"';
+        if ($selected_board == $board->ID) {
+            echo ' selected="selected"';
+        }
+        echo '>' . esc_html($board->post_title) . '</option>';
     }
     echo '</select>';
 }
-// Agrega un metabox para mostrar las tarjetas (Cards) de esta lista
+
+// Add a metabox to show the cards of this list
 function alba_board_add_cards_metabox() {
     add_meta_box(
         'alba_list_cards_meta',
-        __('Cards in this list', 'alba-board'),
+        esc_html__('Cards in this list', 'alba-board'),
         'alba_board_cards_meta_callback',
         'alba_list',
         'normal',
@@ -93,7 +101,7 @@ function alba_board_add_cards_metabox() {
 add_action( 'add_meta_boxes', 'alba_board_add_cards_metabox' );
 
 function alba_board_cards_meta_callback( $post ) {
-    // Recupera todas las tarjetas relacionadas a esta lista
+    // Get all cards related to this list
     $cards = get_posts( [
         'post_type'   => 'alba_card',
         'numberposts' => -1,
@@ -103,10 +111,10 @@ function alba_board_cards_meta_callback( $post ) {
         'order'       => 'ASC'
     ] );
 
-    // Botón para añadir tarjeta rápidamente
+    // Button to quickly add a card
     echo '<p>';
     echo '<a href="' . esc_url( admin_url( 'post-new.php?post_type=alba_card&alba_list_parent=' . $post->ID ) ) . '" class="button button-primary">';
-    _e('Add new card', 'alba-board');
+    esc_html_e('Add new card', 'alba-board');
     echo '</a>';
     echo '</p>';
 
@@ -118,6 +126,6 @@ function alba_board_cards_meta_callback( $post ) {
         }
         echo '</ul>';
     } else {
-        echo '<p>' . __('No cards assigned to this list.', 'alba-board') . '</p>';
+        echo '<p>' . esc_html__('No cards assigned to this list.', 'alba-board') . '</p>';
     }
 }

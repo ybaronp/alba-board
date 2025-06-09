@@ -24,7 +24,7 @@ function alba_board_notify_on_new_card($post_id, $post, $update) {
 
     $message = sprintf(
         /* translators: 1: Author name, 2: Card title, 3: Card content, 4: Card link */
-        __("Hello %s,\n\nA new card has been created in the Alba Board system.\n\nTitle: %s\nContent: %s\n\nYou can view it here: %s", 'alba-board'),
+        __("Hello %1\$s,\n\nA new card has been created in the Alba Board system.\n\nTitle: %2\$s\nContent: %3\$s\n\nYou can view it here: %4\$s", 'alba-board'),
         $author->display_name,
         $post->post_title,
         wp_strip_all_tags($post->post_content),

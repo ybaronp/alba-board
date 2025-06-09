@@ -1,8 +1,8 @@
 === Alba Board ===
 Contributors: alejo  
-Tags: kanban, board, project management, todo, task, cards, workflow  
+Tags: kanban, board, project management, todo, task,  
 Requires at least: 5.8  
-Tested up to: 6.8.1  
+Tested up to: 6.8 
 Requires PHP: 7.2  
 Stable tag: 1.0  
 License: GPLv2 or later  

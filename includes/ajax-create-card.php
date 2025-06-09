@@ -1,11 +1,13 @@
 <?php
-// ajax-create-card.php
+// includes/ajax-create-card.php
 
 add_action('wp_ajax_alba_create_card', 'alba_core_ajax_create_card');
 add_action('wp_ajax_nopriv_alba_create_card', 'alba_core_ajax_create_card');
 
 function alba_core_ajax_create_card() {
-    if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'alba_create_card_nonce')) {
+    // Nonce validation with wp_unslash and sanitize
+    $nonce = isset($_POST['nonce']) ? sanitize_text_field(wp_unslash($_POST['nonce'])) : '';
+    if (!wp_verify_nonce($nonce, 'alba_create_card_nonce')) {
         wp_send_json_error(['message' => __('Invalid nonce.', 'alba-board')]);
     }
 
@@ -13,8 +15,8 @@ function alba_core_ajax_create_card() {
         wp_send_json_error(['message' => __('Permission denied.', 'alba-board')]);
     }
 
-    $title = sanitize_text_field($_POST['title'] ?? '');
-    $list_id = intval($_POST['list_id'] ?? 0);
+    $title = isset($_POST['title']) ? sanitize_text_field(wp_unslash($_POST['title'])) : '';
+    $list_id = isset($_POST['list_id']) ? intval($_POST['list_id']) : 0;
 
     if (!$title || !$list_id) {
         wp_send_json_error(['message' => __('Required data missing.', 'alba-board')]);
@@ -32,7 +34,6 @@ function alba_core_ajax_create_card() {
             'numberposts' => -1,
             'fields' => 'ids'
         ]);
-
         if (count($existing_cards) >= $max_cards) {
             wp_send_json_error(['message' => __('The card limit for this list has been reached.', 'alba-board')]);
         }

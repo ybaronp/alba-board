@@ -4,12 +4,12 @@
 if ( ! defined( 'ABSPATH' ) ) exit;
 
 function alba_board_enqueue_assets() {
-    $plugin_url = plugin_dir_url(dirname(__FILE__)); // desde /includes hacia raíz del plugin
+    $plugin_url = plugin_dir_url(dirname(__FILE__)); // from /includes to plugin root
 
-    // Sortable.js from CDN
+    // Sortable.js from local assets
     wp_enqueue_script(
         'sortablejs',
-        'https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js',
+        $plugin_url . 'assets/js/Sortable.min.js',
         [],
         '1.15.0',
         true

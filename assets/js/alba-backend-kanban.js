@@ -3,46 +3,48 @@
 document.addEventListener('DOMContentLoaded', () => {
     // --- Drag and drop (Sortable.js) ---
     document.querySelectorAll('.alba-list').forEach(list => {
-        new Sortable(list, {
-            group: 'alba-cards',
-            animation: 150,
-            ghostClass: 'sortable-ghost',
-            dragClass: 'sortable-drag',
-            onEnd: function (evt) {
-                const card = evt.item;
-                const cardId = card.dataset.cardId;
-                const newListId = evt.to.dataset.listId;
-                const orderedCardIds = Array.from(evt.to.querySelectorAll('[data-card-id]'))
-                    .map(el => el.dataset.cardId);
+        if (typeof Sortable !== "undefined") {
+            new Sortable(list, {
+                group: 'alba-cards',
+                animation: 150,
+                ghostClass: 'sortable-ghost',
+                dragClass: 'sortable-drag',
+                onEnd: function (evt) {
+                    const card = evt.item;
+                    const cardId = card.dataset.cardId;
+                    const newListId = evt.to.dataset.listId;
+                    const orderedCardIds = Array.from(evt.to.querySelectorAll('[data-card-id]'))
+                        .map(el => el.dataset.cardId);
 
-                if (cardId && newListId) {
-                    const params = new URLSearchParams();
-                    params.append('action', 'alba_move_card');
-                    params.append('card_id', cardId);
-                    params.append('new_list_id', newListId);
-                    params.append('nonce', albaBoard.nonce);
+                    if (cardId && newListId) {
+                        const params = new URLSearchParams();
+                        params.append('action', 'alba_move_card');
+                        params.append('card_id', cardId);
+                        params.append('new_list_id', newListId);
+                        params.append('nonce', albaBoard.nonce);
 
-                    orderedCardIds.forEach((id, index) => {
-                        params.append(`order[${index}]`, id);
-                    });
+                        orderedCardIds.forEach((id, index) => {
+                            params.append(`order[${index}]`, id);
+                        });
 
-                    fetch(albaBoard.ajaxurl, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                        body: params
-                    })
-                    .then(res => res.json())
-                    .then(response => {
-                        if (!response.success && response.data && response.data.message) {
-                            showBackendMessage(response.data.message, 'error');
-                        }
-                    })
-                    .catch(() => {
-                        showBackendMessage('Connection error.', 'error');
-                    });
+                        fetch(albaBoard.ajaxurl, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                            body: params
+                        })
+                        .then(res => res.json())
+                        .then(response => {
+                            if (!response.success && response.data && response.data.message) {
+                                showBackendMessage(response.data.message, 'error');
+                            }
+                        })
+                        .catch(() => {
+                            showBackendMessage('Connection error.', 'error');
+                        });
+                    }
                 }
-            }
-        });
+            });
+        }
     });
 
     // --- Modal logic (card details) ---

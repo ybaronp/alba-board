@@ -5,7 +5,8 @@ add_action('wp_ajax_alba_get_card_details', 'alba_board_get_card_details_ajax');
 add_action('wp_ajax_nopriv_alba_get_card_details', 'alba_board_get_card_details_ajax');
 
 function alba_board_get_card_details_ajax() {
-    $nonce = $_GET['nonce'] ?? '';
+    // Use wp_unslash and sanitize the nonce properly
+    $nonce = isset($_GET['nonce']) ? sanitize_text_field(wp_unslash($_GET['nonce'])) : '';
     if (!wp_verify_nonce($nonce, 'alba_get_card_details')) {
         echo 'Invalid nonce';
         wp_die();
@@ -36,8 +37,13 @@ function alba_board_get_card_details_ajax() {
               </div>';
     }
 
-    // Content
-    echo '<p style="margin-top:0.2em;">' . esc_html($card->post_content) . '</p>';
+    // Description (with line breaks)
+    $description = $card->post_content;
+    if (trim($description) !== '') {
+        echo '<p style="margin-top:0.2em;">' . nl2br(esc_html($description)) . '</p>';
+    } else {
+        echo '<p style="margin-top:0.2em; color:#bbb;">No description.</p>';
+    }
 
     // Tags (labels)
     $tags = get_the_terms($card_id, 'alba_tag');
@@ -57,12 +63,11 @@ function alba_board_get_card_details_ajax() {
         $comments = @unserialize($comments);
         if (!is_array($comments)) $comments = [];
     }
-    // Block for comments with max-height and scroll (neumorphism light style)
     echo '<div style="margin-top:14px; margin-bottom:12px;"><strong>Comments:</strong>';
     echo '<div id="alba-comments-list" style="max-height:190px; overflow-y:auto; background:#f7f9fc; border-radius:14px; box-shadow: 0 2px 9px #e9ebf2, 0 -2px 4px #fff; padding:8px 2px 6px 2px;">';
     if (!empty($comments)) {
         foreach ($comments as $i => $c) {
-            echo '<div class="alba-board-comment" data-comment-index="' . $i . '" style="
+            echo '<div class="alba-board-comment" data-comment-index="' . esc_attr($i) . '" style="
                 margin-bottom:8px;
                 padding:8px 10px;
                 border-radius:7px;

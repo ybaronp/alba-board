@@ -9,39 +9,50 @@ function alba_board_enqueue_admin_assets($hook) {
         return;
     }
 
-    $plugin_url = plugin_dir_url(dirname(__FILE__)); // desde /includes hacia raíz del plugin
+    $plugin_url = plugin_dir_url(dirname(__FILE__)) . 'assets/';
 
-    // Sortable.js for drag and drop
+    // 1. Sortable.js (local)
     wp_enqueue_script(
         'sortablejs',
-        'https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js',
+        $plugin_url . 'js/Sortable.min.js',
         [],
         '1.15.0',
         true
     );
 
-    // Alba Board backend JS
+    // 2. Select2 (local)
+    wp_enqueue_style(
+        'select2',
+        $plugin_url . 'css/select2.min.css',
+        [],
+        '4.1.0'
+    );
+    wp_enqueue_script(
+        'select2',
+        $plugin_url . 'js/select2.min.js',
+        ['jquery'],
+        '4.1.0',
+        true
+    );
+
+    // 3. Alba Board backend JS (depende de sortablejs y select2)
     wp_enqueue_script(
         'alba-backend-kanban',
-        $plugin_url . 'assets/js/alba-backend-kanban.js',
+        $plugin_url . 'js/alba-backend-kanban.js',
         ['sortablejs', 'jquery', 'select2'],
         null,
         true
     );
 
-    // Alba Board backend CSS (neumorphism style)
+    // 4. Alba Board backend CSS (neumorphism style)
     wp_enqueue_style(
         'alba-board-admin-neomorphism',
-        $plugin_url . 'assets/css/admin-alba-board-style.css',
+        $plugin_url . 'css/admin-alba-board-style.css',
         [],
         '1.1.0'
     );
 
-    // Select2 (for user selector in modal)
-    wp_enqueue_style('select2', '//cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css');
-    wp_enqueue_script('select2', '//cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js', ['jquery'], null, true);
-
-    // Pass AJAX URL, security nonces, and i18n strings to JS
+    // 5. Pass AJAX URL, security nonces, and i18n strings to JS
     wp_localize_script('alba-backend-kanban', 'albaBoard', [
         'ajaxurl' => admin_url('admin-ajax.php'),
         'nonce'   => wp_create_nonce('alba_move_card_nonce'),

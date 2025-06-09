@@ -9,8 +9,9 @@ function alba_update_card_assignee() {
         wp_send_json_error(['message' => __('Missing parameters.', 'alba-board')]);
     }
 
-    // 2. Nonce check
-    if (!wp_verify_nonce($_POST['nonce'], 'alba_card_assignee_nonce')) {
+    // 2. Nonce check (sanitize + unslash)
+    $nonce = isset($_POST['nonce']) ? sanitize_text_field(wp_unslash($_POST['nonce'])) : '';
+    if (!wp_verify_nonce($nonce, 'alba_card_assignee_nonce')) {
         wp_send_json_error(['message' => __('Invalid nonce.', 'alba-board')]);
     }
 

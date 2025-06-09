@@ -5,7 +5,7 @@ Plugin URI: https://www.albaboard.com
 Description: Custom Kanban system for WordPress with boards, lists, cards, and dynamic interactions. Extendable via add-ons.
 Version: 1.0
 Author: Alejo
-Author URI: https://www.albaboard.com
+Author URI: https://bitacoradeyab.wordpress.com
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 Text Domain: alba-board

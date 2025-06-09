@@ -41,11 +41,11 @@ function alba_output_card_details_admin_modal($card_id, $force_author = null) {
         foreach ($tags as $tag) {
             $bg = get_term_meta($tag->term_id, 'alba_tag_bg_color', true) ?: '#eee';
             $text = get_term_meta($tag->term_id, 'alba_tag_text_color', true);
-            $style = 'background:' . esc_attr($bg) . ';';
+            $style = 'background:' . $bg . ';';
             if ($text) {
-                $style .= 'color:' . esc_attr($text) . ';';
+                $style .= 'color:' . $text . ';';
             }
-            echo '<span style="' . $style . 'padding:2px 6px; border-radius:4px; font-size:0.75em;">' . esc_html($tag->name) . '</span>';
+            echo '<span style="' . esc_attr($style . 'padding:2px 6px; border-radius:4px; font-size:0.75em;') . '">' . esc_html($tag->name) . '</span>';
         }
         echo '</div>';
     }
@@ -56,8 +56,11 @@ function alba_output_card_details_admin_modal($card_id, $force_author = null) {
     $users = get_users();
     echo '<select name="assignee" id="alba-card-assignee" class="alba-select2" style="width:90%">';
     foreach ($users as $user_option) {
-        $selected = ($user_option->ID === $author_id) ? 'selected="selected"' : '';
-        echo '<option value="' . esc_attr($user_option->ID) . '" ' . $selected . '>' . esc_html($user_option->display_name) . ' (' . esc_html($user_option->user_email) . ')</option>';
+        echo '<option value="' . esc_attr($user_option->ID) . '"';
+        if ($user_option->ID === $author_id) {
+            echo ' selected="selected"';
+        }
+        echo '>' . esc_html($user_option->display_name) . ' (' . esc_html($user_option->user_email) . ')</option>';
     }
     echo '</select>';
     echo '</div>';
@@ -117,8 +120,8 @@ function alba_output_card_details_admin_modal($card_id, $force_author = null) {
 
 // AJAX: show card details
 add_action('wp_ajax_alba_get_card_details_admin', function() {
-    $nonce = $_GET['nonce'] ?? '';
-    if (!wp_verify_nonce($nonce, 'alba_get_card_details_admin')) {
+    $nonce = isset($_GET['nonce']) ? wp_unslash($_GET['nonce']) : '';
+    if (!wp_verify_nonce(sanitize_text_field($nonce), 'alba_get_card_details_admin')) {
         echo esc_html__('Invalid nonce.', 'alba-board');
         wp_die();
     }
@@ -129,8 +132,8 @@ add_action('wp_ajax_alba_get_card_details_admin', function() {
 
 // AJAX: save card details
 add_action('wp_ajax_alba_save_card_details_admin', function() {
-    $nonce = $_POST['nonce'] ?? '';
-    if (!wp_verify_nonce($nonce, 'alba_save_card_details_admin')) {
+    $nonce = isset($_POST['nonce']) ? wp_unslash($_POST['nonce']) : '';
+    if (!wp_verify_nonce(sanitize_text_field($nonce), 'alba_save_card_details_admin')) {
         wp_send_json_error(['message' => esc_html__('Invalid nonce.', 'alba-board')]);
     }
 
@@ -147,19 +150,21 @@ add_action('wp_ajax_alba_save_card_details_admin', function() {
 
     // Save title
     if (isset($_POST['title'])) {
-        $update_args['post_title'] = sanitize_text_field($_POST['title']);
+        $title = wp_unslash($_POST['title']);
+        $update_args['post_title'] = sanitize_text_field($title);
         $something_to_update = true;
     }
 
     // Save content
     if (isset($_POST['content'])) {
-        $update_args['post_content'] = sanitize_textarea_field($_POST['content']);
+        $content = wp_unslash($_POST['content']);
+        $update_args['post_content'] = sanitize_textarea_field($content);
         $something_to_update = true;
     }
 
     // Save assignee (author)
     if (isset($_POST['assignee'])) {
-        $assignee = intval($_POST['assignee']);
+        $assignee = intval(wp_unslash($_POST['assignee']));
         if ($assignee > 0) {
             $update_args['post_author'] = $assignee;
             $something_to_update = true;
@@ -177,7 +182,8 @@ add_action('wp_ajax_alba_save_card_details_admin', function() {
 
     // Save custom fields, but skip alba_comments (it's managed below)
     if (!empty($_POST['custom_fields']) && is_array($_POST['custom_fields'])) {
-        foreach ($_POST['custom_fields'] as $meta_key => $meta_value) {
+        $custom_fields = wp_unslash($_POST['custom_fields']);
+        foreach ($custom_fields as $meta_key => $meta_value) {
             if ($meta_key === 'alba_comments') continue;
             update_post_meta($card_id, sanitize_text_field($meta_key), sanitize_text_field($meta_value));
         }
@@ -186,19 +192,22 @@ add_action('wp_ajax_alba_save_card_details_admin', function() {
     // Handle new comment
     $comment_added = false;
     if (isset($_POST['new_comment']) && strlen(trim($_POST['new_comment']))) {
-        $comments = get_post_meta($card_id, 'alba_comments', true);
-        if (!is_array($comments)) {
-            $comments = @unserialize($comments);
-            if (!is_array($comments)) $comments = [];
+        $new_comment = sanitize_text_field(wp_unslash($_POST['new_comment']));
+        if (strlen(trim($new_comment))) {
+            $comments = get_post_meta($card_id, 'alba_comments', true);
+            if (!is_array($comments)) {
+                $comments = @unserialize($comments);
+                if (!is_array($comments)) $comments = [];
+            }
+            $user = wp_get_current_user();
+            $comments[] = [
+                'author' => $user->display_name ?: $user->user_login,
+                'date'   => date_i18n('Y-m-d H:i'),
+                'text'   => $new_comment,
+            ];
+            update_post_meta($card_id, 'alba_comments', $comments);
+            $comment_added = true;
         }
-        $user = wp_get_current_user();
-        $comments[] = [
-            'author' => $user->display_name ?: $user->user_login,
-            'date'   => date_i18n('Y-m-d H:i'),
-            'text'   => sanitize_text_field($_POST['new_comment']),
-        ];
-        update_post_meta($card_id, 'alba_comments', $comments);
-        $comment_added = true;
     }
 
     wp_cache_delete($card_id, 'posts');

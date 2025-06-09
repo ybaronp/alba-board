@@ -1,5 +1,5 @@
 <?php
-// ajax-move-card.php
+// includes/ajax-move-card.php
 
 add_action('wp_ajax_alba_move_card', 'alba_board_ajax_move_card');
 
@@ -15,9 +15,18 @@ function alba_board_ajax_move_card() {
     }
 
     // 3. Sanitize input
-    $card_id     = intval($_POST['card_id'] ?? 0);
-    $new_list_id = intval($_POST['new_list_id'] ?? 0);
-    $order       = $_POST['order'] ?? []; // array of IDs in new order
+    $card_id     = isset($_POST['card_id']) ? intval($_POST['card_id']) : 0;
+    $new_list_id = isset($_POST['new_list_id']) ? intval($_POST['new_list_id']) : 0;
+
+    // Properly unslash and sanitize the "order" array
+    $order = [];
+    // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Array sanitized with intval below
+    if (isset($_POST['order']) && is_array($_POST['order'])) {
+        $raw_order = wp_unslash($_POST['order']);
+        foreach ($raw_order as $k => $v) {
+            $order[intval($k)] = intval($v);
+        }
+    }
 
     if (!$card_id || !$new_list_id) {
         wp_send_json_error([ 'message' => __('Incomplete data.', 'alba-board') ]);
@@ -27,14 +36,12 @@ function alba_board_ajax_move_card() {
     update_post_meta($card_id, 'alba_list_parent', $new_list_id);
 
     // 5. Loop through the "order" array and update menu_order of each card
-    if (is_array($order)) {
-        foreach ($order as $position => $id) {
-            $pos = intval($position);
-            $cid = intval($id);
+    if (!empty($order)) {
+        foreach ($order as $position => $cid) {
             if ($cid) {
                 wp_update_post([
                     'ID'         => $cid,
-                    'menu_order' => $pos,
+                    'menu_order' => $position,
                 ]);
             }
         }
