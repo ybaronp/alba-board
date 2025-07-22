@@ -1,0 +1,212 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Alba Board 1.0\n"
+"Report-Msgid-Bugs-To: https://yourpluginurl.com/\n"
+"POT-Creation-Date: 2025-06-05 00:00+0000\n"
+"PO-Revision-Date: 2025-06-05 19:58-0500\n"
+"Last-Translator: あなたの名前 <あなた@email.jp>\n"
+"Language-Team: 日本語 <あなた@email.jp>\n"
+"Language: ja\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 3.6\n"
+"X-Domain: alba-board\n"
+
+#: cards.php
+msgid "Cards"
+msgstr "カード"
+
+#: cards.php
+msgid "Card"
+msgstr "カード"
+
+#: cards.php
+msgid "Add New"
+msgstr "新規追加"
+
+#: cards.php
+msgid "Add New Card"
+msgstr "新しいカードを追加"
+
+#: cards.php
+msgid "Edit Card"
+msgstr "カードを編集"
+
+#: cards.php
+msgid "New Card"
+msgstr "新しいカード"
+
+#: cards.php
+msgid "View Card"
+msgstr "カードを見る"
+
+#: cards.php
+msgid "Search Cards"
+msgstr "カードを検索"
+
+#: cards.php
+msgid "No cards found"
+msgstr "カードが見つかりません"
+
+#: cards.php
+msgid "No cards found in Trash"
+msgstr "ゴミ箱にカードがありません"
+
+#: cards.php
+msgid "Related List"
+msgstr "関連リスト"
+
+#: cards.php
+msgid "-- Select list --"
+msgstr "-- リストを選択 --"
+
+#: lists.php
+msgid "Lists"
+msgstr "リスト"
+
+#: lists.php
+msgid "List"
+msgstr "リスト"
+
+#: lists.php
+msgid "Add New List"
+msgstr "新しいリストを追加"
+
+#: lists.php
+msgid "Edit List"
+msgstr "リストを編集"
+
+#: lists.php
+msgid "New List"
+msgstr "新しいリスト"
+
+#: lists.php
+msgid "View List"
+msgstr "リストを見る"
+
+#: lists.php
+msgid "Search Lists"
+msgstr "リストを検索"
+
+#: lists.php
+msgid "No lists found"
+msgstr "リストが見つかりません"
+
+#: lists.php
+msgid "No lists found in Trash"
+msgstr "ゴミ箱にリストがありません"
+
+#: lists.php
+msgid "Related Board"
+msgstr "関連ボード"
+
+#: lists.php
+msgid "-- Select board --"
+msgstr "-- ボードを選択 --"
+
+#: boards.php
+msgid "Shortcode"
+msgstr "ショートコード"
+
+#: notifications.php
+msgid "New card created: %s"
+msgstr "新しいカードが作成されました: %s"
+
+#: notifications.php
+msgid ""
+"Hello %s,\n"
+"A new card has been created in the Alba Board system.\n"
+"\n"
+"Title: %s\n"
+"Content: %s\n"
+"\n"
+"You can view it here: %s"
+msgstr ""
+"%sさん、\n"
+"Alba Boardシステムで新しいカードが作成されました。\n"
+"\n"
+"タイトル: %s\n"
+"内容: %s\n"
+"\n"
+"こちらでご覧いただけます: %s"
+
+#: security.php
+msgid "You do not have permission to perform this action."
+msgstr "この操作を行う権限がありません。"
+
+#: security.php
+msgid "The file exceeds the maximum allowed size (5MB)."
+msgstr "ファイルが許可された最大サイズ（5MB）を超えています。"
+
+#: security.php
+msgid "File type not allowed."
+msgstr "許可されていないファイル形式です。"
+
+#: settings.php
+msgid "Alba Board Settings"
+msgstr "Alba Board設定"
+
+#: settings.php
+msgid "Limits & Parameters"
+msgstr "制限とパラメーター"
+
+#: settings.php
+msgid "Maximum cards per list"
+msgstr "リストごとの最大カード数"
+
+#: settings.php
+msgid "Notifications"
+msgstr "通知"
+
+#: settings.php
+msgid "Notify when creating a new card"
+msgstr "新しいカード作成時に通知"
+
+#: settings.php
+msgid "Enable email notifications"
+msgstr "メール通知を有効にする"
+
+#: shortcodes.php
+msgid "Invalid board ID"
+msgstr "無効なボードIDです"
+
+#: shortcodes.php
+msgid "Loading..."
+msgstr "読み込み中..."
+
+#: shortcodes.php
+msgid "Delete"
+msgstr "削除"
+
+#: shortcodes.php assets/js/alba-board-kanban.js
+msgid "Could not move the card."
+msgstr "カードを移動できませんでした。"
+
+#: shortcodes.php
+msgid "Are you sure you want to delete this card?"
+msgstr "このカードを削除してもよろしいですか？"
+
+#: shortcodes.php
+msgid "Error deleting card"
+msgstr "カードの削除中にエラーが発生しました"
+
+#: assets/js/alba-backend-kanban.js
+msgid "Could not move card"
+msgstr "カードを移動できませんでした"
+
+#: assets/js/alba-backend-kanban.js
+msgid "Unknown error."
+msgstr "不明なエラーです。"
+
+#: assets/js/alba-backend-kanban.js
+msgid "An error occurred while communicating with the server."
+msgstr "サーバーとの通信中にエラーが発生しました。"
+
+#: assets/js/alba-backend-kanban.js
+msgid "Failed to save."
+msgstr "保存に失敗しました。"
+
+#: assets/js/alba-backend-kanban.js
+msgid "Request failed!"
+msgstr "リクエストに失敗しました！"

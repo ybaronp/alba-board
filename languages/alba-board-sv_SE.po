@@ -1,0 +1,212 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Alba Board 1.0\n"
+"Report-Msgid-Bugs-To: https://yourpluginurl.com/\n"
+"POT-Creation-Date: 2025-06-05 00:00+0000\n"
+"PO-Revision-Date: 2025-06-05 11:27-0500\n"
+"Last-Translator: Ditt Namn <din@email.se>\n"
+"Language-Team: Svenska <din@email.se>\n"
+"Language: sv_SE\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 3.6\n"
+"X-Domain: alba-board\n"
+
+#: cards.php
+msgid "Cards"
+msgstr "Kort"
+
+#: cards.php
+msgid "Card"
+msgstr "Kort"
+
+#: cards.php
+msgid "Add New"
+msgstr "Lägg till ny"
+
+#: cards.php
+msgid "Add New Card"
+msgstr "Lägg till nytt kort"
+
+#: cards.php
+msgid "Edit Card"
+msgstr "Redigera kort"
+
+#: cards.php
+msgid "New Card"
+msgstr "Nytt kort"
+
+#: cards.php
+msgid "View Card"
+msgstr "Visa kort"
+
+#: cards.php
+msgid "Search Cards"
+msgstr "Sök kort"
+
+#: cards.php
+msgid "No cards found"
+msgstr "Inga kort hittades"
+
+#: cards.php
+msgid "No cards found in Trash"
+msgstr "Inga kort hittades i papperskorgen"
+
+#: cards.php
+msgid "Related List"
+msgstr "Relaterad lista"
+
+#: cards.php
+msgid "-- Select list --"
+msgstr "-- Välj lista --"
+
+#: lists.php
+msgid "Lists"
+msgstr "Listor"
+
+#: lists.php
+msgid "List"
+msgstr "Lista"
+
+#: lists.php
+msgid "Add New List"
+msgstr "Lägg till ny lista"
+
+#: lists.php
+msgid "Edit List"
+msgstr "Redigera lista"
+
+#: lists.php
+msgid "New List"
+msgstr "Ny lista"
+
+#: lists.php
+msgid "View List"
+msgstr "Visa lista"
+
+#: lists.php
+msgid "Search Lists"
+msgstr "Sök listor"
+
+#: lists.php
+msgid "No lists found"
+msgstr "Inga listor hittades"
+
+#: lists.php
+msgid "No lists found in Trash"
+msgstr "Inga listor hittades i papperskorgen"
+
+#: lists.php
+msgid "Related Board"
+msgstr "Relaterad tavla"
+
+#: lists.php
+msgid "-- Select board --"
+msgstr "-- Välj tavla --"
+
+#: boards.php
+msgid "Shortcode"
+msgstr "Kortkod"
+
+#: notifications.php
+msgid "New card created: %s"
+msgstr "Nytt kort skapat: %s"
+
+#: notifications.php
+msgid ""
+"Hello %s,\n"
+"A new card has been created in the Alba Board system.\n"
+"\n"
+"Title: %s\n"
+"Content: %s\n"
+"\n"
+"You can view it here: %s"
+msgstr ""
+"Hej %s,\n"
+"Ett nytt kort har skapats i Alba Board-systemet.\n"
+"\n"
+"Titel: %s\n"
+"Innehåll: %s\n"
+"\n"
+"Du kan se det här: %s"
+
+#: security.php
+msgid "You do not have permission to perform this action."
+msgstr "Du har inte behörighet att utföra denna åtgärd."
+
+#: security.php
+msgid "The file exceeds the maximum allowed size (5MB)."
+msgstr "Filen överskrider den maximalt tillåtna storleken (5 MB)."
+
+#: security.php
+msgid "File type not allowed."
+msgstr "Filtypen är inte tillåten."
+
+#: settings.php
+msgid "Alba Board Settings"
+msgstr "Alba Board-inställningar"
+
+#: settings.php
+msgid "Limits & Parameters"
+msgstr "Begränsningar och parametrar"
+
+#: settings.php
+msgid "Maximum cards per list"
+msgstr "Maximalt antal kort per lista"
+
+#: settings.php
+msgid "Notifications"
+msgstr "Aviseringar"
+
+#: settings.php
+msgid "Notify when creating a new card"
+msgstr "Avisera vid skapande av nytt kort"
+
+#: settings.php
+msgid "Enable email notifications"
+msgstr "Aktivera e-postaviseringar"
+
+#: shortcodes.php
+msgid "Invalid board ID"
+msgstr "Ogiltigt tavla-ID"
+
+#: shortcodes.php
+msgid "Loading..."
+msgstr "Laddar..."
+
+#: shortcodes.php
+msgid "Delete"
+msgstr "Ta bort"
+
+#: shortcodes.php assets/js/alba-board-kanban.js
+msgid "Could not move the card."
+msgstr "Det gick inte att flytta kortet."
+
+#: shortcodes.php
+msgid "Are you sure you want to delete this card?"
+msgstr "Är du säker på att du vill ta bort det här kortet?"
+
+#: shortcodes.php
+msgid "Error deleting card"
+msgstr "Fel vid borttagning av kort"
+
+#: assets/js/alba-backend-kanban.js
+msgid "Could not move card"
+msgstr "Det gick inte att flytta kortet"
+
+#: assets/js/alba-backend-kanban.js
+msgid "Unknown error."
+msgstr "Okänt fel."
+
+#: assets/js/alba-backend-kanban.js
+msgid "An error occurred while communicating with the server."
+msgstr "Ett fel uppstod vid kommunikation med servern."
+
+#: assets/js/alba-backend-kanban.js
+msgid "Failed to save."
+msgstr "Det gick inte att spara."
+
+#: assets/js/alba-backend-kanban.js
+msgid "Request failed!"
+msgstr "Begäran misslyckades!"
