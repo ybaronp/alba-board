@@ -1,464 +1,571 @@
-/* --- Alba Board: Neumorphism Board + Modal Styles --- */
+/* =========================================================
+   ALBA BOARD: FRONTEND UI STYLES (CORE THEMES + ORIGINAL LAYOUT)
+   ========================================================= */
 
-/* --- BOARD STYLES --- */
+/* 1. DEFAULT (Original intact theme) */
+:root, .alba-theme-default {
+    --alba-bg: #f5f6fa;
+    --alba-card-bg: #ffffff; 
+    --alba-input-bg: #f7f8fa;
+    --alba-comment-bg: #f8fafd;
+    --alba-btn-bg: #eaf0fb;
+    --alba-border-color: transparent; 
+    --alba-shadow-dark: #e0e3ec; 
+    --alba-shadow-light: #ffffff; 
+    --alba-shadow-dark-hover: #d8dee7;
+    --alba-text-title: #27304d;
+    --alba-text-main: #222222;
+    --alba-text-muted: #8c98a9;
+    --alba-danger: #be2230;
+}
+
+/* 2. SPACE (Deep Dark Mode) */
+.alba-theme-space {
+    --alba-bg: #1a1b26;
+    --alba-card-bg: rgba(36, 40, 59, 0.85);
+    --alba-input-bg: rgba(26, 27, 38, 0.8);
+    --alba-comment-bg: rgba(47, 52, 77, 0.4);
+    --alba-btn-bg: rgba(47, 52, 77, 0.8);
+    --alba-border-color: rgba(255, 255, 255, 0.05);
+    --alba-shadow-dark: #13141c;
+    --alba-shadow-light: #2d3247;
+    --alba-shadow-dark-hover: #0d0e14;
+    --alba-text-title: #ffffff;
+    --alba-text-main: #c0caf5;
+    --alba-text-muted: #565f89;
+    --alba-danger: #f7768e;
+}
+
+/* 3. COSMIC DAWN (Deep Earth Sunrise) */
+.alba-theme-cosmic_dawn {
+    --alba-bg: 
+        radial-gradient(100% 100% at 50% 100%, rgba(234, 88, 12, 0.35) 0%, transparent 45%),
+        radial-gradient(150% 100% at 50% 100%, rgba(14, 165, 233, 0.25) 0%, transparent 75%),
+        linear-gradient(180deg, #020617 0%, #0f172a 100%);
+    --alba-card-bg: rgba(15, 23, 42, 0.4); 
+    --alba-input-bg: rgba(0, 0, 0, 0.3);
+    --alba-comment-bg: rgba(255, 255, 255, 0.02);
+    --alba-btn-bg: rgba(234, 88, 12, 0.15);
+    --alba-border-color: rgba(255, 255, 255, 0.08); 
+    --alba-shadow-dark: rgba(0, 0, 0, 0.5);
+    --alba-shadow-light: rgba(255, 255, 255, 0.03);
+    --alba-shadow-dark-hover: rgba(0, 0, 0, 0.8);
+    --alba-text-title: #ffffff;
+    --alba-text-main: #f8fafc;
+    --alba-text-muted: #94a3b8;
+    --alba-danger: #ef4444;
+}
+
+/* --- THEME WRAPPER --- */
+.alba-master-theme-wrapper {
+    background: var(--alba-bg) !important;
+    padding: 38px 0;
+    border-radius: 32px;
+    box-shadow: 20px 20px 46px var(--alba-shadow-dark), -20px -20px 54px var(--alba-shadow-light);
+    margin-bottom: 34px;
+    width: 100%;
+    overflow-x: auto;
+    font-family: inherit;
+    color: var(--alba-text-main);
+    box-sizing: border-box;
+}
+
 .alba-board-outerwrap {
-  background: #f5f6fa !important;
-  padding: 38px 0;
-  border-radius: 32px;
-  box-shadow:
-    20px 20px 46px #d3dae7,
-    -20px -20px 54px #ffffff;
-  margin-bottom: 34px;
-  width: 100%;
-  overflow-x: auto;
+    background: transparent !important;
+    padding: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    margin-bottom: 0 !important;
 }
 
 .alba-board-wrapper {
-  display: flex;
-  gap: 32px;
-  overflow-x: auto;
-  padding: 0 12px 14px 12px;
+    display: flex;
+    gap: 32px;
+    overflow-x: auto;
+    padding: 0 12px 14px 12px;
 }
 
+/* --- Lists (Columns) with SCROLL --- */
 .alba-list-column {
-  min-width: 300px;
-  max-width: 300px;
-  width: 300px;
-  background: #f5f6fa;
-  border-radius: 28px;
-  box-shadow:
-    11px 11px 30px #e0e3ec,
-    -9px -9px 34px #ffffff;
-  padding: 22px 8px 34px 8px;
-  margin-bottom: 24px;
-  display: flex;
-  flex-direction: column;
-  border: none;
+    min-width: 300px;
+    max-width: 300px;
+    width: 300px;
+    background: var(--alba-bg) !important; 
+    border-radius: 28px;
+    box-shadow: 11px 11px 30px var(--alba-shadow-dark), -9px -9px 34px var(--alba-shadow-light) !important;
+    padding: 22px 4px 22px 12px !important; 
+    margin-bottom: 24px;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--alba-border-color) !important;
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    max-height: calc(100vh - 120px); 
+    transition: min-width 0.3s ease, max-width 0.3s ease, width 0.3s ease, padding 0.3s ease;
 }
 
 .alba-list-column h3 {
-  margin: 0 0 12px 0;
-  font-size: 1.13em;
-  font-weight: 700;
-  color: #1e243a;
-  letter-spacing: 0.01em;
-  text-align: left;
-  padding-left: 2px;
+    margin: 0 0 12px 0;
+    font-size: 1.13em;
+    font-weight: 700;
+    color: var(--alba-text-title) !important;
+    letter-spacing: 0.01em;
+    text-align: left;
+    padding-left: 2px;
 }
 
 .alba-cards {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    overflow-y: auto; 
+    overflow-x: hidden;
+    padding-right: 8px;
+    flex-grow: 1;
 }
 
+/* Elegant invisible scrollbar */
+.alba-cards::-webkit-scrollbar { width: 6px; }
+.alba-cards::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.03); border-radius: 10px; }
+.alba-cards::-webkit-scrollbar-thumb { background: var(--alba-shadow-dark); border-radius: 10px; }
+.alba-cards::-webkit-scrollbar-thumb:hover { background: var(--alba-text-muted); }
+
+
+/* --- Cards --- */
 .alba-card {
-  background: #fff;
-  border-radius: 21px;
-  padding: 14px 16px 8px 16px;
-  box-shadow:
-    6px 6px 16px #e3e7ef,
-    -6px -6px 14px #fff;
-  border: none;
-  font-size: 1em;
-  color: #222;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  min-height: 54px;
-  margin-bottom: 8px;
-  position: relative;
-  word-break: break-word;
-  cursor: move;
-  text-align: left;
-  transition: box-shadow 0.14s, background 0.14s;
+    background: var(--alba-card-bg) !important;
+    border-radius: 21px;
+    padding: 14px 16px 8px 16px;
+    box-shadow: 6px 6px 16px var(--alba-shadow-dark), -6px -6px 14px var(--alba-shadow-light) !important;
+    border: 1px solid var(--alba-border-color) !important;
+    font-size: 1em;
+    color: var(--alba-text-main) !important;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 54px;
+    margin-bottom: 8px;
+    position: relative;
+    word-break: break-word;
+    cursor: move;
+    text-align: left;
+    transition: opacity 0.3s ease, transform 0.3s ease, box-shadow 0.14s, background 0.14s;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    flex-shrink: 0; 
 }
 
 .alba-card-title {
-  font-weight: 700;
-  font-size: 1.09em;
-  color: #27304d;
-  margin-bottom: 3px;
-  display: block;
-  line-height: 1.3;
-}
-
-.alba-card-tags {
-  margin-top: 8px;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 5px;
-  justify-content: flex-end;
-}
-
-/* Tag chip neumorphism shadow using dynamic --tag-shadow from inline style */
-.alba-card-tags span,
-.alba-card .alba-card-tag-chip {
-  display: inline-block;
-  padding: 3.5px 15px;
-  border-radius: 999px;
-  font-size: 0.96em;
-  font-weight: 600;
-  background: #f1f3fa;
-  color: inherit;
-  border: none;
-  box-shadow:
-    2.2px 2.2px 7px var(--tag-shadow, #e3e7ef),
-    -1.5px -1.5px 6px #fff;
-  margin: 1px 0 0 3px;
-  letter-spacing: 0.01em;
-  transition: box-shadow 0.13s, background 0.13s;
-}
-
-.alba-card-tags .alba-card-tag-chip[style*="--tag-shadow"] {
-  box-shadow:
-    2.2px 2.2px 7px var(--tag-shadow, #e3e7ef),
-    -1.5px -1.5px 6px #fff;
+    font-weight: 700;
+    font-size: 1.09em;
+    color: var(--alba-text-title) !important;
+    margin-bottom: 3px;
+    display: block;
+    line-height: 1.3;
 }
 
 .alba-card:hover,
 .alba-card:focus {
-  box-shadow:
-    0 4px 18px 3px #d8dee7,
-    0 -2px 7px 1px #fff;
-  background: #f8fafc;
-  outline: none;
+    box-shadow: 0 4px 18px 3px var(--alba-shadow-dark-hover), 0 -2px 7px 1px var(--alba-shadow-light) !important;
+    transform: translateY(-2px);
+    outline: none;
 }
 
 .alba-card.sortable-drag {
-  box-shadow:
-    4px 4px 12px #d1d4db,
-    -4px -4px 12px #ffffff;
-  opacity: 0.97;
+    box-shadow: 4px 4px 12px var(--alba-shadow-dark), -4px -4px 12px var(--alba-shadow-light) !important;
+    opacity: 0.97;
 }
 
-/* Add card button style */
+.alba-avatar-img-front {
+    border-radius: 50%;
+    box-shadow: 2.2px 2.2px 7px var(--alba-shadow-dark), -1.5px -1.5px 6px var(--alba-shadow-light) !important;
+    border: 2px solid var(--alba-border-color) !important;
+}
+
+/* --- Tags --- */
+.alba-card-tags {
+    margin-top: 8px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    justify-content: flex-start;
+}
+
+.alba-card-tags span,
+.alba-card .alba-card-tag-chip {
+    display: inline-block;
+    padding: 3.5px 15px;
+    border-radius: 999px;
+    font-size: 0.96em;
+    font-weight: 600;
+    border: none !important;
+    box-shadow: 2.2px 2.2px 7px var(--tag-shadow, var(--alba-shadow-dark)), -1.5px -1.5px 6px var(--alba-shadow-light) !important;
+    margin: 1px 0 0 3px;
+    letter-spacing: 0.01em;
+}
+
+/* "Add Card" Buttons */
+.alba-list-column > button,
 .alba-list-column .button,
-.alba-list-column a.button,
-.alba-list-column button {
-  margin-top: 18px;
-  margin-bottom: 2px;
-  border-radius: 18px;
-  padding: 8px 32px;
-  box-shadow:
-    2.2px 2.2px 13px #e0e3ec,
-    -2.2px -2.2px 12px #fff;
-  border: none;
-  background: #eaf0fb;
-  color: #3d4b5c;
-  font-size: 1.03em;
-  font-weight: 500;
-  transition: box-shadow 0.16s, background 0.16s, color 0.17s;
-  cursor: pointer;
-  outline: none;
-  letter-spacing: 0.02em;
-  display: inline-block;
+.alba-list-column .alba-add-card-btn {
+    margin-top: 18px;
+    margin-bottom: 2px;
+    border-radius: 18px !important;
+    padding: 8px 32px !important;
+    box-shadow: 2.2px 2.2px 13px var(--alba-shadow-dark), -2.2px -2.2px 12px var(--alba-shadow-light) !important;
+    border: 1px solid var(--alba-border-color) !important;
+    background: var(--alba-btn-bg) !important;
+    color: var(--alba-text-title) !important;
+    font-size: 1.03em !important;
+    font-weight: 600 !important;
+    transition: box-shadow 0.16s, background 0.16s, color 0.17s;
+    cursor: pointer;
+    outline: none;
+    letter-spacing: 0.02em;
+    display: inline-block;
+    text-align: center;
+    backdrop-filter: blur(4px);
+}
+.alba-list-column > button:hover,
+.alba-list-column .button:hover,
+.alba-list-column .alba-add-card-btn:hover {
+    box-shadow: 0 4px 18px 2px var(--alba-shadow-dark-hover), 0 -2px 7px 2px var(--alba-shadow-light) !important;
+    filter: brightness(1.05);
 }
 
-.alba-list-column .button:hover,
-.alba-list-column a.button:hover,
-.alba-list-column button:hover,
-.alba-list-column .button:focus,
-.alba-list-column a.button:focus,
-.alba-list-column button:focus {
-  background: #f6fafd;
-  color: #28497b;
-  box-shadow:
-    0 4px 18px 2px #dde5ef,
-    0 -2px 7px 2px #fff;
+/* --- MODAL + BLUR --- */
+#alba-card-modal {
+    display: none;
+    position: fixed;
+    z-index: 99999;
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+    justify-content: center;
+    align-items: center;
+    background: rgba(0, 0, 0, 0.4) !important;
+    transition: background 0.2s;
+}
+
+#alba-card-modal.active { display: flex !important; }
+
+#alba-card-modal.active:before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+    backdrop-filter: blur(7px);
+    -webkit-backdrop-filter: blur(7px);
+    pointer-events: none;
+}
+
+#alba-card-modal .alba-modal-content {
+    z-index: 2;
+    background: var(--alba-card-bg) !important;
+    border-radius: 27px;
+    max-width: 680px;
+    width: 95vw;
+    box-shadow: 0 2px 44px 2px var(--alba-shadow-dark), 0 2px 80px 8px var(--alba-shadow-dark-hover) !important;
+    padding: 44px 32px 32px 32px;
+    position: relative;
+    min-width: 320px;
+    max-height: 85vh; 
+    font-family: 'Fira Mono', 'Roboto Mono', 'monospace', monospace;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    border: 1px solid var(--alba-border-color) !important;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    animation: popup-show 0.25s cubic-bezier(.33,1.02,.54,1.01);
+}
+
+@keyframes popup-show {
+    0% { transform: scale(0.94) translateY(24px); opacity: 0.5;}
+    100% { transform: scale(1) translateY(0); opacity: 1;}
+}
+
+#alba-card-modal #alba-modal-close {
+    position: absolute !important;
+    top: 18px !important;
+    right: 24px !important;
+    background: var(--alba-btn-bg) !important;
+    border: 1px solid var(--alba-border-color) !important;
+    padding: 0 !important;
+    width: 36px !important;
+    height: 36px !important;
+    border-radius: 50% !important;
+    font-size: 1.4em !important;
+    color: var(--alba-text-muted) !important;
+    cursor: pointer;
+    box-shadow: 1.2px 2.2px 8px var(--alba-shadow-dark), -1px -1.5px 4px var(--alba-shadow-light) !important;
+    z-index: 3;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    line-height: 0 !important;
+    transition: box-shadow 0.14s, background 0.14s;
+}
+#alba-card-modal #alba-modal-close:hover {
+    color: var(--alba-danger) !important;
+    box-shadow: 1.2px 2.2px 14px var(--alba-shadow-dark-hover), -2px -2px 6px var(--alba-shadow-light) !important;
+}
+
+#alba-modal-body h2 {
+    color: var(--alba-text-title) !important;
+    font-size: 2.2em;
+    font-weight: 700;
+    margin-top: 0;
+    margin-bottom: 2px;
+    letter-spacing: 0.03em;
+    word-break: break-word;
+    padding-right: 40px; 
+}
+
+#alba-modal-body {
+    width: 100%;
+    color: var(--alba-text-main);
+}
+
+#alba-modal-body strong,
+#alba-modal-body label {
+    font-weight: 700;
+    color: var(--alba-text-title) !important;
 }
 
 /* Neumorphic comments section */
 .alba-card-comments-scrollable,
 #alba-comments-list {
-  background: #f7f8fa;
-  border-radius: 18px;
-  min-height: 80px;
-  max-height: 29vh;
-  overflow-y: auto;
-  margin-bottom: 14px;
-  box-shadow: 3px 3px 15px #e4e7ef, -3px -3px 8px #fff;
-  padding: 12px 12px 8px 12px;
+    background: var(--alba-input-bg) !important;
+    border-radius: 18px;
+    min-height: 80px;
+    max-height: 29vh;
+    overflow-y: auto;
+    margin-bottom: 14px;
+    box-shadow: inset 3px 3px 15px var(--alba-shadow-dark), inset -3px -3px 8px var(--alba-shadow-light) !important;
+    padding: 12px 12px 8px 12px;
+    border: 1px solid var(--alba-border-color) !important;
 }
 
 .alba-board-comment,
 .alba-modal-comment {
-  margin-bottom: 13px;
-  padding: 12px 20px 10px 20px;
-  border-radius: 13px;
-  background: #f8fafd;
-  /* Deep neumorphic shadows, no border */
-  box-shadow:
-    8px 8px 26px #e3e7ef,
-    -7px -7px 18px #fff;
-  color: #232b36;
-  font-size: 1.09em;
-  min-width: 0;
-  word-break: break-word;
-  border: none !important;
-  transition: box-shadow 0.17s, background 0.17s;
-}
-
-.alba-board-comment strong,
-.alba-modal-comment strong {
-  color: #27304d;
-  font-size: 1.13em;
-  font-weight: 700;
-  margin-right: 9px;
+    margin-bottom: 13px;
+    padding: 12px 20px 10px 20px;
+    border-radius: 13px;
+    background: var(--alba-comment-bg) !important;
+    box-shadow: 4px 4px 16px var(--alba-shadow-dark), -4px -4px 10px var(--alba-shadow-light) !important;
+    color: var(--alba-text-main) !important;
+    font-size: 1.09em;
+    word-break: break-word;
+    border: 1px solid var(--alba-border-color) !important;
 }
 
 .alba-comment-date {
-  color: #8c98a9;
-  font-size: 0.95em;
-  margin-left: 7px;
+    color: var(--alba-text-muted) !important;
+    font-size: 0.95em;
+    margin-left: 7px;
 }
 
-.alba-comment-text {
-  margin-top: 3px;
-}
-
+/* Inputs & Buttons inside modal */
+input[type="text"].alba-form-input-text, 
+textarea.alba-form-input-text,
 #alba-new-comment-text {
-  width: 99%;
-  min-height: 38px;
-  background: #f7f8fa;
-  border-radius: 18px;
-  border: none;
-  box-shadow: 1.5px 2.2px 9px #e3e7ef, -1.5px -1.5px 6px #fff;
-  font-size: 1em;
-  margin-bottom: 10px;
-  padding: 13px 16px 13px 13px;
-  outline: none;
-  color: #1e243a;
-  font-family: 'Fira Mono', monospace;
-  resize: vertical;
-  transition: box-shadow 0.13s, background 0.12s;
+    width: 99%;
+    min-height: 38px;
+    background: var(--alba-input-bg) !important;
+    border-radius: 18px !important;
+    border: 1px solid var(--alba-border-color) !important;
+    box-shadow: inset 1.5px 2.2px 9px var(--alba-shadow-dark), inset -1.5px -1.5px 6px var(--alba-shadow-light) !important;
+    font-size: 1em;
+    margin-bottom: 10px;
+    padding: 13px 16px 13px 13px;
+    outline: none;
+    color: var(--alba-text-main) !important;
+    font-family: inherit;
+    resize: vertical;
 }
+
+input[type="text"].alba-form-input-text:focus, 
+textarea.alba-form-input-text:focus,
 #alba-new-comment-text:focus {
-  box-shadow: 0 4px 18px 3px #e3e7ef, 0 -2px 7px 1px #fff;
-  background: #fff;
+    box-shadow: inset 0 4px 18px 3px var(--alba-shadow-dark-hover), inset 0 -2px 7px 1px var(--alba-shadow-light) !important;
 }
 
-#alba-add-comment-btn {
-  background: #eaf0fb;
-  color: #3d4b5c;
-  border: none;
-  border-radius: 18px;
-  padding: 7px 34px;
-  font-size: 1em;
-  font-weight: 500;
-  margin-top: 2px;
-  margin-bottom: 12px;
-  box-shadow: 1.2px 2.2px 7px #dde3ec, -1px -1.5px 4px #fff;
-  transition: box-shadow 0.13s, background 0.14s;
-  cursor: pointer;
-  outline: none;
-  letter-spacing: 0.01em;
-  display: inline-block;
+#alba-card-modal #alba-add-comment-btn {
+    background: var(--alba-btn-bg) !important;
+    color: var(--alba-text-title) !important;
+    border: 1px solid var(--alba-border-color) !important;
+    border-radius: 18px !important;
+    padding: 7px 34px !important;
+    font-size: 1em !important;
+    font-weight: 600 !important;
+    margin-top: 2px;
+    margin-bottom: 12px;
+    box-shadow: 1.2px 2.2px 7px var(--alba-shadow-dark), -1px -1.5px 4px var(--alba-shadow-light) !important;
+    cursor: pointer;
+    backdrop-filter: blur(8px);
 }
-#alba-add-comment-btn:hover,
-#alba-add-comment-btn:focus {
-  background: #f6fafd;
-  color: #28497b;
-  box-shadow: 0 4px 18px 2px #dde5ef, 0 -2px 7px 2px #fff;
-}
-
-#alba-comment-feedback {
-  color: #2ab300;
-  font-family: 'Fira Mono', monospace;
-  margin-top: 2px;
-  font-size: 1em;
-}
-
-/* --- MODAL + BLUR --- */
-#alba-card-modal {
-  display: none;
-  position: fixed;
-  z-index: 9999;
-  inset: 0;
-  width: 100vw;
-  height: 100vh;
-  justify-content: center;
-  align-items: center;
-  background: rgba(41, 41, 55, 0.11);
-  transition: background 0.2s;
-  pointer-events: none;
-}
-
-#alba-card-modal.active {
-  display: flex !important;
-  pointer-events: all;
-}
-#alba-card-modal.active ~ *:not(#alba-card-modal) {
-  filter: blur(0);
-}
-
-#alba-card-modal.active:before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  z-index: 1;
-  backdrop-filter: blur(7px);
-  -webkit-backdrop-filter: blur(7px);
-  pointer-events: none;
-}
-
-#alba-card-modal .alba-modal-content {
-  z-index: 2;
-  background: #fff;
-  border-radius: 27px;
-  max-width: 680px;
-  width: 95vw;
-  box-shadow: 0 2px 44px 2px #e6ebf7, 0 2px 80px 8px #d6e3f2;
-  padding: 44px 32px 32px 32px;
-  position: relative;
-  min-width: 320px;
-  min-height: 210px;
-  font-family: 'Fira Mono', 'Roboto Mono', 'monospace', monospace;
-  display: flex;
-  flex-direction: column;
-  overflow: visible;
-  animation: popup-show 0.25s cubic-bezier(.33,1.02,.54,1.01);
-}
-
-@keyframes popup-show {
-  0% { transform: scale(0.94) translateY(24px); opacity: 0.5;}
-  100% { transform: scale(1) translateY(0); opacity: 1;}
-}
-
-#alba-modal-close {
-  position: absolute;
-  top: 18px;
-  right: 24px;
-  background: #f5f6fa;
-  border: none;
-  padding: 7px 14px 8px 14px;
-  border-radius: 16px;
-  font-size: 1.4em;
-  color: #8b8b98;
-  cursor: pointer;
-  box-shadow: 1.2px 2.2px 8px #dde3ec, -1px -1.5px 4px #fff;
-  z-index: 3;
-  transition: box-shadow 0.14s, background 0.14s;
-}
-#alba-modal-close:hover {
-  background: #f0f5fa;
-  color: #222;
-  box-shadow: 1.2px 2.2px 14px #dde3ec, -2px -2px 6px #fff;
-}
-
-#alba-modal-body h2 {
-  color: #bf3d6a;
-  font-size: 2.2em;
-  font-weight: 700;
-  margin-top: 0;
-  margin-bottom: 2px;
-  letter-spacing: 0.03em;
-  font-family: 'Fira Mono', 'Roboto Mono', monospace;
-  word-break: break-word;
-}
-
-#alba-modal-body {
-  width: 100%;
-  min-height: 100px;
-  max-height: 78vh;
-  overflow-y: auto;
-}
-
-#alba-modal-body strong,
-#alba-modal-body label {
-  font-family: 'Fira Mono', 'Roboto Mono', monospace;
-  font-weight: 700;
-  color: #23242e;
-}
-#alba-modal-body .alba-card-tags {
-  margin-top: 20px;
-  margin-bottom: 12px;
-  gap: 18px;
-  justify-content: flex-start;
-}
-
-/* Tag pills in modal */
-#alba-modal-body .alba-card-tag-chip,
-#alba-modal-body .alba-card-tags span {
-  background: #fff;
-  font-family: inherit;
-  font-size: 1.07em;
-  font-weight: 700;
-  padding: 6px 21px;
-  border-radius: 999px;
-  margin: 0 2px 0 0;
-  box-shadow:
-    2.2px 2.2px 7px var(--tag-shadow, #e3e7ef),
-    -1.5px -1.5px 6px #fff;
-}
-
-#alba-modal-body strong[style*="font-family:monospace"] {
-  color: #23242e !important;
-  font-size: 1.17em !important;
-  margin-bottom: 9px !important;
-  font-weight: 900 !important;
-  letter-spacing: 0.012em;
-}
-
-#alba-modal-body > div[style*="color:#bbb"] {
-  color: #bbb !important;
-  font-family: 'Fira Mono', monospace;
-  font-size: 1.03em;
-  margin-top: 12px;
+#alba-card-modal #alba-add-comment-btn:hover {
+    box-shadow: 0 4px 18px 2px var(--alba-shadow-dark-hover), 0 -2px 7px 2px var(--alba-shadow-light) !important;
 }
 
 /* Trash/Delete button */
-#alba-modal-delete {
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-size: 2em;
-  color: #8f9aad;
-  opacity: .89;
-  transition: color .13s, opacity .13s;
-  margin-left: 6px;
-  margin-bottom: 0;
-  padding: 0;
-  outline: none;
-}
-#alba-modal-delete:hover {
-  color: #be2230;
-  opacity: 1;
+#alba-card-modal .alba-modal-delete-section {
+    margin-top: 20px;
+    text-align: right; 
 }
 
-/* Responsive: mobile modal */
+#alba-card-modal #alba-modal-delete {
+    background: var(--alba-btn-cancel-bg) !important;
+    border: 1px solid var(--alba-border-color) !important;
+    color: var(--alba-danger) !important;
+    font-size: 0.95em !important;
+    font-weight: 600 !important;
+    padding: 8px 20px !important;
+    border-radius: 14px !important;
+    cursor: pointer !important;
+    box-shadow: 2px 2px 6px var(--alba-shadow-dark), -2px -2px 6px var(--alba-shadow-light) !important;
+    opacity: 1;
+    margin: 0;
+    outline: none;
+    font-family: inherit !important;
+    transition: all 0.2s ease !important;
+}
+
+#alba-card-modal #alba-modal-delete:hover {
+    box-shadow: inset 2px 2px 5px var(--alba-shadow-dark), inset -2px -2px 5px var(--alba-shadow-light) !important;
+    filter: brightness(0.95);
+}
+
 @media (max-width: 800px) {
-  .alba-board-wrapper {
-    gap: 10px;
-  }
-  .alba-list-column {
-    min-width: 200px;
-    max-width: 92vw;
-    width: 92vw;
-    padding: 10px 2px 16px 2px;
-  }
-  .alba-card {
-    padding: 8px 7px 6px 10px;
-    font-size: 0.97em;
-    min-height: 38px;
-  }
-  .alba-card-tags span {
-    font-size: 0.89em;
-    padding: 2px 8px;
-  }
-  .alba-list-column .button,
-  .alba-list-column a.button,
-  .alba-list-column button {
-    padding: 7px 12vw;
-    font-size: 0.97em;
-  }
-  .alba-board-comment,
-  .alba-modal-comment {
-    font-size: 0.99em;
-    padding: 8px 7px 6px 10px;
-  }
-  .alba-card-comments-scrollable,
-  #alba-comments-list {
-    padding: 6px 5px 5px 5px;
-  }
+  .alba-board-wrapper { gap: 10px; }
+  .alba-list-column { min-width: 200px; max-width: 92vw; width: 92vw; padding: 10px 2px 16px 2px !important; }
+  .alba-card { padding: 8px 7px 6px 10px !important; font-size: 0.97em; min-height: 38px; }
+  .alba-list-column .button, .alba-list-column a.button, .alba-list-column button { padding: 7px 12vw !important; font-size: 0.97em !important; }
+}
+
+/* ========================================================
+   ALBA BOARD: DYNAMIC JS STATES (NO-CSS-IN-JS)
+   ======================================================== */
+
+/* Body state when modal is open */
+body.alba-body-no-scroll {
+    overflow: hidden !important;
+}
+
+/* My Tasks Filter Animation */
+.alba-card {
+    transition: opacity 0.3s ease, transform 0.3s ease, box-shadow 0.14s, background 0.14s;
+}
+.alba-card-filtered-out {
+    opacity: 0 !important;
+    transform: scale(0.95) !important;
+    display: none !important;
+}
+
+/* Error Messages */
+.alba-error-msg {
+    color: var(--alba-danger);
+    padding: 20px;
+    text-align: center;
+    font-weight: bold;
+}
+
+/* ========================================================
+   ALBA BOARD: LIST COLLAPSE STYLES (FRONTEND ULTRA SLIM)
+   ======================================================== */
+
+/* 1. Collapsed state: Geometry fixed */
+.alba-list-collapsed {
+    min-width: 36px !important; /* Slightly wider for text breathing room */
+    max-width: 36px !important;
+    width: 36px !important;
+    padding: 12px 0 !important;
+    background: var(--alba-card-bg) !important; 
+    border-radius: 12px !important; /* FIX: Prevents deformed pill appearance */
+}
+
+/* 2. Reorganize header */
+.alba-list-collapsed .alba-list-header {
+    flex-direction: column;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    height: 100%;
+    padding-right: 0 !important;
+    width: 100%;
+}
+
+/* 3. Text rotation fixed */
+.alba-list-collapsed .alba-list-header h3 {
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+    white-space: nowrap;
+    margin: 15px 0 0 0 !important; 
+    font-size: 13px;
+    line-height: 1; 
+    letter-spacing: 2px;
+    opacity: 0.6;
+    text-align: center;
+}
+
+/* 4. Hide internals */
+.alba-list-collapsed .alba-cards, 
+.alba-list-collapsed .alba-list-footer,
+.alba-list-collapsed > button {
+    display: none !important;
+}
+
+/* ========================================================
+   ALBA BOARD: PROFESSIONAL COLLAPSE ICONS (SYMMETRIC)
+   ======================================================== */
+
+.alba-list-collapse-btn {
+    font-size: 0 !important; 
+    width: 28px; /* Slightly wider to give room */
+    height: 24px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s ease, opacity 0.2s ease;
+    opacity: 0.6;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    /* Cleanest font stack possible */
+    font-family: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif !important;
+}
+
+.alba-list-collapse-btn:hover {
+    transform: scale(1.1);
+    opacity: 1 !important;
+}
+
+/* OPEN STATE (Suggests closing: > < ) */
+.alba-list-collapse-btn::after {
+    content: '><'; 
+    font-size: 13px;
+    font-weight: 900;
+    color: var(--alba-text-muted);
+    letter-spacing: 2px; /* ADDED: Forces space between characters to avoid the "bow tie" effect */
+    white-space: nowrap;
+    transition: color 0.2s ease;
+}
+
+/* CLOSED STATE (Suggests opening: < > ) */
+.alba-list-collapsed .alba-list-collapse-btn {
+    transform: rotate(90deg);
+}
+
+.alba-list-collapsed .alba-list-collapse-btn:hover {
+    transform: rotate(90deg) scale(1.1);
+}
+
+.alba-list-collapsed .alba-list-collapse-btn::after {
+    content: '<>'; 
+    font-size: 13px;
+    letter-spacing: 2px; /* Same spacing here for consistency */
+}
+
+.alba-list-collapse-btn:hover::after {
+    color: var(--alba-text-main);
 }

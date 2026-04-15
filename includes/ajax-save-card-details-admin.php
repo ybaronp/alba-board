@@ -1,76 +1,71 @@
 <?php
 // includes/ajax-save-card-details-admin.php
+if ( ! defined( 'ABSPATH' ) ) exit; // Prevent direct access
 
-if ( ! defined( 'ABSPATH' ) ) exit;
+add_action('wp_ajax_alba_save_card_details_admin', 'alba_ajax_save_card_details_admin');
 
-add_action('wp_ajax_alba_save_card_details_admin', 'alba_save_card_details_admin');
-
-function alba_save_card_details_admin() {
-    // 1. Nonce validation (sanitize and verify)
+function alba_ajax_save_card_details_admin() {
+    // Security & Nonce Checks
     $nonce = isset($_POST['nonce']) ? sanitize_text_field(wp_unslash($_POST['nonce'])) : '';
     if (empty($nonce) || !wp_verify_nonce($nonce, 'alba_save_card_details_admin')) {
         wp_send_json_error(['message' => esc_html__('Invalid security token.', 'alba-board')]);
     }
-
-    // 2. Permission check (edit_others_posts covers editing any card)
-    if (!is_user_logged_in() || !current_user_can('edit_others_posts')) {
+    
+    if (!current_user_can('edit_cards')) {
         wp_send_json_error(['message' => esc_html__('Permission denied.', 'alba-board')]);
     }
-
-    // 3. Sanitize all input
-    $card_id      = isset($_POST['card_id'])      ? absint($_POST['card_id']) : 0;
-    $card_title   = isset($_POST['card_title'])   ? sanitize_text_field(wp_unslash($_POST['card_title'])) : '';
-    $card_author  = isset($_POST['card_author'])  ? absint($_POST['card_author']) : 0;
-    $card_content = isset($_POST['card_content']) ? wp_kses_post(wp_unslash($_POST['card_content'])) : '';
-
-    // 4. Validate card
-    $card = get_post($card_id);
-    if (!$card || $card->post_type !== 'alba_card') {
-        wp_send_json_error(['message' => esc_html__('Invalid card.', 'alba-board')]);
+    
+    $card_id = isset($_POST['card_id']) ? absint($_POST['card_id']) : 0;
+    if (!$card_id) {
+        wp_send_json_error(['message' => esc_html__('Invalid card ID.', 'alba-board')]);
     }
 
-    // 5. Update card post
-    $update_result = wp_update_post([
-        'ID'           => $card_id,
-        'post_title'   => $card_title,
-        'post_author'  => $card_author,
-        'post_content' => $card_content,
-    ], true);
-
-    if (is_wp_error($update_result)) {
-        wp_send_json_error(['message' => esc_html__('Failed to update card.', 'alba-board')]);
+    // Core Post Data
+    $post_data = [ 
+        'ID' => $card_id, 
+        'post_title' => isset($_POST['card_title']) ? sanitize_text_field(wp_unslash($_POST['card_title'])) : '', 
+        'post_content' => isset($_POST['card_content']) ? sanitize_textarea_field(wp_unslash($_POST['card_content'])) : '' 
+    ];
+    if (isset($_POST['card_author'])) {
+        $post_data['post_author'] = absint($_POST['card_author']);
     }
 
-    // 6. Save new comment in alba_comments (custom meta)
-    $raw_comment = '';
-    if (array_key_exists('new_comment', $_POST)) {
-        $raw_comment = sanitize_textarea_field(wp_unslash($_POST['new_comment']));
+    $updated = wp_update_post($post_data);
+    if (is_wp_error($updated)) {
+        wp_send_json_error(['message' => esc_html__('Error updating card.', 'alba-board')]);
     }
-    if ($raw_comment !== '') {
-        $user = wp_get_current_user();
-        $author = $user->display_name ?: $user->user_login;
-        $date = current_time('Y-m-d H:i');
-        // Load previous comments
+
+    // 👉 NEW: Save Due Date Meta
+    if (isset($_POST['due_date'])) {
+        update_post_meta($card_id, 'alba_due_date', sanitize_text_field(wp_unslash($_POST['due_date'])));
+    }
+
+    // 👉 HOOK FOR ADD-ONS (e.g., Tags Add-on)
+    do_action('alba_save_card_details_admin', $card_id, wp_unslash($_POST));
+
+    // Process New Comments
+    if (!empty($_POST['new_comment'])) {
+        $current_user = wp_get_current_user();
         $comments = get_post_meta($card_id, 'alba_comments', true);
-        if (!is_array($comments)) {
-            $comments = @unserialize($comments);
-            if (!is_array($comments)) $comments = [];
+        if (!is_array($comments)) { 
+            $comments = @unserialize($comments); 
+            if (!is_array($comments)) $comments = []; 
         }
-        $comments[] = [
-            'author' => $author,
-            'date'   => $date,
-            'text'   => $raw_comment,
+        $comments[] = [ 
+            'author' => $current_user->display_name, 
+            'date' => current_time('mysql'), 
+            'text' => sanitize_textarea_field(wp_unslash($_POST['new_comment'])) 
         ];
         update_post_meta($card_id, 'alba_comments', $comments);
     }
 
-    // 7. Return updated modal HTML (refresh modal content)
-    ob_start();
-    alba_output_card_details_admin_modal($card_id, $card_author);
-    $html = ob_get_clean();
+    // 👉 CLEAR TRANSIENTS: Ensure live UI updates correctly
+    delete_transient('alba_card_live_admin_' . $card_id);
+    delete_transient('alba_card_live_frontend_' . $card_id);
 
-    wp_send_json_success([
-        'message' => esc_html__('Card saved.', 'alba-board'),
-        'html'    => $html,
-    ]);
+    // Render updated Modal HTML
+    ob_start();
+    alba_output_card_details_admin_modal($card_id);
+    $html = ob_get_clean();
+    wp_send_json_success(['html' => $html]);
 }
