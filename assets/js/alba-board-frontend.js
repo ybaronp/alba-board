@@ -1,7 +1,7 @@
 // assets/js/alba-board-frontend.js
 
 document.addEventListener('DOMContentLoaded', () => {
-  // --- DRAG & DROP (Sortable.js) ---
+  // --- 1. DRAG & DROP (Sortable.js) ---
   const lists = document.querySelectorAll('.alba-cards');
   if (typeof Sortable === 'undefined') {
     console.error('Sortable.js not loaded');
@@ -27,112 +27,152 @@ document.addEventListener('DOMContentLoaded', () => {
           params.append('action', 'alba_move_card');
           params.append('card_id', cardId);
           params.append('new_list_id', newListId);
-          params.append('nonce', albaBoard.nonce); // Use the global nonce
+          params.append('nonce', albaBoard.nonce); 
           orderedCardIds.forEach((id, index) => {
             params.append(`order[${index}]`, id);
           });
 
           fetch(albaBoard.ajaxurl, {
             method: 'POST',
-            headers: {
-              'Content-Type': 'application/x-www-form-urlencoded'
-            },
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
             body: params
           })
             .then(res => res.json())
             .then(response => {
-              if (!response.success) {
-                alert(window.AlbaBoardI18n?.move_error || 'Could not move the card.');
-              }
+              if (!response.success) alert(albaBoard.move_error || 'Could not move the card.');
             })
-            .catch(() => {
-              alert(window.AlbaBoardI18n?.move_error || 'Could not move the card.');
-            });
+            .catch(() => alert(albaBoard.move_error || 'Could not move the card.'));
         }
       }
     });
   });
 
-  // --- CARD DETAILS MODAL ---
+  // --- 2. CARD DETAILS MODAL (REST API Integration) ---
   document.querySelectorAll('.alba-card').forEach(card => {
-    card.addEventListener('click', function() {
+    card.addEventListener('click', function(e) {
+      if (e.target.closest('button') || e.target.closest('a')) return;
+
       const cardId = card.dataset.cardId;
       const modal = document.getElementById('alba-card-modal');
       const modalBody = document.getElementById('alba-modal-body');
 
       if (!cardId || !modal || !modalBody) return;
 
-      // Show modal
-      modal.style.display = 'flex';
+      // CSS CLASSES ONLY
       modal.classList.add("active");
-      modalBody.innerHTML = window.AlbaBoardI18n?.loading || 'Loading...';
-      document.body.style.overflow = "hidden";
+      document.body.classList.add("alba-body-no-scroll");
+      
+      modalBody.innerHTML = albaBoard.loading || 'Loading...';
 
-      // AJAX for card details
-      fetch(
-        albaBoard.ajaxurl +
-        '?action=alba_get_card_details' +
-        '&card_id=' + encodeURIComponent(cardId) +
-        '&nonce=' + encodeURIComponent(albaBoard.get_card_details_nonce)
-      )
-      .then(res => res.text())
-      .then(html => {
-        modalBody.innerHTML = html;
-        setupDeleteButton(cardId);
-        // NO comment handler here!
+      fetch(albaBoard.rest_url + 'alba-board/v1/card/' + encodeURIComponent(cardId) + '?context=frontend', { method: 'GET' })
+      .then(res => res.json())
+      .then(response => {
+          if (response && response.html) {
+              modalBody.innerHTML = response.html;
+          } else if (response && response.message) {
+              modalBody.innerHTML = `<div class="alba-error-msg">${response.message}</div>`;
+          }
       })
       .catch(() => {
-        modalBody.innerHTML = '<div style="color:red;">Failed to load card details.</div>';
+          modalBody.innerHTML = '<div class="alba-error-msg">Failed to load card details.</div>';
       });
     });
   });
 
-  // --- DELETE HANDLER ---
-  function setupDeleteButton(cardId) {
-    const deleteBtn = document.getElementById('alba-modal-delete');
-    if (deleteBtn) {
-      deleteBtn.onclick = null;
-      deleteBtn.addEventListener('click', function() {
-        if (!window.AlbaBoardI18n || !confirm(window.AlbaBoardI18n.confirm_delete || "Are you sure you want to delete this card?")) return;
-        const data = new URLSearchParams();
-        data.append("action", "alba_delete_card");
-        data.append("card_id", cardId);
-        data.append("nonce", albaBoard.nonce);
-        fetch(albaBoard.ajaxurl, {
-          method: "POST",
-          headers: { "Content-Type": "application/x-www-form-urlencoded" },
-          body: data
-        })
-        .then(res => res.json())
-        .then(response => {
-          if (response.success) {
-            location.reload();
-          } else {
-            alert(response.data?.message || response.message || (window.AlbaBoardI18n?.delete_error || "Error deleting card"));
-          }
-        });
-      });
-    }
-  }
-
-  // --- CLOSE MODAL ---
-  const closeBtn = document.getElementById('alba-modal-close');
-  if (closeBtn) {
-    closeBtn.addEventListener('click', () => {
+  // --- 3. CLOSE MODAL HANDLERS ---
+  const closeModal = () => {
       const modal = document.getElementById('alba-card-modal');
       if (modal) {
-        modal.style.display = 'none';
-        modal.classList.remove("active");
-        document.body.style.overflow = "";
+          modal.classList.remove("active");
+          document.body.classList.remove("alba-body-no-scroll");
       }
-    });
-  }
+  };
+
+  const closeBtn = document.getElementById('alba-modal-close');
+  if (closeBtn) closeBtn.addEventListener('click', closeModal);
+  
   window.addEventListener('click', (e) => {
     const modal = document.getElementById('alba-card-modal');
-    if (modal && e.target === modal) {
-      modal.style.display = 'none';
-      modal.classList.remove("active");
-      document.body.style.overflow = "";
+    if (modal && e.target === modal) closeModal();
+  });
+
+  // --- 4. ACCESSIBILITY: KEYBOARD SHORTCUTS ---
+  document.addEventListener('keydown', (e) => {
+    const modalFrontend = document.getElementById('alba-card-modal');
+    const isModalOpen = modalFrontend && modalFrontend.classList.contains('active');
+
+    if (e.key === 'Escape' && isModalOpen) {
+        closeModal();
+        return;
+    }
+
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter' && isModalOpen) {
+        e.preventDefault(); 
+        const addCommentBtn = document.getElementById('alba-add-comment-btn');
+        if (addCommentBtn) {
+            addCommentBtn.focus();
+            addCommentBtn.click();
+        }
     }
   });
+
+  // --- 5. "MY TASKS" FILTER LOGIC (CSS Driven) ---
+  const myTasksToggle = document.getElementById('alba-filter-my-tasks');
+  
+  if (myTasksToggle) {
+      myTasksToggle.addEventListener('change', function() {
+          const currentUserId = this.dataset.userId;
+          const isChecked = this.checked;
+
+          document.querySelectorAll('.alba-card').forEach(card => {
+              const cardAuthor = card.dataset.author;
+              
+              if (isChecked && cardAuthor !== currentUserId) {
+                  card.classList.add('alba-card-filtered-out');
+              } else {
+                  card.classList.remove('alba-card-filtered-out');
+              }
+          });
+      });
+  }
+
+  // --- 6. LIST COLLAPSE LOGIC (LocalStorage Persistence) ---
+  function initListCollapse() {
+      const storageKey = 'alba_collapsed_lists'; 
+      let collapsedLists = JSON.parse(localStorage.getItem(storageKey)) || [];
+
+      collapsedLists.forEach(listId => {
+          const listContainer = document.querySelector(`.alba-cards[data-list-id="${listId}"]`);
+          if (listContainer) {
+              const wrapper = listContainer.closest('.alba-list-column');
+              if (wrapper) wrapper.classList.add('alba-list-collapsed');
+          }
+      });
+
+      document.addEventListener('click', (e) => {
+          const btn = e.target.closest('.alba-list-collapse-btn');
+          if (!btn) return;
+          e.preventDefault();
+
+          const wrapper = btn.closest('.alba-list-column');
+          if (!wrapper) return;
+
+          const listContainer = wrapper.querySelector('.alba-cards');
+          const listId = listContainer ? listContainer.dataset.listId : null;
+
+          if (listId) {
+              wrapper.classList.toggle('alba-list-collapsed');
+              
+              if (wrapper.classList.contains('alba-list-collapsed')) {
+                  if (!collapsedLists.includes(listId)) collapsedLists.push(listId);
+              } else {
+                  collapsedLists = collapsedLists.filter(id => id !== listId);
+              }
+              
+              localStorage.setItem(storageKey, JSON.stringify(collapsedLists));
+          }
+      });
+  }
+  
+  initListCollapse();
 });

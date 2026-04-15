@@ -5,58 +5,48 @@ if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
     exit;
 }
 
-// Only proceed if the user has chosen to delete data
-$delete_data = get_option('alba_delete_on_uninstall', false);
-if ( ! $delete_data ) {
+$alba_board_delete_data = get_option('alba_delete_on_uninstall', false);
+if ( ! $alba_board_delete_data ) {
     return;
 }
 
-// --- Delete custom post types ---
-$post_types = [ 'alba_board', 'alba_list', 'alba_card' ];
-foreach ( $post_types as $pt ) {
-    $posts = get_posts([
-        'post_type'   => $pt,
+$alba_board_post_types = [ 'alba_board', 'alba_list', 'alba_card' ];
+foreach ( $alba_board_post_types as $alba_board_pt ) {
+    $alba_board_posts = get_posts([
+        'post_type'   => $alba_board_pt,
         'numberposts' => -1,
         'post_status' => 'any'
     ]);
-    foreach ( $posts as $post ) {
-        wp_delete_post( $post->ID, true );
+    foreach ( $alba_board_posts as $alba_board_post ) {
+        wp_delete_post( $alba_board_post->ID, true );
     }
 }
 
-// --- Delete all tags (custom taxonomy 'alba_tag') ---
-$terms = get_terms([
+$alba_board_terms = get_terms([
     'taxonomy'   => 'alba_tag',
     'hide_empty' => false
 ]);
-if ( ! is_wp_error( $terms ) ) {
-    foreach ( $terms as $term ) {
-        wp_delete_term( $term->term_id, 'alba_tag' );
+if ( ! is_wp_error( $alba_board_terms ) ) {
+    foreach ( $alba_board_terms as $alba_board_term ) {
+        wp_delete_term( $alba_board_term->term_id, 'alba_tag' );
     }
 }
 
-// --- Delete plugin options ---
 delete_option('alba_board_limits');
 delete_option('alba_board_notifications');
+delete_option('alba_board_uploads'); // No olvides borrar los nuevos ajustes también
 delete_option('alba_delete_on_uninstall');
 
-// --- Remove custom capabilities from roles ---
-$roles = [ 'administrator', 'editor' ];
-$caps = [
-    // Boards
-    'edit_board', 'read_board', 'delete_board', 'edit_boards', 'edit_others_boards',
-    'delete_boards', 'delete_others_boards', 'publish_boards', 'read_private_boards',
-    // Lists
-    'edit_list', 'read_list', 'delete_list', 'edit_lists', 'edit_others_lists',
-    'delete_lists', 'delete_others_lists', 'publish_lists', 'read_private_lists',
-    // Cards
-    'edit_card', 'read_card', 'delete_card', 'edit_cards', 'edit_others_cards',
-    'delete_cards', 'delete_others_cards', 'publish_cards', 'read_private_cards',
+$alba_board_roles = [ 'administrator', 'editor' ];
+$alba_board_caps = [
+    'edit_board', 'read_board', 'delete_board', 'edit_boards', 'edit_others_boards', 'delete_boards', 'delete_others_boards', 'publish_boards', 'read_private_boards',
+    'edit_list', 'read_list', 'delete_list', 'edit_lists', 'edit_others_lists', 'delete_lists', 'delete_others_lists', 'publish_lists', 'read_private_lists',
+    'edit_card', 'read_card', 'delete_card', 'edit_cards', 'edit_others_cards', 'delete_cards', 'delete_others_cards', 'publish_cards', 'read_private_cards',
 ];
-foreach ( $roles as $role_name ) {
-    $role = get_role( $role_name );
-    if ( ! $role ) continue;
-    foreach ( $caps as $cap ) {
-        $role->remove_cap( $cap );
+foreach ( $alba_board_roles as $alba_board_role_name ) {
+    $alba_board_role = get_role( $alba_board_role_name );
+    if ( ! $alba_board_role ) continue;
+    foreach ( $alba_board_caps as $alba_board_cap ) {
+        $alba_board_role->remove_cap( $alba_board_cap );
     }
 }

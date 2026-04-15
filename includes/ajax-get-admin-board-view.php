@@ -8,14 +8,11 @@ add_action('wp_ajax_alba_get_admin_board_view', 'alba_ajax_get_admin_board_view'
 
 function alba_ajax_get_admin_board_view() {
     // Nonce security check
-    if (
-        ! isset($_POST['nonce']) ||
-        ! wp_verify_nonce($_POST['nonce'], 'alba_get_admin_board_view')
-    ) {
+    $nonce = isset($_POST['nonce']) ? sanitize_text_field(wp_unslash($_POST['nonce'])) : '';
+    if ( empty($nonce) || ! wp_verify_nonce($nonce, 'alba_get_admin_board_view') ) {
         wp_send_json_error(['message' => __('Invalid nonce.', 'alba-board')]);
     }
 
-    // Permission check
     if ( ! current_user_can('edit_posts') ) {
         wp_send_json_error(['message' => __('Permission denied.', 'alba-board')]);
     }
