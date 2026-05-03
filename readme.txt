@@ -1,6 +1,6 @@
 === Alba Board ===
 Contributors: alejo30  
-Tags: kanban, board, project management, todo, task, multilingual, translation-ready
+Tags: kanban, board, project management, todo, task
 Requires at least: 5.8  
 Tested up to: 6.9.4
 Requires PHP: 7.2
