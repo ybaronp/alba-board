@@ -1,51 +1,145 @@
 <?php
-// includes/admin-board-page.php
+/**
+ * includes/admin-board-page.php
+ * Handles the logic and rendering of the Alba Board admin page.
+ */
+
 if ( ! defined( 'ABSPATH' ) ) exit; // Prevent direct access
 
-function alba_render_admin_board_page() {
-    // Demo Board Creation
+/**
+ * 1. APPLICATION LAYER (State Mutation & Redirects)
+ * Hooked to admin_init to ensure headers aren't sent yet.
+ * This prevents the "Headers already sent" error during form processing.
+ */
+add_action('admin_init', 'alba_board_handle_form_submissions');
+
+function alba_board_handle_form_submissions() {
+    // Only intercept if we are on the visual board page
+    if ( ! isset($_GET['page']) || $_GET['page'] !== 'alba-board-visual' ) {
+        return;
+    }
+
+    // Demo Board Creation (Onboarding)
     if ( isset($_POST['alba_create_demo_board']) && check_admin_referer('alba_create_demo_board_action') ) {
-        $board_id = wp_insert_post(['post_type' => 'alba_board', 'post_title' => __('Project Alpha (Demo)', 'alba-board'), 'post_status' => 'publish', 'post_author' => get_current_user_id()]);
+        $board_id = wp_insert_post([
+            'post_type'   => 'alba_board', 
+            'post_title'  => __('Project Alpha (Demo)', 'alba-board'), 
+            'post_status' => 'publish', 
+            'post_author' => get_current_user_id()
+        ]);
+
         if ($board_id && !is_wp_error($board_id)) {
             $lists_names = [__('To Do', 'alba-board'), __('In Progress', 'alba-board'), __('Done', 'alba-board')];
-            $list_ids = []; $menu_order = 0;
-            foreach ($lists_names as $list_title) { $list_ids[] = wp_insert_post(['post_type' => 'alba_list', 'post_title' => $list_title, 'post_status' => 'publish', 'post_author' => get_current_user_id(), 'menu_order' => $menu_order++, 'meta_input' => ['alba_board_parent' => $board_id]]); }
-            if (count($list_ids) >= 3) {
-                $cards_data = [ ['title' => __('👋 Welcome!', 'alba-board'), 'content' => '', 'list_id' => $list_ids, 'order' => 0], ['title' => __('🖱️ Drag me', 'alba-board'), 'content' => '', 'list_id' => $list_ids, 'order' => 1] ];
-                foreach ($cards_data as $c) { wp_insert_post(['post_type' => 'alba_card', 'post_title' => $c['title'], 'post_content'=> $c['content'], 'post_status' => 'publish', 'post_author' => get_current_user_id(), 'menu_order' => $c['order'], 'meta_input' => ['alba_list_parent' => $c['list_id']]]); }
+            $list_ids = []; 
+            $menu_order = 0;
+            
+            foreach ($lists_names as $list_title) { 
+                $list_ids[] = wp_insert_post([
+                    'post_type'   => 'alba_list', 
+                    'post_title'  => $list_title, 
+                    'post_status' => 'publish', 
+                    'post_author' => get_current_user_id(), 
+                    'menu_order'  => $menu_order++, 
+                    'meta_input'  => ['alba_board_parent' => $board_id]
+                ]); 
             }
-            wp_safe_redirect(admin_url('admin.php?page=alba-board-visual&board_id=' . $board_id)); exit;
+            
+            if (count($list_ids) >= 3) {
+                $cards_data = [ 
+                    ['title' => __('👋 Welcome!', 'alba-board'), 'content' => '', 'list_id' => $list_ids, 'order' => 0], 
+                    ['title' => __('🖱️ Drag me', 'alba-board'), 'content' => '', 'list_id' => $list_ids, 'order' => 1] 
+                ];
+                foreach ($cards_data as $c) { 
+                    wp_insert_post([
+                        'post_type'   => 'alba_card', 
+                        'post_title'  => $c['title'], 
+                        'post_content'=> $c['content'], 
+                        'post_status' => 'publish', 
+                        'post_author' => get_current_user_id(), 
+                        'menu_order'  => $c['order'], 
+                        'meta_input'  => ['alba_list_parent' => $c['list_id']]
+                    ]); 
+                }
+            }
+            wp_safe_redirect(admin_url('admin.php?page=alba-board-visual&board_id=' . $board_id)); 
+            exit;
         }
     }
 
-    // New Board Creation
+    // New Board Creation logic
     if ( isset($_POST['alba_create_board']) && !empty($_POST['alba_new_board_title']) && check_admin_referer('alba_create_board_action') ) {
-        $board_id = wp_insert_post(['post_type' => 'alba_board', 'post_title' => sanitize_text_field(wp_unslash($_POST['alba_new_board_title'])), 'post_status' => 'publish', 'post_author' => get_current_user_id()]);
-        if ( $board_id && ! is_wp_error($board_id) ) { wp_safe_redirect(admin_url('admin.php?page=alba-board-visual&board_id=' . $board_id)); exit; }
+        $board_id = wp_insert_post([
+            'post_type'   => 'alba_board', 
+            'post_title'  => sanitize_text_field(wp_unslash($_POST['alba_new_board_title'])), 
+            'post_status' => 'publish', 
+            'post_author' => get_current_user_id()
+        ]);
+        if ( $board_id && ! is_wp_error($board_id) ) { 
+            wp_safe_redirect(admin_url('admin.php?page=alba-board-visual&board_id=' . $board_id)); 
+            exit; 
+        }
     }
 
-    // New List Creation
+    // New List Creation logic
     if ( isset($_POST['alba_create_list']) && !empty($_POST['alba_new_list_title']) && !empty($_POST['current_board_id']) && check_admin_referer('alba_create_list_action') ) {
-        $board_id = absint($_POST['current_board_id']); global $wpdb;
+        $board_id = absint($_POST['current_board_id']); 
+        global $wpdb;
         $max_list_order = $wpdb->get_var( $wpdb->prepare("SELECT MAX(menu_order) FROM $wpdb->posts WHERE post_type = %s AND post_status = 'publish' AND ID IN (SELECT post_id FROM $wpdb->postmeta WHERE meta_key = 'alba_board_parent' AND meta_value = %d)", 'alba_list', $board_id) );
         $new_list_order = (($max_list_order !== null) ? intval($max_list_order) + 1 : 0);
-        $list_id = wp_insert_post(['post_type' => 'alba_list', 'post_title' => sanitize_text_field(wp_unslash($_POST['alba_new_list_title'])), 'post_status' => 'publish', 'post_author' => get_current_user_id(), 'menu_order' => $new_list_order, 'meta_input' => ['alba_board_parent' => $board_id]]);
-        if ( $list_id && ! is_wp_error($list_id) ) { wp_safe_redirect(admin_url('admin.php?page=alba-board-visual&board_id=' . $board_id)); exit; }
+        
+        $list_id = wp_insert_post([
+            'post_type'   => 'alba_list', 
+            'post_title'  => sanitize_text_field(wp_unslash($_POST['alba_new_list_title'])), 
+            'post_status' => 'publish', 
+            'post_author' => get_current_user_id(), 
+            'menu_order'  => $new_list_order, 
+            'meta_input'  => ['alba_board_parent' => $board_id]
+        ]);
+        if ( $list_id && ! is_wp_error($list_id) ) { 
+            wp_safe_redirect(admin_url('admin.php?page=alba-board-visual&board_id=' . $board_id)); 
+            exit; 
+        }
     }
 
-    // New Card Creation
+    // New Card Creation logic
     if ( isset($_POST['alba_create_card'], $_POST['alba_new_card_title'], $_POST['current_list_id']) && !empty($_POST['alba_new_card_title']) && !empty($_POST['current_list_id']) && check_admin_referer('alba_create_card_action') ) {
-        $list_id = absint($_POST['current_list_id']); $board_id = isset($_POST['current_board_id']) ? absint($_POST['current_board_id']) : 0; global $wpdb;
+        $list_id = absint($_POST['current_list_id']); 
+        $board_id = isset($_POST['current_board_id']) ? absint($_POST['current_board_id']) : 0; 
+        global $wpdb;
         $max_menu_order = $wpdb->get_var( $wpdb->prepare("SELECT MAX(menu_order) FROM $wpdb->posts WHERE post_type = %s AND post_status = 'publish' AND ID IN (SELECT post_id FROM $wpdb->postmeta WHERE meta_key = 'alba_list_parent' AND meta_value = %d)", 'alba_card', $list_id));
-        $card_id = wp_insert_post(['post_type' => 'alba_card', 'post_title' => sanitize_text_field(wp_unslash($_POST['alba_new_card_title'])), 'post_status' => 'publish', 'post_author' => get_current_user_id(), 'menu_order' => (($max_menu_order !== null) ? intval($max_menu_order) + 1 : 0), 'meta_input' => ['alba_list_parent' => $list_id]]);
-        if ( $card_id && ! is_wp_error($card_id) ) { wp_safe_redirect(admin_url('admin.php?page=alba-board-visual' . ($board_id ? '&board_id=' . $board_id : ''))); exit; }
+        
+        $card_id = wp_insert_post([
+            'post_type'   => 'alba_card', 
+            'post_title'  => sanitize_text_field(wp_unslash($_POST['alba_new_card_title'])), 
+            'post_status' => 'publish', 
+            'post_author' => get_current_user_id(), 
+            'menu_order'  => (($max_menu_order !== null) ? intval($max_menu_order) + 1 : 0), 
+            'meta_input'  => ['alba_list_parent' => $list_id]
+        ]);
+        if ( $card_id && ! is_wp_error($card_id) ) { 
+            wp_safe_redirect(admin_url('admin.php?page=alba-board-visual' . ($board_id ? '&board_id=' . $board_id : ''))); 
+            exit; 
+        }
     }
+}
 
-    // Fetch active board
+/**
+ * 2. UI LAYER (Rendering Only)
+ */
+function alba_render_admin_board_page() {
+    // Fetch available boards
     $boards = get_posts(['post_type' => 'alba_board', 'numberposts' => -1, 'orderby' => 'title', 'order' => 'ASC']);
-    $selected_board_id = isset($_GET['board_id']) ? absint($_GET['board_id']) : (!empty($boards) ? $boards->ID : 0);
     
-    // Display options
+    // ANTIFRAGILE CHECK: Ensure we handle the element as an object even if the environment returns arrays
+    $selected_board_id = 0;
+    if ( isset($_GET['board_id']) ) {
+        $selected_board_id = absint($_GET['board_id']);
+    } elseif ( !empty($boards) ) {
+        $first_board = (object) reset($boards);
+        $selected_board_id = $first_board->ID;
+    }
+    
+    // UI configuration options
     $display_opts = get_option('alba_board_display', ['show_avatars' => 1, 'theme' => 'default']);
     $show_avatars = !empty($display_opts['show_avatars']);
     $theme_class  = isset($display_opts['theme']) ? 'alba-theme-' . $display_opts['theme'] : 'alba-theme-default';
@@ -54,13 +148,16 @@ function alba_render_admin_board_page() {
     echo '<div class="wrap"><h1 style="color: var(--alba-text-title);">' . esc_html__('Boards', 'alba-board') . '</h1>';
 
     if (!empty($boards)) {
-        // --- Top Action & Filters Bar ---
+        // Top Action & Filters Bar
         echo '<div class="alba-top-action-bar">';
         
         echo '<form method="get" style="margin-right: 10px;">';
         echo '<input type="hidden" name="page" value="alba-board-visual">';
         echo '<select name="board_id" class="alba-board-selector alba-auto-submit-select" title="'.esc_attr__('Select Board', 'alba-board').'">'; 
-        foreach ($boards as $board) echo '<option value="' . esc_attr($board->ID) . '"' . ($board->ID == $selected_board_id ? ' selected' : '') . '>' . esc_html($board->post_title) . '</option>';
+        foreach ($boards as $board) {
+            $board = (object) $board; // Force object structure
+            echo '<option value="' . esc_attr($board->ID) . '"' . ($board->ID == $selected_board_id ? ' selected' : '') . '>' . esc_html($board->post_title) . '</option>';
+        }
         echo '</select></form>';
         
         echo '<div class="alba-filters-wrapper">';
@@ -81,9 +178,9 @@ function alba_render_admin_board_page() {
                 echo '</select>';
             }
         }
-        echo '</div>'; // End filters
+        echo '</div>'; 
 
-        // Add Board and Export Buttons
+        // Board management buttons
         echo '<div class="alba-top-buttons-group">';
         echo '<button type="button" class="alba-btn-neumorphic" id="alba-show-new-board-btn">' . esc_html__('+ Board', 'alba-board') . '</button>';
 
@@ -93,11 +190,11 @@ function alba_render_admin_board_page() {
             echo '<a href="' . esc_url($csv_url) . '" class="alba-btn-neumorphic" style="text-decoration: none;">' . esc_html__('Export CSV', 'alba-board') . '</a>';
             echo '<a href="' . esc_url($json_url) . '" class="alba-btn-neumorphic" style="text-decoration: none;">' . esc_html__('Export JSON', 'alba-board') . '</a>';
         }
-        echo '</div>'; // End buttons group
+        echo '</div>'; 
 
-        echo '</div>'; // End top action bar
+        echo '</div>'; 
 
-        // Hidden Create Board Form
+        // Inline form for board creation
         echo '<form id="alba-new-board-form" class="alba-inline-form alba-is-hidden" method="post">'; 
         wp_nonce_field('alba_create_board_action');
         echo '<input type="hidden" name="alba_create_board" value="1">'; 
@@ -106,17 +203,17 @@ function alba_render_admin_board_page() {
         echo '<button type="button" class="alba-btn-cancel" id="alba-cancel-new-board-btn">' . esc_html__('Cancel', 'alba-board') . '</button>';
         echo '</form>';
     } else {
-        // Empty State
+        // Empty state for new installations
         echo '<div class="alba-empty-state">';
         echo '<h2>' . esc_html__('Welcome to Alba Board! 🎉', 'alba-board') . '</h2>';
         echo '<form method="post">'; wp_nonce_field('alba_create_demo_board_action');
         echo '<button type="submit" name="alba_create_demo_board" class="button button-primary button-hero alba-demo-btn">' . esc_html__('Create a Sample Board', 'alba-board') . '</button></form></div>';
     }
 
-    // Render Board Content
+    // Render active board content
     if ($selected_board_id) {
-        $board = get_post($selected_board_id);
-        if ($board && $board->post_type === 'alba_board') {
+        $board = (object) get_post($selected_board_id); // Cast to object
+        if ($board && isset($board->post_type) && $board->post_type === 'alba_board') {
             echo '<h2 style="color: var(--alba-text-title);">' . esc_html($board->post_title) . '</h2>';
             $lists = get_posts(['post_type' => 'alba_list', 'numberposts' => -1, 'meta_key' => 'alba_board_parent', 'meta_value' => $board->ID, 'orderby' => 'menu_order', 'order' => 'ASC']);
             
@@ -124,12 +221,13 @@ function alba_render_admin_board_page() {
 
             if ($lists) {
                 foreach ($lists as $list) {
+                    $list = (object) $list; // Cast to object
                     echo '<div class="alba-list alba-list-scrollable" data-list-id="' . esc_attr($list->ID) . '">';
                     
-                    // 👉 NUEVO: Encabezado de lista con botón de colapsar
                     echo '<div class="alba-list-header" style="display:flex; justify-content:space-between; align-items:center;">';
                     echo '<h3 style="margin:0;">' . esc_html($list->post_title) . '</h3>';
                     echo '<div style="display:flex; gap:5px; align-items:center;">';
+                    // List toggle collapse and delete buttons
                     echo '<button type="button" class="alba-list-collapse-btn" title="' . esc_attr__('Collapse/Expand', 'alba-board') . '" style="background:none; border:none; cursor:pointer; font-size:14px; color:var(--alba-text-muted);">↔</button>';
                     echo '<button type="button" class="alba-delete-list-btn" data-list-id="' . esc_attr($list->ID) . '" title="' . esc_attr__('Delete list', 'alba-board') . '">✕</button>';
                     echo '</div></div>';
@@ -140,10 +238,11 @@ function alba_render_admin_board_page() {
                     
                     if ($cards) {
                         foreach ($cards as $card) {
+                            $card = (object) $card; // Cast to object
                             echo '<div class="alba-card" data-card-id="' . esc_attr($card->ID) . '" data-author="' . esc_attr($card->post_author) . '">';
                             echo '<strong class="alba-card-title">' . esc_html($card->post_title) . '</strong>';
                             
-                            // Render Due Date on Card
+                            // Display due date if exists
                             $due_date = get_post_meta($card->ID, 'alba_due_date', true);
                             if (!empty($due_date)) {
                                 $formatted_date = date_i18n('M j', strtotime($due_date));
@@ -168,15 +267,15 @@ function alba_render_admin_board_page() {
                                 } else { echo '<div></div>'; }
                             } else { echo '<div></div>'; }
                             
-                            echo '</div></div>'; // End Card
+                            echo '</div></div>'; 
                         }
                     } 
                     
                     $no_cards_class = empty($cards) ? 'alba-no-cards-msg' : 'alba-no-cards-msg alba-is-hidden';
                     echo '<p class="' . esc_attr($no_cards_class) . '"><em>' . esc_html__('No cards.', 'alba-board') . '</em></p>';
-                    echo '</div>'; // End Cards Container
+                    echo '</div>'; 
                     
-                    // Add Card Footer
+                    // Card creation section in list footer
                     echo '<div class="alba-list-footer">';
                     echo '<button type="button" class="alba-show-add-card-btn">+ ' . esc_html__('Add Card', 'alba-board') . '</button>';
                     echo '<form class="alba-add-card-form alba-stacked-form alba-is-hidden" method="post">';
@@ -189,11 +288,11 @@ function alba_render_admin_board_page() {
                     echo '<input type="submit" class="alba-btn-neumorphic" value="' . esc_attr__('Add', 'alba-board') . '">';
                     echo '<button type="button" class="alba-btn-cancel alba-cancel-new-card-btn">' . esc_html__('Cancel', 'alba-board') . '</button>';
                     echo '</div></form></div>'; 
-                    echo '</div>'; // End List
+                    echo '</div>'; 
                 }
             }
 
-            // Add List Section
+            // Ghost column for adding new lists
             echo '<div class="alba-list alba-add-list-wrapper">';
             $add_list_text = empty($lists) ? esc_html__('Add List', 'alba-board') : esc_html__('Add another list', 'alba-board');
             echo '<button type="button" class="alba-show-add-list-btn">+ ' . $add_list_text . '</button>';
@@ -209,15 +308,17 @@ function alba_render_admin_board_page() {
         }
     }
 
-    // Backend Modal Skeleton
+    // Modal structure for card details in backend
     ?>
     <div id="alba-card-modal-admin" class="alba-is-hidden"><div class="alba-modal-content"><button id="alba-modal-close-admin" type="button">✕</button><div id="alba-modal-body-admin"><?php esc_html_e('Loading...', 'alba-board'); ?></div></div></div>
     <?php 
-    echo '</div>'; // wrap
-    echo '</div>'; // master-theme-wrapper
+    echo '</div>'; 
+    echo '</div>'; 
 }
 
-// AJAX List Handlers
+/**
+ * 3. AJAX LIST HANDLERS
+ */
 add_action('wp_ajax_alba_delete_list_action', function() {
     check_ajax_referer('alba_delete_list_nonce', 'nonce');
     if (!current_user_can('delete_posts')) wp_send_json_error(); 
@@ -237,7 +338,9 @@ add_action('wp_ajax_alba_move_list_action', function() {
     $list_orders = isset($_POST['order']) ? $_POST['order'] : [];
     if (!empty($list_orders) && is_array($list_orders)) {
         global $wpdb;
-        foreach ($list_orders as $index => $list_id) { $wpdb->update($wpdb->posts, ['menu_order' => intval($index)], ['ID' => intval($list_id)]); }
+        foreach ($list_orders as $index => $list_id) { 
+            $wpdb->update($wpdb->posts, ['menu_order' => intval($index)], ['ID' => intval($list_id)]); 
+        }
         wp_send_json_success();
     }
     wp_send_json_error();

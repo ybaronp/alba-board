@@ -1,10 +1,10 @@
 === Alba Board ===
 Contributors: alejo30  
-Tags: kanban, board, project management, todo, task, multilingual, translation-ready
+Tags: kanban, board, project management, todo, task
 Requires at least: 5.8  
 Tested up to: 6.9.4
 Requires PHP: 7.2
-Stable tag: 2.1.0
+Stable tag: 2.1.1
 License: GPLv2 or later  
 License URI: https://www.gnu.org/licenses/gpl-2.0.html  
 
@@ -103,7 +103,8 @@ Absolutely. All AJAX actions use WordPress nonces and capability checks to ensur
 
 == Changelog ==
 
-
+= 2.1.1 =
+* Security: Patched an IDOR (Insecure Direct Object Reference) vulnerability in the REST API and AJAX endpoints that allowed unauthorized users to view private card details.
 = 2.1.0 =
 * Feature: Ultra-Slim List Collapsing. Users can now collapse lists to a slim view to maximize board space.
 * Feature: Dates are now available, whether you want to see them from the card on the list or when opening your card.

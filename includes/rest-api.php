@@ -1,5 +1,8 @@
 <?php
-// includes/rest-api.php
+/**
+ * includes/rest-api.php
+ */
+
 if ( ! defined( 'ABSPATH' ) ) exit;
 
 // Register the custom REST API route
@@ -20,10 +23,26 @@ function alba_board_register_rest_routes() {
 
 // Security Check: Ensure only allowed users can query the API
 function alba_board_rest_permissions_check( $request ) {
+    $card_id = (int) $request['id'];
+
     if ( 'admin' === $request->get_param( 'context' ) ) {
         return current_user_can( 'edit_cards' ); 
     }
-    return true; 
+    
+    // IDOR PATCH: Contextual Authorization
+    // If the card belongs to a published board, it is public on the frontend
+    $list_id = get_post_meta( $card_id, 'alba_list_parent', true );
+    $board_id = get_post_meta( $list_id, 'alba_board_parent', true );
+    
+    if ( $board_id ) {
+        $board = get_post( $board_id );
+        if ( $board && $board->post_status === 'publish' ) {
+            return true; // Board is public, anyone can view its cards
+        }
+    }
+    
+    // Fallback validation for private boards or orphaned cards
+    return current_user_can( 'read_card', $card_id ); 
 }
 
 // The Core Function: Fetch HTML and Cache via Transients (Redis)

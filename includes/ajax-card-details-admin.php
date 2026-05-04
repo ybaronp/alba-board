@@ -1,11 +1,10 @@
 <?php
-// includes/ajax-card-details-admin.php
+/**
+ * includes/ajax-card-details-admin.php
+ */
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-/**
- * Helper to display human-readable time or a formatted date.
- */
 function alba_board_time_ago_or_date( $datetime ) {
     $timestamp = strtotime( $datetime );
     $now = current_time( 'timestamp' );
@@ -24,9 +23,6 @@ function alba_board_time_ago_or_date( $datetime ) {
     }
 }
 
-/**
- * Renders the full HTML for the backend card details modal.
- */
 function alba_output_card_details_admin_modal( $card_id, $force_author = null ) {
     $card_id = absint( $card_id );
     
@@ -58,7 +54,7 @@ function alba_output_card_details_admin_modal( $card_id, $force_author = null ) 
     echo '</select>';
     echo '</div>';
 
-    // Due Date (Flatpickr compatible)
+    // Due Date
     echo '<div class="alba-form-group" style="margin-bottom: 15px;">';
     echo '<label for="alba-card-due-date" style="font-weight: 600; display: block; margin-bottom: 5px;">' . esc_html__( 'Due Date:', 'alba-board' ) . '</label>';
     $due_date = get_post_meta($card_id, 'alba_due_date', true);
@@ -75,7 +71,6 @@ function alba_output_card_details_admin_modal( $card_id, $force_author = null ) 
     echo '<textarea name="card_content" class="alba-form-input-text" rows="3">' . esc_textarea( $card->post_content ) . '</textarea>';
     echo '</div>';
 
-    // Hook for Add-ons (e.g., Tags)
     do_action('alba_admin_card_modal_after_description', $card_id);
 
     // Attachments
@@ -97,12 +92,16 @@ function alba_output_card_details_admin_modal( $card_id, $force_author = null ) 
         echo '<div id="alba-no-attachments-msg" style="color: var(--alba-text-muted); font-size: 0.9em; font-style: italic;">' . esc_html__( 'No files attached.', 'alba-board' ) . '</div>';
     }
     echo '</div>'; 
-    echo '<input type="file" id="alba-file-upload-input" style="display: none;">';
+    
+    // ANTIFRAGILE FIX: Safari blocks File objects if input is display:none. 
+    // We use an accessible hiding technique so the browser memory keeps the object active.
+    echo '<input type="file" id="alba-file-upload-input" style="width: 0.1px; height: 0.1px; opacity: 0; overflow: hidden; position: absolute; z-index: -1;">';
+    
     echo '<button type="button" id="alba-trigger-upload-btn" class="alba-btn-cancel">+ ' . esc_html__( 'Add File', 'alba-board' ) . '</button>';
     echo '<div id="alba-upload-feedback" style="margin-top: 8px; font-size: 0.9em; font-weight: 600;"></div>';
     echo '</div>'; 
 
-    // Comments list
+    // Comments
     $comments = get_post_meta( $card_id, 'alba_comments', true );
     if ( ! is_array( $comments ) ) { $comments = @unserialize($comments) ?: []; }
 
@@ -122,13 +121,11 @@ function alba_output_card_details_admin_modal( $card_id, $force_author = null ) 
     }
     echo '</div></div>';
 
-    // New Comment
     echo '<div class="alba-form-group">';
     echo '<label class="alba-comment-label">' . esc_html__( 'Write a comment:', 'alba-board' ) . '</label>';
     echo '<textarea id="alba-new-comment" name="new_comment" class="alba-form-input-text" rows="2" placeholder="' . esc_attr__('Type here...', 'alba-board') . '"></textarea>';
     echo '</div>';
 
-    // Footer
     echo '<button type="submit" id="alba-card-save-btn" class="alba-btn-neumorphic alba-btn-compact">' . esc_html__( 'Save Changes', 'alba-board' ) . '</button>';
     echo '</form>';
 }

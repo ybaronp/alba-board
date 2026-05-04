@@ -1,4 +1,6 @@
-// assets/js/alba-board-frontend.js
+/**
+ * assets/js/alba-board-frontend.js
+ */
 
 document.addEventListener('DOMContentLoaded', () => {
   // --- 1. DRAG & DROP (Sortable.js) ---
@@ -58,13 +60,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (!cardId || !modal || !modalBody) return;
 
-      // CSS CLASSES ONLY
       modal.classList.add("active");
       document.body.classList.add("alba-body-no-scroll");
       
       modalBody.innerHTML = albaBoard.loading || 'Loading...';
 
-      fetch(albaBoard.rest_url + 'alba-board/v1/card/' + encodeURIComponent(cardId) + '?context=frontend', { method: 'GET' })
+      // BUG FIXED: Added X-WP-Nonce to headers so REST API recognizes logged in users
+      fetch(albaBoard.rest_url + 'alba-board/v1/card/' + encodeURIComponent(cardId) + '?context=frontend', { 
+          method: 'GET',
+          headers: {
+              'X-WP-Nonce': albaBoard.rest_nonce
+          }
+      })
       .then(res => res.json())
       .then(response => {
           if (response && response.html) {
