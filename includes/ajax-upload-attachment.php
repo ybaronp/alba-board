@@ -1,9 +1,10 @@
 <?php
-// includes/ajax-upload-attachment.php
+/**
+ * includes/ajax-upload-attachment.php
+ */
 
-if ( ! defined( 'ABSPATH' ) ) exit; // Prevent direct access
+if ( ! defined( 'ABSPATH' ) ) exit;
 
-// --- HANDLE FILE UPLOAD ---
 add_action('wp_ajax_alba_upload_attachment', 'alba_board_ajax_upload_attachment');
 
 function alba_board_ajax_upload_attachment() {
@@ -22,9 +23,23 @@ function alba_board_ajax_upload_attachment() {
         wp_send_json_error(['message' => esc_html__('Invalid card.', 'alba-board')]);
     }
 
-    // Securely validate if a file was actually sent
-    if (!isset($_FILES['file']['error']) || $_FILES['file']['error'] !== UPLOAD_ERR_OK) {
-        wp_send_json_error(['message' => esc_html__('Error uploading file.', 'alba-board')]);
+    // Standard array key verification
+    $file_key = 'file';
+
+    if (!isset($_FILES[$file_key])) {
+        wp_send_json_error(['message' => esc_html__('No file payload received by the server. Check form data or server limits.', 'alba-board')]);
+    }
+
+    if ($_FILES[$file_key]['error'] !== UPLOAD_ERR_OK) {
+        $err_code = $_FILES[$file_key]['error'];
+        $err_msg = 'Upload error code: ' . $err_code;
+        
+        if ($err_code === UPLOAD_ERR_INI_SIZE) $err_msg = 'File exceeds upload_max_filesize in php.ini.';
+        if ($err_code === UPLOAD_ERR_FORM_SIZE) $err_msg = 'File exceeds MAX_FILE_SIZE limit.';
+        if ($err_code === UPLOAD_ERR_PARTIAL) $err_msg = 'File was only partially uploaded.';
+        if ($err_code === UPLOAD_ERR_NO_FILE) $err_msg = 'No file was actually uploaded.';
+        
+        wp_send_json_error(['message' => esc_html__($err_msg, 'alba-board')]);
     }
 
     $options = get_option('alba_board_uploads');
@@ -38,21 +53,17 @@ function alba_board_ajax_upload_attachment() {
 
     $current_attachments = get_post_meta($card_id, 'alba_card_attachments');
     if (count($current_attachments) >= $max_files) {
-        /* translators: %d: Maximum number of files */
         wp_send_json_error(['message' => sprintf(esc_html__('Maximum of %d files allowed per card.', 'alba-board'), $max_files)]);
     }
 
-    // Check File Size limit securely
-    $file_size = isset($_FILES['file']['size']) ? absint($_FILES['file']['size']) : 0;
+    $file_size = isset($_FILES[$file_key]['size']) ? absint($_FILES[$file_key]['size']) : 0;
     $max_size_bytes = $max_size_mb * 1024 * 1024;
     
     if ($file_size > $max_size_bytes) {
-        /* translators: %d: Maximum size in MB */
         wp_send_json_error(['message' => sprintf(esc_html__('File size exceeds the maximum limit of %d MB.', 'alba-board'), $max_size_mb)]);
     }
 
-    // Check File Format (Extension)
-    $file_name = isset($_FILES['file']['name']) ? sanitize_file_name(wp_unslash($_FILES['file']['name'])) : '';
+    $file_name = isset($_FILES[$file_key]['name']) ? sanitize_file_name(wp_unslash($_FILES[$file_key]['name'])) : '';
     $file_ext = strtolower(pathinfo($file_name, PATHINFO_EXTENSION));
     $allowed_formats = array_map('trim', explode(',', $allowed_formats_str));
     
@@ -64,7 +75,7 @@ function alba_board_ajax_upload_attachment() {
     require_once(ABSPATH . 'wp-admin/includes/file.php');
     require_once(ABSPATH . 'wp-admin/includes/media.php');
 
-    $attachment_id = media_handle_upload('file', $card_id);
+    $attachment_id = media_handle_upload($file_key, $card_id);
 
     if (is_wp_error($attachment_id)) {
         wp_send_json_error(['message' => $attachment_id->get_error_message()]);
@@ -84,7 +95,6 @@ function alba_board_ajax_upload_attachment() {
     ]);
 }
 
-// --- HANDLE FILE DELETION ---
 add_action('wp_ajax_alba_delete_attachment', 'alba_board_ajax_delete_attachment');
 
 function alba_board_ajax_delete_attachment() {

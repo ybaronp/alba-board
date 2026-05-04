@@ -1,13 +1,15 @@
 <?php
-// includes/enqueue-frontend.php
-if ( ! defined( 'ABSPATH' ) ) exit; // Prevent direct access
+/**
+ * includes/enqueue-frontend.php
+ */
 
-// Enqueue frontend assets for Alba Board
+if ( ! defined( 'ABSPATH' ) ) exit;
+
 function alba_board_enqueue_assets() {
     $plugin_url = plugin_dir_url(dirname(__FILE__));
-    $plugin_version = '2.0.1'; // Cache busting version for production
+    // CACHE BUSTING: Bumped version to 2.1.1 to force browser cache refresh
+    $plugin_version = '2.1.1'; 
 
-    // Sortable.js from local assets (with version)
     wp_enqueue_script(
         'sortablejs',
         $plugin_url . 'assets/js/Sortable.min.js',
@@ -16,7 +18,6 @@ function alba_board_enqueue_assets() {
         true
     );
 
-    // Alba Board frontend JS (depends on sortablejs and jquery)
     wp_enqueue_script(
         'alba-kanban',
         $plugin_url . 'assets/js/alba-board-frontend.js',
@@ -25,7 +26,6 @@ function alba_board_enqueue_assets() {
         true
     );
 
-    // Alba Board frontend CSS
     wp_enqueue_style(
         'alba-board-style',
         $plugin_url . 'assets/css/alba-board-style.css',
@@ -33,7 +33,6 @@ function alba_board_enqueue_assets() {
         $plugin_version
     );
 
-    // Pass AJAX URL, REST URL, nonces, and ALL i18n texts to JS safely
     wp_localize_script('alba-kanban', 'albaBoard', [
         'ajaxurl'                 => admin_url('admin-ajax.php'),
         'rest_url'                => esc_url_raw( rest_url() ), 

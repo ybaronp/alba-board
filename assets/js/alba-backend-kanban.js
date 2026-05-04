@@ -1,4 +1,6 @@
-// assets/js/alba-backend-kanban.js
+/**
+ * assets/js/alba-backend-kanban.js
+ */
 
 document.addEventListener('DOMContentLoaded', () => {
     
@@ -56,7 +58,7 @@ document.addEventListener('DOMContentLoaded', () => {
             animation: 150,
             draggable: '.alba-list-scrollable', 
             handle: '.alba-list-header',        
-            filter: '.alba-delete-list-btn, .alba-list-collapse-btn', // Added collapse btn to filter so it doesn't drag
+            filter: '.alba-delete-list-btn, .alba-list-collapse-btn',
             ghostClass: 'sortable-ghost',
             onEnd: function (evt) {
                 const orderedListIds = Array.from(boardWrapper.querySelectorAll('.alba-list-scrollable')).map(el => el.dataset.listId);
@@ -299,39 +301,59 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // --- 8. ATTACHMENT HANDLERS ---
+    // --- 8. ATTACHMENT HANDLERS (PURIFIED API) ---
     function bindAttachmentHandlers() {
         const fileInput = document.getElementById('alba-file-upload-input');
         const triggerBtn = document.getElementById('alba-trigger-upload-btn');
         const feedbackDiv = document.getElementById('alba-upload-feedback');
         const cardIdInput = document.getElementById('alba-current-card-id');
 
-        if (triggerBtn && fileInput) triggerBtn.onclick = () => fileInput.click();
+        if (triggerBtn && fileInput) {
+            triggerBtn.onclick = (e) => {
+                e.preventDefault();
+                fileInput.value = ''; // Clear before opening dialog to allow same-file selection
+                fileInput.click();
+            };
+        }
+        
         if (fileInput) {
-            fileInput.onchange = function(e) {
-                // FIXED: e.target.files is an array, we grab the first item
-                const file = e.target.files; 
-                if (!file || !cardIdInput) return;
+            fileInput.onchange = function() {
+                const files = this.files;
+                if (!files || files.length === 0) return;
                 
-                feedbackDiv.textContent = albaBoard.uploading || 'Uploading...'; feedbackDiv.style.color = '#2271b1';
+                const fileObj = files; 
+                if (!cardIdInput || !cardIdInput.value) return;
+                
+                feedbackDiv.textContent = albaBoard.uploading || 'Uploading...'; 
+                feedbackDiv.style.color = '#2271b1';
                 
                 const formData = new FormData();
                 formData.append('action', 'alba_upload_attachment'); 
                 formData.append('card_id', cardIdInput.value); 
                 formData.append('nonce', albaBoard.upload_attachment_nonce); 
-                formData.append('file', file);
                 
-                fetch(albaBoard.ajaxurl, { method: 'POST', body: formData })
+                // Standard File object appended. Fetch will generate multipart headers correctly.
+                formData.append('file', fileObj); 
+                
+                fetch(albaBoard.ajaxurl, { 
+                    method: 'POST', 
+                    body: formData 
+                })
                 .then(res => res.json())
                 .then(response => {
                     if (response.success) {
                         feedbackDiv.textContent = '';
                         const listDiv = document.getElementById('alba-attachments-list');
-                        const noMsg = document.getElementById('alba-no-attachments-msg'); if (noMsg) noMsg.remove();
+                        
+                        const noMsg = document.getElementById('alba-no-attachments-msg'); 
+                        if (noMsg) noMsg.remove();
+                        
                         const newItem = document.createElement('div');
-                        newItem.className = 'alba-attachment-item'; newItem.id = 'alba-attachment-' + response.data.attachment_id;
+                        newItem.className = 'alba-attachment-item'; 
+                        newItem.id = 'alba-attachment-' + response.data.attachment_id;
                         newItem.style = 'display: flex; justify-content: space-between; align-items: center; background: var(--alba-card-bg); padding: 8px 14px; border-radius: 12px; box-shadow: 2px 2px 6px var(--alba-shadow-dark), -2px -2px 6px var(--alba-shadow-light); margin-top: 8px;';
                         newItem.innerHTML = `<a href="${response.data.file_url}" target="_blank" style="text-decoration: none; color: var(--alba-text-main); font-weight: 600; font-size: 0.95em;">📄 ${response.data.file_name}</a><button type="button" class="alba-delete-attachment-btn" data-attachment-id="${response.data.attachment_id}" style="background: none; border: none; color: var(--alba-danger); cursor: pointer; font-size: 1.2em; outline: none;">&times;</button>`;
+                        
                         listDiv.appendChild(newItem); 
                         bindDeleteButtons();
                     } else { 
@@ -339,7 +361,13 @@ document.addEventListener('DOMContentLoaded', () => {
                         feedbackDiv.textContent = errMsg; 
                         feedbackDiv.style.color = 'var(--alba-danger)'; 
                     }
-                    fileInput.value = '';
+                })
+                .catch(() => {
+                    feedbackDiv.textContent = 'Server connection failed.';
+                    feedbackDiv.style.color = 'var(--alba-danger)';
+                })
+                .finally(() => {
+                    fileInput.value = ''; // Clean up after promise resolves
                 });
             };
         }
@@ -349,16 +377,32 @@ document.addEventListener('DOMContentLoaded', () => {
     function bindDeleteButtons() {
         document.querySelectorAll('.alba-delete-attachment-btn').forEach(btn => {
             btn.onclick = function(e) {
-                e.preventDefault(); const attachmentId = this.dataset.attachmentId; const cardIdInput = document.getElementById('alba-current-card-id'); const itemDiv = document.getElementById('alba-attachment-' + attachmentId);
+                e.preventDefault(); 
+                const attachmentId = this.dataset.attachmentId; 
+                const cardIdInput = document.getElementById('alba-current-card-id'); 
+                const itemDiv = document.getElementById('alba-attachment-' + attachmentId);
+                
                 if (!attachmentId || !cardIdInput) return;
-                this.textContent = '...'; this.disabled = true;
+                
+                this.textContent = '...'; 
+                this.disabled = true;
+                
                 const formData = new FormData();
-                formData.append('action', 'alba_delete_attachment'); formData.append('card_id', cardIdInput.value); formData.append('attachment_id', attachmentId); formData.append('nonce', albaBoard.delete_attachment_nonce);
-                fetch(albaBoard.ajaxurl, { method: 'POST', body: formData }).then(res => res.json()).then(response => {
-                    if (response.success && itemDiv) { itemDiv.remove(); } else { 
+                formData.append('action', 'alba_delete_attachment'); 
+                formData.append('card_id', cardIdInput.value); 
+                formData.append('attachment_id', attachmentId); 
+                formData.append('nonce', albaBoard.delete_attachment_nonce);
+                
+                fetch(albaBoard.ajaxurl, { method: 'POST', body: formData })
+                .then(res => res.json())
+                .then(response => {
+                    if (response.success && itemDiv) { 
+                        itemDiv.remove(); 
+                    } else { 
                         const errMsg = (response.data && response.data.message) ? response.data.message : 'Failed to delete.';
                         alert(errMsg); 
-                        this.textContent = '✖'; this.disabled = false; 
+                        this.textContent = '✖'; 
+                        this.disabled = false; 
                     }
                 });
             };

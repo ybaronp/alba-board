@@ -3,7 +3,7 @@
 Plugin Name: Alba Board
 Plugin URI: https://www.albaboard.com
 Description: Custom Kanban system for WordPress with boards, lists, cards, and dynamic interactions. Extendable via add-ons.
-Version: 2.1.0
+Version: 2.1.1
 Author: alejo30
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
