@@ -37,12 +37,13 @@ function alba_board_rest_permissions_check( $request ) {
     if ( $board_id ) {
         $board = get_post( $board_id );
         if ( $board && $board->post_status === 'publish' ) {
-            return true; // Board is public, anyone can view its cards
+            return true; // Board is explicitly public, anyone can view its cards
         }
     }
     
-    // Fallback validation for private boards or orphaned cards
-    return current_user_can( 'read_card', $card_id ); 
+    // STRICT FALLBACK: 'read_card' maps to 'read' for published posts, which is insecure.
+    // We strictly require 'edit_cards' (Admin/Editor) to view isolated or private cards.
+    return current_user_can( 'edit_cards' ); 
 }
 
 // The Core Function: Fetch HTML and Cache via Transients (Redis)

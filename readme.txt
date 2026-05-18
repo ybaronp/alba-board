@@ -103,8 +103,12 @@ Absolutely. All AJAX actions use WordPress nonces and capability checks to ensur
 
 == Changelog ==
 
+= 2.1.2 =
+* Security: Corrected the IDOR patch in REST API and AJAX endpoints. Migrated away from the flawed 'read_card' meta capability mapping to a strict 'edit_cards' fallback, enforcing rigorous role-based access for non-public boards.
+
 = 2.1.1 =
 * Security: Patched an IDOR (Insecure Direct Object Reference) vulnerability in the REST API and AJAX endpoints that allowed unauthorized users to view private card details.
+
 = 2.1.0 =
 * Feature: Ultra-Slim List Collapsing. Users can now collapse lists to a slim view to maximize board space.
 * Feature: Dates are now available, whether you want to see them from the card on the list or when opening your card.

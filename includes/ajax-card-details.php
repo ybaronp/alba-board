@@ -25,14 +25,17 @@ function alba_board_get_card_details_ajax() {
     $list_id = get_post_meta( $card_id, 'alba_list_parent', true );
     $board_id = get_post_meta( $list_id, 'alba_board_parent', true );
     
+    // Allow public access ONLY if the board is explicitly published
     if ( $board_id ) {
         $board = get_post( $board_id );
         if ( $board && $board->post_status === 'publish' ) {
-            $is_allowed = true; // Board is public
+            $is_allowed = true;
         }
     }
 
-    if ( ! $is_allowed && ! current_user_can( 'read_card', $card_id ) ) {
+    // STRICT FALLBACK: 'read_card' maps to 'read' for published posts, making it insecure here.
+    // We strictly require 'edit_cards' to view details if the board isn't published.
+    if ( ! $is_allowed && ! current_user_can( 'edit_cards' ) ) {
         wp_send_json_error(['message' => esc_html__('You do not have permission to view this card.', 'alba-board')]);
     }
 
