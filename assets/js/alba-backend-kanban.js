@@ -1,6 +1,4 @@
-/**
- * assets/js/alba-backend-kanban.js
- */
+// assets/js/alba-backend-kanban.js
 
 document.addEventListener('DOMContentLoaded', () => {
     
@@ -124,7 +122,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (userFilter)  userFilter.addEventListener('change', applyFilters);
     if (tagFilter)   tagFilter.addEventListener('change', applyFilters);
 
-    // --- 4. UI INTERACTION (Forms & Buttons) ---
+    // --- 4. UI INTERACTION ---
     const boardSelector = document.querySelector('.alba-auto-submit-select');
     if(boardSelector) boardSelector.addEventListener('change', function() { this.form.submit(); });
 
@@ -182,8 +180,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         listContainer.style.transition = 'all 0.3s ease'; listContainer.style.opacity = '0'; listContainer.style.transform = 'scale(0.9)';
                         setTimeout(() => listContainer.remove(), 300);
                     } else { 
-                        const errMsg = (response.data && response.data.message) ? response.data.message : 'Error deleting list.';
-                        alert(errMsg); 
+                        alert((response.data && response.data.message) ? response.data.message : 'Error deleting list.'); 
                         deleteListBtn.style.opacity = '1'; 
                         deleteListBtn.style.pointerEvents = 'auto'; 
                     }
@@ -192,7 +189,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // --- 5. MODAL LOGIC (REST API Bypass) ---
+    // --- 5. MODAL LOGIC ---
     const modalAdmin = document.getElementById('alba-card-modal-admin');
     const modalBody = document.getElementById('alba-modal-body-admin');
     let currentOpenedCard = null;
@@ -225,10 +222,8 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     const closeModal = () => { if(modalAdmin) { modalAdmin.classList.add('alba-is-hidden'); modalAdmin.classList.remove('active'); } currentOpenedCard = null; };
-    
     const closeBtn = document.getElementById('alba-modal-close-admin');
     if (closeBtn) closeBtn.addEventListener('click', closeModal);
-    
     window.addEventListener('click', (e) => { if (e.target.id === 'alba-card-modal-admin') closeModal(); });
 
     document.addEventListener('keydown', (e) => {
@@ -245,23 +240,14 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // --- 6. FLATPICKR INITIALIZATION ---
+    // --- 6. FLATPICKR ---
     jQuery(document).on('alba_modal_loaded', function() {
         const dateInput = document.getElementById('alba-card-due-date');
         if (dateInput && typeof flatpickr !== 'undefined') {
-            const fp = flatpickr(dateInput, {
-                dateFormat: "Y-m-d",
-                disableMobile: true 
-            });
-            
+            const fp = flatpickr(dateInput, { dateFormat: "Y-m-d", disableMobile: true });
             const clearBtn = document.getElementById('alba-clear-date');
             if (clearBtn) {
-                clearBtn.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    fp.clear();
-                    dateInput.value = '';
-                    this.style.display = 'none';
-                });
+                clearBtn.addEventListener('click', function(e) { e.preventDefault(); fp.clear(); dateInput.value = ''; this.style.display = 'none'; });
             }
         }
     });
@@ -282,69 +268,57 @@ document.addEventListener('DOMContentLoaded', () => {
             const newCommentField = document.getElementById('alba-new-comment');
             if (newCommentField) formData.set('new_comment', newCommentField.value);
             
-            const dueDateInput = document.getElementById('alba-card-due-date');
-            if (dueDateInput) {
-                formData.set('due_date', dueDateInput.value);
-            }
-
             saveBtn.textContent = 'Saving...'; saveBtn.style.opacity = '0.7';
             
             fetch(albaBoard.ajaxurl, { method: 'POST', body: formData })
             .then(res => res.json())
             .then(response => {
-                if (response && response.success) { 
-                    location.reload(); 
-                } else { 
-                    saveBtn.textContent = 'Save Changes'; saveBtn.style.opacity = '1'; 
-                }
+                if (response && response.success) { location.reload(); } 
+                else { saveBtn.textContent = 'Save Changes'; saveBtn.style.opacity = '1'; }
             });
         }
     }
 
-    // --- 8. ATTACHMENT HANDLERS (PURIFIED API) ---
+    // --- 8. ATTACHMENT HANDLERS (jQuery Event Delegation - No Cloning) ---
     function bindAttachmentHandlers() {
-        const fileInput = document.getElementById('alba-file-upload-input');
-        const triggerBtn = document.getElementById('alba-trigger-upload-btn');
         const feedbackDiv = document.getElementById('alba-upload-feedback');
-        const cardIdInput = document.getElementById('alba-current-card-id');
-
-        if (triggerBtn && fileInput) {
-            triggerBtn.onclick = (e) => {
-                e.preventDefault();
-                fileInput.value = ''; // Clear before opening dialog to allow same-file selection
-                fileInput.click();
-            };
-        }
         
-        if (fileInput) {
-            fileInput.onchange = function() {
-                const files = this.files;
-                if (!files || files.length === 0) return;
-                
-                const fileObj = files; 
-                if (!cardIdInput || !cardIdInput.value) return;
-                
+        // Remove old events and attach new ones at the document level
+        // This prevents memory leaks and avoids duplicate event firing without needing to clone nodes.
+        jQuery(document).off('click', '#alba-trigger-upload-btn').on('click', '#alba-trigger-upload-btn', function(e) {
+            e.preventDefault();
+            jQuery('#alba-file-upload-input').trigger('click');
+        });
+
+        jQuery(document).off('change', '#alba-file-upload-input').on('change', '#alba-file-upload-input', function(e) {
+            // The file array remains perfectly intact here
+            const file = this.files; 
+            const cardId = jQuery('#alba-current-card-id').val();
+            
+            if (!file || !cardId) return;
+            
+            if (feedbackDiv) {
                 feedbackDiv.textContent = albaBoard.uploading || 'Uploading...'; 
                 feedbackDiv.style.color = '#2271b1';
-                
-                const formData = new FormData();
-                formData.append('action', 'alba_upload_attachment'); 
-                formData.append('card_id', cardIdInput.value); 
-                formData.append('nonce', albaBoard.upload_attachment_nonce); 
-                
-                // Standard File object appended. Fetch will generate multipart headers correctly.
-                formData.append('file', fileObj); 
-                
-                fetch(albaBoard.ajaxurl, { 
-                    method: 'POST', 
-                    body: formData 
-                })
-                .then(res => res.json())
-                .then(response => {
+            }
+            
+            const formData = new FormData();
+            formData.append('action', 'alba_upload_attachment');
+            formData.append('nonce', albaBoard.upload_attachment_nonce);
+            formData.append('card_id', cardId);
+            formData.append('file', file);
+            
+            // Reverting to rock-solid jQuery AJAX for multipart file uploads
+            jQuery.ajax({
+                url: albaBoard.ajaxurl,
+                type: 'POST',
+                data: formData,
+                processData: false, 
+                contentType: false, 
+                success: function(response) {
                     if (response.success) {
-                        feedbackDiv.textContent = '';
+                        if (feedbackDiv) feedbackDiv.textContent = '';
                         const listDiv = document.getElementById('alba-attachments-list');
-                        
                         const noMsg = document.getElementById('alba-no-attachments-msg'); 
                         if (noMsg) noMsg.remove();
                         
@@ -352,81 +326,88 @@ document.addEventListener('DOMContentLoaded', () => {
                         newItem.className = 'alba-attachment-item'; 
                         newItem.id = 'alba-attachment-' + response.data.attachment_id;
                         newItem.style = 'display: flex; justify-content: space-between; align-items: center; background: var(--alba-card-bg); padding: 8px 14px; border-radius: 12px; box-shadow: 2px 2px 6px var(--alba-shadow-dark), -2px -2px 6px var(--alba-shadow-light); margin-top: 8px;';
-                        newItem.innerHTML = `<a href="${response.data.file_url}" target="_blank" style="text-decoration: none; color: var(--alba-text-main); font-weight: 600; font-size: 0.95em;">📄 ${response.data.file_name}</a><button type="button" class="alba-delete-attachment-btn" data-attachment-id="${response.data.attachment_id}" style="background: none; border: none; color: var(--alba-danger); cursor: pointer; font-size: 1.2em; outline: none;">&times;</button>`;
+                        newItem.innerHTML = `<a href="${response.data.file_url}" target="_blank" style="text-decoration: none; color: var(--alba-text-main); font-weight: 600; font-size: 0.95em;">📎 ${response.data.file_name}</a><button type="button" class="alba-delete-attachment-btn" data-attachment-id="${response.data.attachment_id}" style="background: none; border: none; color: var(--alba-danger); cursor: pointer; font-size: 1.2em; outline: none;">&times;</button>`;
                         
                         listDiv.appendChild(newItem); 
-                        bindDeleteButtons();
                     } else { 
-                        const errMsg = (response.data && response.data.message) ? response.data.message : 'Error uploading.';
-                        feedbackDiv.textContent = errMsg; 
-                        feedbackDiv.style.color = 'var(--alba-danger)'; 
+                        if (feedbackDiv) {
+                            feedbackDiv.textContent = response.data.message || 'Error uploading.'; 
+                            feedbackDiv.style.color = 'var(--alba-danger)'; 
+                        }
                     }
-                })
-                .catch(() => {
-                    feedbackDiv.textContent = 'Server connection failed.';
-                    feedbackDiv.style.color = 'var(--alba-danger)';
-                })
-                .finally(() => {
-                    fileInput.value = ''; // Clean up after promise resolves
-                });
-            };
-        }
+                    // Clean input safely inside the callback
+                    jQuery('#alba-file-upload-input').val('');
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    if (feedbackDiv) {
+                        feedbackDiv.textContent = 'Server Error: ' + textStatus;
+                        feedbackDiv.style.color = 'var(--alba-danger)';
+                    }
+                    console.error('Alba Board Upload Error:', errorThrown);
+                    jQuery('#alba-file-upload-input').val('');
+                }
+            });
+        });
+        
         bindDeleteButtons();
     }
 
     function bindDeleteButtons() {
-        document.querySelectorAll('.alba-delete-attachment-btn').forEach(btn => {
-            btn.onclick = function(e) {
-                e.preventDefault(); 
-                const attachmentId = this.dataset.attachmentId; 
-                const cardIdInput = document.getElementById('alba-current-card-id'); 
-                const itemDiv = document.getElementById('alba-attachment-' + attachmentId);
-                
-                if (!attachmentId || !cardIdInput) return;
-                
-                this.textContent = '...'; 
-                this.disabled = true;
-                
-                const formData = new FormData();
-                formData.append('action', 'alba_delete_attachment'); 
-                formData.append('card_id', cardIdInput.value); 
-                formData.append('attachment_id', attachmentId); 
-                formData.append('nonce', albaBoard.delete_attachment_nonce);
-                
-                fetch(albaBoard.ajaxurl, { method: 'POST', body: formData })
-                .then(res => res.json())
-                .then(response => {
-                    if (response.success && itemDiv) { 
+        // Event delegation for delete buttons
+        jQuery(document).off('click', '.alba-delete-attachment-btn').on('click', '.alba-delete-attachment-btn', function(e) {
+            e.preventDefault(); 
+            
+            const btn = jQuery(this);
+            const attachmentId = btn.data('attachment-id'); 
+            const cardId = jQuery('#alba-current-card-id').val(); 
+            const itemDiv = jQuery('#alba-attachment-' + attachmentId);
+            
+            if (!attachmentId || !cardId) return;
+            
+            btn.text('...').prop('disabled', true);
+
+            const formData = new FormData();
+            formData.append('action', 'alba_delete_attachment');
+            formData.append('card_id', cardId);
+            formData.append('attachment_id', attachmentId);
+            formData.append('nonce', albaBoard.delete_attachment_nonce);
+            
+            jQuery.ajax({
+                url: albaBoard.ajaxurl,
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function(response) {
+                    if (response.success && itemDiv.length) { 
                         itemDiv.remove(); 
                     } else { 
-                        const errMsg = (response.data && response.data.message) ? response.data.message : 'Failed to delete.';
-                        alert(errMsg); 
-                        this.textContent = '✖'; 
-                        this.disabled = false; 
+                        alert((response.data && response.data.message) ? response.data.message : 'Failed to delete.'); 
+                        btn.text('✖').prop('disabled', false);
                     }
-                });
-            };
+                },
+                error: function(err) {
+                    console.error('Alba Board Delete Error:', err);
+                    btn.text('✖').prop('disabled', false);
+                }
+            });
         });
     }
 
-    // --- 9. Select2 Initialization for Authors ---
+    // --- 9. SELECT2 ---
     jQuery(document).on('DOMNodeInserted', function(e) {
         jQuery(e.target).find('.alba-select2:not(.alba-tags-select2)').each(function() {
             if (!jQuery(this).hasClass('select2-hidden-accessible')) {
-                jQuery(this).select2({
-                    width: '100%',
-                    dropdownParent: jQuery('#alba-card-modal-admin .alba-modal-content')
-                });
+                jQuery(this).select2({ width: '100%', dropdownParent: jQuery('#alba-card-modal-admin .alba-modal-content') });
             }
         });
     });
 
-    // --- 10. LIST COLLAPSE LOGIC (With LocalStorage Persistence) ---
+    // --- 10. LIST COLLAPSE ---
     function initListCollapse() {
         const storageKey = 'alba_collapsed_lists';
         let collapsedLists = JSON.parse(localStorage.getItem(storageKey)) || [];
 
-        // Apply collapsed state on load
         collapsedLists.forEach(listId => {
             const listContainer = document.querySelector(`.alba-cards[data-list-id="${listId}"], .alba-cards-container[data-list-id="${listId}"]`);
             if (listContainer) {
@@ -435,7 +416,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        // Toggle click handler
         document.addEventListener('click', (e) => {
             const btn = e.target.closest('.alba-list-collapse-btn');
             if (!btn) return;
@@ -461,6 +441,5 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
     
-    // Initialize the collapse logic
     initListCollapse();
 });

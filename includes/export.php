@@ -1,39 +1,45 @@
 <?php
-// includes/export.php
+/**
+ * Alba Board Export Logic (CSV & JSON)
+ * Hook: admin_post_alba_export_board
+ */
 
-if ( ! defined( 'ABSPATH' ) ) exit; // Prevent direct access
+if ( ! defined( 'ABSPATH' ) ) exit;
 
-// Hook into admin-post.php to handle the file download securely
 add_action('admin_post_alba_export_board', 'alba_board_export_handler');
 
 function alba_board_export_handler() {
-    // 1. Security Check: Ensure the user has permission to export
-    if (!current_user_can('edit_posts')) {
-        wp_die(esc_html__('Permission denied.', 'alba-board'));
+    // 1. Validate Permissions and Security
+    if (!current_user_can('administrator')) {
+        wp_die(esc_html__('You do not have permission to export this board.', 'alba-board'));
     }
 
-    // 2. Validate input parameters
     $board_id = isset($_GET['board_id']) ? absint($_GET['board_id']) : 0;
-    $format = (isset($_GET['format']) && $_GET['format'] === 'json') ? 'json' : 'csv';
-    
-    // 3. Verify the nonce for CSRF protection
-    $nonce = isset($_GET['_wpnonce']) ? sanitize_text_field(wp_unslash($_GET['_wpnonce'])) : '';
-    if (empty($nonce) || !wp_verify_nonce($nonce, 'alba_export_board_' . $board_id)) {
-        wp_die(esc_html__('Invalid security token.', 'alba-board'));
-    }
+    $format   = isset($_GET['format']) ? sanitize_text_field($_GET['format']) : 'csv';
 
-    if (!$board_id) {
-        wp_die(esc_html__('Invalid board ID.', 'alba-board'));
-    }
+    check_admin_referer('alba_export_board_' . $board_id);
 
-    // 4. Fetch the requested board
     $board = get_post($board_id);
     if (!$board || $board->post_type !== 'alba_board') {
-        wp_die(esc_html__('Board not found.', 'alba-board'));
+        wp_die(esc_html__('Invalid board.', 'alba-board'));
     }
 
-    // 5. Fetch all lists associated with this board
-    // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key, WordPress.DB.SlowDBQuery.slow_db_query_meta_value
+    // --- SYSTEM INTEGRATION NAMING CONVENTION ---
+    // Convert board title to a safe, lowercase, hyphen-separated string (slug)
+    $board_slug = sanitize_title($board->post_title);
+    if (empty($board_slug)) {
+        $board_slug = 'board-' . $board_id; // Fallback just in case
+    }
+    
+    // Create a precise chronological timestamp (e.g., 20260526_143000)
+    $timestamp = wp_date('Ymd_His');
+    
+    // Assemble the robust filename
+    $filename = sprintf('alba-board-%s-%s.%s', $board_slug, $timestamp, $format);
+    // --------------------------------------------
+
+    // 2. Gather Data
+    $export_data = [];
     $lists = get_posts([
         'post_type'   => 'alba_list',
         'numberposts' => -1,
@@ -43,94 +49,110 @@ function alba_board_export_handler() {
         'order'       => 'ASC'
     ]);
 
-    $export_data = [];
-
-    if ($lists) {
-        $list_ids = wp_list_pluck($lists, 'ID');
-        
-        $lists_map = [];
-        foreach ($lists as $list) {
-            $lists_map[$list->ID] = $list->post_title;
-        }
-        
-        // 6. Fetch all cards within these lists efficiently
-        // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query, WordPress.DB.SlowDBQuery.slow_db_query_meta_key, WordPress.DB.SlowDBQuery.slow_db_query_meta_value
+    foreach ($lists as $list) {
         $cards = get_posts([
             'post_type'   => 'alba_card',
             'numberposts' => -1,
-            'meta_query'  => [
-                [
-                    'key'     => 'alba_list_parent',
-                    'value'   => $list_ids,
-                    'compare' => 'IN'
-                ]
-            ],
+            'meta_key'    => 'alba_list_parent',
+            'meta_value'  => $list->ID,
             'orderby'     => 'menu_order',
-            'order'       => 'ASC',
-            'update_post_term_cache' => true // Load tags in memory
+            'order'       => 'ASC'
         ]);
 
-        // 7. Format the data for export
         foreach ($cards as $card) {
-            $list_id = get_post_meta($card->ID, 'alba_list_parent', true);
-            $list_name = isset($lists_map[$list_id]) ? $lists_map[$list_id] : __('Unknown', 'alba-board');
-            
-            $author_name = '';
+            // A. Assignee
+            $assignee = '';
             if ($card->post_author) {
-                $author = get_userdata($card->post_author);
-                $author_name = $author ? $author->display_name : '';
+                $user = get_userdata($card->post_author);
+                $assignee = $user ? $user->display_name : '';
             }
 
-            $tags = get_the_terms($card->ID, 'alba_tag');
-            $tag_names = [];
-            if (!empty($tags) && !is_wp_error($tags)) {
-                foreach ($tags as $tag) {
-                    $tag_names[] = $tag->name;
+            // B. Due Date
+            $due_date = get_post_meta($card->ID, 'alba_due_date', true);
+
+            // C. Tags
+            $tags = wp_get_post_terms($card->ID, 'alba_tag', ['fields' => 'names']);
+            $tags_str = (!is_wp_error($tags) && !empty($tags)) ? implode(', ', $tags) : '';
+
+            // D. Attachments (URLs)
+            $attachments = get_post_meta($card->ID, 'alba_card_attachments');
+            $att_urls = [];
+            if (!empty($attachments)) {
+                foreach ($attachments as $att_id) {
+                    $url = wp_get_attachment_url($att_id);
+                    if ($url) $att_urls[] = $url;
                 }
             }
+            $atts_str = implode(', ', $att_urls);
 
+            // E. Activity and Comments (Conversations)
+            $comments = get_post_meta($card->ID, 'alba_comments', true);
+            if (!is_array($comments)) $comments = @unserialize($comments) ?: [];
+            
+            $comments_csv = [];
+            foreach ($comments as $c) {
+                // CSV Format: [Date] Author: Text
+                $comments_csv[] = sprintf('[%s] %s: %s', $c['date'], $c['author'], $c['text']);
+            }
+            $comments_str = implode("  |  ", $comments_csv); // Clear separator for Excel
+
+            // Build the complete row
             $export_data[] = [
-                'Board'        => $board->post_title,
-                'List'         => $list_name,
-                'Card Title'   => $card->post_title,
-                'Description'  => wp_strip_all_tags($card->post_content),
-                'Assignee'     => $author_name,
-                'Tags'         => implode(', ', $tag_names),
-                'Date Created' => $card->post_date
+                'Board'         => $board->post_title,
+                'List'          => $list->post_title,
+                'Card Title'    => $card->post_title,
+                'Description'   => $card->post_content,
+                'Assignee'      => $assignee,
+                'Due Date'      => $due_date,
+                'Tags'          => $tags_str,
+                'Attachments'   => $atts_str,
+                'Conversations' => $comments_str,
+                '_raw_comments' => $comments // Keep raw array for JSON export only
             ];
         }
     }
 
-    // 8. Output the file based on the requested format
-    $filename = sanitize_title($board->post_title) . '-export-' . gmdate('Y-m-d') . '.' . $format;
+    // 3. Generate and Download File
+    if ($format === 'json') {
+        // Clean up JSON data to pass structured comments instead of plain text
+        $json_data = array_map(function($row) {
+            $row['Conversations'] = $row['_raw_comments'];
+            unset($row['_raw_comments']);
+            return $row;
+        }, $export_data);
 
-    if ($format === 'csv') {
-        header('Content-Type: text/csv; charset=utf-8');
+        header('Content-Type: application/json; charset=utf-8');
         header('Content-Disposition: attachment; filename="' . $filename . '"');
-        
-        // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen
-        $output = fopen('php://output', 'w');
-        
-        // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fputs
-        fputs($output, "\xEF\xBB\xBF");
-        
-        if (!empty($export_data)) {
-            fputcsv($output, array_keys($export_data[0])); 
-            foreach ($export_data as $row) {
-                fputcsv($output, $row);
-            }
-        } else {
-            fputcsv($output, [__('No cards found in this board.', 'alba-board')]);
-        }
-        
-        // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose
-        fclose($output);
+        echo wp_json_encode($json_data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
         exit;
 
     } else {
-        header('Content-Type: application/json; charset=utf-8');
+        // Default format: CSV
+        header('Content-Type: text/csv; charset=utf-8');
         header('Content-Disposition: attachment; filename="' . $filename . '"');
-        echo wp_json_encode($export_data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+        
+        $output = fopen('php://output', 'w');
+        
+        // UTF-8 BOM so Excel reads special characters correctly
+        fprintf($output, chr(0xEF).chr(0xBB).chr(0xBF));
+        
+        if (!empty($export_data)) {
+            // Print Headers
+            fputcsv($output, [
+                'Board', 'List', 'Card Title', 'Description', 
+                'Assignee', 'Due Date', 'Tags', 'Attachments (URLs)', 'Conversations'
+            ]);
+            
+            // Print Rows
+            foreach ($export_data as $row) {
+                unset($row['_raw_comments']); // Remove the raw array from the CSV output
+                fputcsv($output, $row);
+            }
+        } else {
+            fputcsv($output, ['No cards found in this board.']);
+        }
+        
+        fclose($output);
         exit;
     }
 }

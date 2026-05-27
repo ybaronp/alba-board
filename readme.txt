@@ -2,9 +2,9 @@
 Contributors: alejo30  
 Tags: kanban, board, project management, todo, task
 Requires at least: 5.8  
-Tested up to: 6.9.4
-Requires PHP: 7.2
-Stable tag: 2.1.2
+Tested up to: 7.0
+Requires PHP: 7.4
+Stable tag: 2.1.3
 License: GPLv2 or later  
 License URI: https://www.gnu.org/licenses/gpl-2.0.html  
 
@@ -102,6 +102,11 @@ Absolutely. All AJAX actions use WordPress nonces and capability checks to ensur
 4. Kanban view seamlessly integrated into the front end using shortcodes.
 
 == Changelog ==
+
+= 2.1.3 =
+* Security: Fixed an authorization vulnerability that could allow unauthorized users to view private card details.
+* Security: Improved security token (nonce) validation and generation strictness across the board.
+* Enhancement: Overhauled CSV and JSON export engines for backend boards. Exports now include comprehensive card data: Assignee, Due Date, Tags, Attachment URLs, and full Conversation/Activity logs.
 
 = 2.1.2 =
 * Security: Corrected the IDOR patch in REST API and AJAX endpoints. Migrated away from the flawed 'read_card' meta capability mapping to a strict 'edit_cards' fallback, enforcing rigorous role-based access for non-public boards.

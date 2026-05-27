@@ -23,26 +23,7 @@ function alba_board_register_rest_routes() {
 
 // Security Check: Ensure only allowed users can query the API
 function alba_board_rest_permissions_check( $request ) {
-    $card_id = (int) $request['id'];
-
-    if ( 'admin' === $request->get_param( 'context' ) ) {
-        return current_user_can( 'edit_cards' ); 
-    }
-    
-    // IDOR PATCH: Contextual Authorization
-    // If the card belongs to a published board, it is public on the frontend
-    $list_id = get_post_meta( $card_id, 'alba_list_parent', true );
-    $board_id = get_post_meta( $list_id, 'alba_board_parent', true );
-    
-    if ( $board_id ) {
-        $board = get_post( $board_id );
-        if ( $board && $board->post_status === 'publish' ) {
-            return true; // Board is explicitly public, anyone can view its cards
-        }
-    }
-    
-    // STRICT FALLBACK: 'read_card' maps to 'read' for published posts, which is insecure.
-    // We strictly require 'edit_cards' (Admin/Editor) to view isolated or private cards.
+    // STRICT CAPABILITY GATE: Enforced across all contexts
     return current_user_can( 'edit_cards' ); 
 }
 

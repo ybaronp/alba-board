@@ -1,8 +1,4 @@
 <?php
-/**
- * includes/ajax-card-details-admin.php
- */
-
 if ( ! defined( 'ABSPATH' ) ) exit;
 
 function alba_board_time_ago_or_date( $datetime ) {
@@ -37,13 +33,11 @@ function alba_output_card_details_admin_modal( $card_id, $force_author = null ) 
     echo '<form id="alba-card-details-form" class="alba-card-details-form">';
     echo '<input type="hidden" id="alba-current-card-id" name="card_id" value="' . esc_attr( $card_id ) . '">';
 
-    // Title
     echo '<div class="alba-form-group">';
     echo '<label>' . esc_html__( 'Title:', 'alba-board' ) . '</label>';
     echo '<input type="text" name="card_title" class="alba-form-input-text" value="' . esc_attr( $card->post_title ) . '" required>';
     echo '</div>';
 
-    // Assignee
     echo '<div class="alba-form-group">';
     echo '<label>' . esc_html__( 'Assignee:', 'alba-board' ) . '</label>';
     echo '<select name="card_author" class="alba-select2">';
@@ -54,7 +48,6 @@ function alba_output_card_details_admin_modal( $card_id, $force_author = null ) 
     echo '</select>';
     echo '</div>';
 
-    // Due Date
     echo '<div class="alba-form-group" style="margin-bottom: 15px;">';
     echo '<label for="alba-card-due-date" style="font-weight: 600; display: block; margin-bottom: 5px;">' . esc_html__( 'Due Date:', 'alba-board' ) . '</label>';
     $due_date = get_post_meta($card_id, 'alba_due_date', true);
@@ -65,7 +58,6 @@ function alba_output_card_details_admin_modal( $card_id, $force_author = null ) 
     }
     echo '</div></div>';
 
-    // Description
     echo '<div class="alba-form-group">';
     echo '<label>' . esc_html__( 'Description:', 'alba-board' ) . '</label>';
     echo '<textarea name="card_content" class="alba-form-input-text" rows="3">' . esc_textarea( $card->post_content ) . '</textarea>';
@@ -73,17 +65,20 @@ function alba_output_card_details_admin_modal( $card_id, $force_author = null ) 
 
     do_action('alba_admin_card_modal_after_description', $card_id);
 
-    // Attachments
+    // native media attachment fetch
     echo '<div class="alba-form-group" style="margin-bottom: 15px;">';
     echo '<label>' . esc_html__( 'Attachments:', 'alba-board' ) . '</label>';
-    $attachments = get_post_meta( $card_id, 'alba_card_attachments' );
+    
+    $attachments = get_attached_media('', $card_id);
+    
     echo '<div id="alba-attachments-list" style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px;">';
     if ( ! empty( $attachments ) ) {
-        foreach ( $attachments as $att_id ) {
+        foreach ( $attachments as $att ) {
+            $att_id = $att->ID;
             $file_url = wp_get_attachment_url( $att_id );
             if ($file_url) {
                 echo '<div class="alba-attachment-item" id="alba-attachment-' . esc_attr($att_id) . '" style="display: flex; justify-content: space-between; align-items: center; background: var(--alba-card-bg); padding: 8px 14px; border-radius: 12px; box-shadow: 2px 2px 6px var(--alba-shadow-dark), -2px -2px 6px var(--alba-shadow-light);">';
-                echo '<a href="' . esc_url($file_url) . '" target="_blank" style="text-decoration: none; color: var(--alba-text-main); font-weight: 600; font-size: 0.95em;">📎 ' . esc_html(get_the_title($att_id)) . '</a>';
+                echo '<a href="' . esc_url($file_url) . '" target="_blank" style="text-decoration: none; color: var(--alba-text-main); font-weight: 600; font-size: 0.95em;">📎 ' . esc_html($att->post_title) . '</a>';
                 echo '<button type="button" class="alba-delete-attachment-btn" data-attachment-id="' . esc_attr($att_id) . '" style="background: none; border: none; color: var(--alba-danger); cursor: pointer; font-size: 1.2em;">&times;</button>';
                 echo '</div>';
             }
@@ -92,16 +87,11 @@ function alba_output_card_details_admin_modal( $card_id, $force_author = null ) 
         echo '<div id="alba-no-attachments-msg" style="color: var(--alba-text-muted); font-size: 0.9em; font-style: italic;">' . esc_html__( 'No files attached.', 'alba-board' ) . '</div>';
     }
     echo '</div>'; 
-    
-    // ANTIFRAGILE FIX: Safari blocks File objects if input is display:none. 
-    // We use an accessible hiding technique so the browser memory keeps the object active.
-    echo '<input type="file" id="alba-file-upload-input" style="width: 0.1px; height: 0.1px; opacity: 0; overflow: hidden; position: absolute; z-index: -1;">';
-    
+    echo '<input type="file" id="alba-file-upload-input" style="display: none;">';
     echo '<button type="button" id="alba-trigger-upload-btn" class="alba-btn-cancel">+ ' . esc_html__( 'Add File', 'alba-board' ) . '</button>';
     echo '<div id="alba-upload-feedback" style="margin-top: 8px; font-size: 0.9em; font-weight: 600;"></div>';
     echo '</div>'; 
 
-    // Comments
     $comments = get_post_meta( $card_id, 'alba_comments', true );
     if ( ! is_array( $comments ) ) { $comments = @unserialize($comments) ?: []; }
 

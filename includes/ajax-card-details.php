@@ -7,7 +7,7 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 
 // Register AJAX endpoints for frontend
 add_action('wp_ajax_alba_get_card_details', 'alba_board_get_card_details_ajax');
-add_action('wp_ajax_nopriv_alba_get_card_details', 'alba_board_get_card_details_ajax');
+// Hook nopriv removed as requested by security audit
 
 function alba_board_get_card_details_ajax() {
     $nonce = isset($_GET['nonce']) ? sanitize_text_field(wp_unslash($_GET['nonce'])) : '';
@@ -20,22 +20,8 @@ function alba_board_get_card_details_ajax() {
         wp_send_json_error(['message' => esc_html__('Invalid card id.', 'alba-board')]);
     }
 
-    // IDOR PATCH: Contextual Authorization
-    $is_allowed = false;
-    $list_id = get_post_meta( $card_id, 'alba_list_parent', true );
-    $board_id = get_post_meta( $list_id, 'alba_board_parent', true );
-    
-    // Allow public access ONLY if the board is explicitly published
-    if ( $board_id ) {
-        $board = get_post( $board_id );
-        if ( $board && $board->post_status === 'publish' ) {
-            $is_allowed = true;
-        }
-    }
-
-    // STRICT FALLBACK: 'read_card' maps to 'read' for published posts, making it insecure here.
-    // We strictly require 'edit_cards' to view details if the board isn't published.
-    if ( ! $is_allowed && ! current_user_can( 'edit_cards' ) ) {
+    // STRICT CAPABILITY GATE
+    if ( ! current_user_can( 'edit_cards' ) ) {
         wp_send_json_error(['message' => esc_html__('You do not have permission to view this card.', 'alba-board')]);
     }
 

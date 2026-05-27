@@ -11,8 +11,7 @@ function alba_board_enqueue_admin_assets($hook) {
     }
 
     $plugin_url = plugin_dir_url(dirname(__FILE__)) . 'assets/';
-    // CACHE BUSTING: Bumped to 2.0.5 to force Safari to reload the latest sanitized JS
-    $plugin_version = '2.0.5'; 
+    $plugin_version = '2.1.2'; 
 
     wp_enqueue_script('sortablejs', $plugin_url . 'js/Sortable.min.js', [], '1.15.0', true);
     wp_enqueue_style('select2', $plugin_url . 'css/select2.min.css', [], '4.1.0');
