@@ -23,7 +23,6 @@ function alba_board_register_rest_routes() {
 
 // Security Check: Ensure only allowed users can query the API
 function alba_board_rest_permissions_check( $request ) {
-    // STRICT CAPABILITY GATE: Enforced across all contexts
     return current_user_can( 'edit_cards' ); 
 }
 

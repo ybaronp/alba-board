@@ -4,7 +4,7 @@ Tags: kanban, board, project management, todo, task
 Requires at least: 5.8  
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 2.1.3
+Stable tag: 2.1.4
 License: GPLv2 or later  
 License URI: https://www.gnu.org/licenses/gpl-2.0.html  
 
@@ -89,7 +89,7 @@ Activate the “Alba Board Frontend Interactions” add-on from the Add-ons menu
 Enable the “Alba Board Pro: Customization & Smart Tags” add-on to unlock 7 spectacular themes and intuitive inline tag management.
 
 = 💻 Can developers extend Alba Board? =  
-Yes! We've implemented a robust Hooks/Actions API (`do_action`) allowing developers to extend functionalities via custom code or add-ons without modifying core files.
+Yes! We've implemented a robust Hooks/Actions API (`do_action`), allowing developers to extend functionalities via custom code or add-ons without modifying core files.
 
 = 🔒 Is frontend card management secure? =  
 Absolutely. All AJAX actions use WordPress nonces and capability checks to ensure your data stays safe and cache-proof.
@@ -102,6 +102,9 @@ Absolutely. All AJAX actions use WordPress nonces and capability checks to ensur
 4. Kanban view seamlessly integrated into the front end using shortcodes.
 
 == Changelog ==
+
+= 2.1.4 =
+* Security: Improved authorization checks to prevent unauthorized data access.
 
 = 2.1.3 =
 * Security: Fixed an authorization vulnerability that could allow unauthorized users to view private card details.
