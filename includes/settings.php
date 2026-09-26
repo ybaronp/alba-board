@@ -82,15 +82,15 @@ function alba_board_sanitize_uploads($input) {
     return $output;
 }
 
-// 👉 AQUI EL CORE RECIBE PERMISO DEL ADD-ON PARA GUARDAR TEMAS PRO
+// 👉 HERE THE CORE RECEIVES PERMISSION FROM THE ADD-ON TO SAVE PRO THEMES
 function alba_board_sanitize_display($input) {
     $output = [];
     $output['show_avatars'] = isset($input['show_avatars']) ? 1 : 0;
     
-    // Temas por defecto (Gratis)
+    // Default themes (Free)
     $allowed_themes = ['default', 'space', 'cosmic_dawn'];
     
-    // El Add-on inyectará los nombres de los temas Pro aquí a través de este filtro:
+    // The Add-on will inject the Pro theme names here via this filter:
     $allowed_themes = apply_filters('alba_board_allowed_themes', $allowed_themes);
     
     $output['theme'] = in_array($input['theme'], $allowed_themes) ? $input['theme'] : 'default';
@@ -102,7 +102,7 @@ function alba_board_theme_callback() {
     $options = get_option('alba_board_display', ['show_avatars' => 1, 'theme' => 'default']);
     $theme = isset($options['theme']) ? $options['theme'] : 'default';
     
-    // 👉 VERIFICAMOS SI EL ADDON ESTÁ ACTIVO
+    // 👉 WE VERIFY IF THE ADDON IS ACTIVE
     $has_pro = apply_filters('alba_board_has_pro_themes', false);
     $disabled_attr = $has_pro ? '' : ' disabled title="Requires Customization & Smart Tags Add-on"';
     $pro_badge = $has_pro ? '' : ' 🔒 (Pro)';
@@ -123,6 +123,11 @@ function alba_board_theme_callback() {
     echo '<option value="cyberpunk_neon" ' . selected('cyberpunk_neon', $theme, false) . $disabled_attr . '>' . esc_html__('Cyberpunk Neon (Vibrant Dark)', 'alba-board') . $pro_badge . '</option>';
     echo '<option value="vaporwave" ' . selected('vaporwave', $theme, false) . $disabled_attr . '>' . esc_html__('Cotton Candy (Pastel Glass)', 'alba-board') . $pro_badge . '</option>';
     echo '<option value="zen_monochrome" ' . selected('zen_monochrome', $theme, false) . $disabled_attr . '>' . esc_html__('Zen Monochrome (Minimalist)', 'alba-board') . $pro_badge . '</option>';
+    echo '<option value="celestial_glass" ' . selected('celestial_glass', $theme, false) . $disabled_attr . '>' . esc_html__('Celestial Glass (Living Aurora)', 'alba-board') . $pro_badge . '</option>';
+    echo '<option value="neo_brutalism" ' . selected('neo_brutalism', $theme, false) . $disabled_attr . '>' . esc_html__('Neo-Brutalism (Raw & Functional)', 'alba-board') . $pro_badge . '</option>';
+    echo '<option value="a11y_high_contrast" ' . selected('a11y_high_contrast', $theme, false) . $disabled_attr . '>' . esc_html__('High Contrast (Accessibility WCAG AAA)', 'alba-board') . $pro_badge . '</option>';
+    echo '<option value="solarized_hacker" ' . selected('solarized_hacker', $theme, false) . $disabled_attr . '>' . esc_html__('Solarized Hacker (Eye Care Ergonomics)', 'alba-board') . $pro_badge . '</option>';
+    echo '<option value="physical_corkboard" ' . selected('physical_corkboard', $theme, false) . $disabled_attr . '>' . esc_html__('Physical Corkboard (Skeuomorphic Nostalgia)', 'alba-board') . $pro_badge . '</option>';
     echo '</optgroup>';
     
     echo '</select>';

@@ -1,10 +1,10 @@
-=== Alba Board ===
+=== Alba Board - Custom Kanban Board and Task Management ===
 Contributors: alejo30  
-Tags: kanban, board, project management, todo, task
+Tags: kanban, kanban-board, task-management, project-management, workflow
 Requires at least: 5.8  
-Tested up to: 7.0
+Tested up to: 7.1.2
 Requires PHP: 7.4
-Stable tag: 2.1.4
+Stable tag: 2.1.5
 License: GPLv2 or later  
 License URI: https://www.gnu.org/licenses/gpl-2.0.html  
 
@@ -102,6 +102,9 @@ Absolutely. All AJAX actions use WordPress nonces and capability checks to ensur
 4. Kanban view seamlessly integrated into the front end using shortcodes.
 
 == Changelog ==
+
+= 2.1.5 =
+* New: Added more Premium themes and updated some comments within the code.
 
 = 2.1.4 =
 * Security: Improved authorization checks to prevent unauthorized data access.
