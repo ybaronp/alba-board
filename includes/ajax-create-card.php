@@ -3,10 +3,7 @@
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-// Register AJAX for both logged-in and not logged-in (if you want to allow public creation, otherwise remove nopriv)
 add_action('wp_ajax_alba_create_card', 'alba_core_ajax_create_card');
-// Remove the next line if only admins should use it
-add_action('wp_ajax_nopriv_alba_create_card', 'alba_core_ajax_create_card');
 
 function alba_core_ajax_create_card() {
     // 1. Nonce validation with wp_unslash and sanitize
@@ -16,16 +13,20 @@ function alba_core_ajax_create_card() {
     }
 
     // 2. Permission check (you may want to restrict public access!)
-    if (!is_user_logged_in() || !current_user_can('edit_posts')) {
+    if (!is_user_logged_in() || !current_user_can('edit_cards')) {
         wp_send_json_error(['message' => esc_html__('Permission denied.', 'alba-board')]);
     }
 
     // 3. Sanitize input
     $title   = isset($_POST['title'])   ? sanitize_text_field(wp_unslash($_POST['title'])) : '';
     $list_id = isset($_POST['list_id']) ? absint($_POST['list_id']) : 0;
+    $list    = $list_id ? get_post($list_id) : false;
 
-    if (empty($title) || !$list_id) {
+    if (empty($title) || !$list || 'alba_list' !== $list->post_type || 'publish' !== $list->post_status) {
         wp_send_json_error(['message' => esc_html__('Required data missing.', 'alba-board')]);
+    }
+    if (!current_user_can('edit_list', $list_id)) {
+        wp_send_json_error(['message' => esc_html__('Permission denied.', 'alba-board')], 403);
     }
 
     // 4. Optional: Check card limit per list (if limit set in options)
@@ -51,7 +52,7 @@ function alba_core_ajax_create_card() {
         'post_title'   => $title,
         'post_status'  => 'publish',
         'post_author'  => get_current_user_id()
-    ]);
+    ], true);
 
     if (is_wp_error($card_id) || !$card_id) {
         wp_send_json_error(['message' => esc_html__('Error creating the card.', 'alba-board')]);

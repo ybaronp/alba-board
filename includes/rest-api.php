@@ -16,6 +16,9 @@ function alba_board_register_rest_routes() {
             'context' => [
                 'default'           => 'admin',
                 'sanitize_callback' => 'sanitize_text_field',
+                'validate_callback' => function ( $value ) {
+                    return in_array( $value, [ 'admin', 'frontend' ], true );
+                },
             ],
         ],
     ]);
@@ -23,7 +26,8 @@ function alba_board_register_rest_routes() {
 
 // Security Check: Ensure only allowed users can query the API
 function alba_board_rest_permissions_check( $request ) {
-    return current_user_can( 'edit_cards' ); 
+    $card_id = absint( $request['id'] );
+    return $card_id && 'alba_card' === get_post_type( $card_id ) && current_user_can( 'edit_card', $card_id );
 }
 
 // The Core Function: Fetch HTML and Cache via Transients (Redis)
@@ -41,6 +45,25 @@ function alba_board_rest_get_card_details( $request ) {
     $cache_key = 'alba_card_live_' . $context . '_' . $card_id;
     
     $cached_html = get_transient( $cache_key );
+
+    // Refresh admin modal markup when a cached response predates current form fields.
+    if ( false !== $cached_html && 'admin' === $context ) {
+        $has_current_field_layout = false !== strpos( $cached_html, 'alba-card-addons-row' );
+        $has_trash_control = false !== strpos( $cached_html, 'alba-card-trash-btn' );
+        $can_delete_card = current_user_can( 'delete_card', $card_id );
+        $has_compact_actions = false !== strpos( $cached_html, 'data-alba-ui="compact-actions-upload"' );
+
+        if ( ! $has_current_field_layout || ! $has_compact_actions || $has_trash_control !== $can_delete_card ) {
+            delete_transient( $cache_key );
+            $cached_html = false;
+        }
+    }
+
+    // Replace cached frontend modal markup that still contains the removed archive control.
+    if ( false !== $cached_html && 'frontend' === $context && false !== strpos( $cached_html, 'alba-modal-archive' ) ) {
+        delete_transient( $cache_key );
+        $cached_html = false;
+    }
 
     if ( false !== $cached_html ) {
         return new WP_REST_Response( [ 'html' => $cached_html, 'cached' => true ], 200 );
@@ -72,3 +95,16 @@ function alba_board_clear_card_cache( $post_id, $post = null, $update = false ) 
         delete_transient( 'alba_card_live_frontend_' . $post_id );
     }
 }
+
+// Add-ons can update card metadata without saving the post itself.
+function alba_board_clear_card_meta_cache( $meta_id, $post_id, $meta_key, $meta_value ) {
+    alba_board_clear_card_cache( $post_id );
+}
+add_action( 'added_post_meta', 'alba_board_clear_card_meta_cache', 10, 4 );
+add_action( 'updated_post_meta', 'alba_board_clear_card_meta_cache', 10, 4 );
+add_action( 'deleted_post_meta', 'alba_board_clear_card_meta_cache', 10, 4 );
+
+function alba_board_clear_card_terms_cache( $object_id, $terms, $tt_ids, $taxonomy ) {
+    if ( 'alba_tag' === $taxonomy ) alba_board_clear_card_cache( $object_id );
+}
+add_action( 'set_object_terms', 'alba_board_clear_card_terms_cache', 10, 4 );

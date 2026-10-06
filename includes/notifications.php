@@ -4,15 +4,60 @@
 if ( ! defined( 'ABSPATH' ) ) exit;
 
 /**
+ * CORE UTILITY: Auto-Discovery & Caching for Public Board URLs
+ * Self-healing logic to find where a shortcode lives.
+ */
+function alba_board_get_public_url($board_id) {
+    $public_url = get_post_meta($board_id, 'alba_board_public_url', true);
+    
+    if (empty($public_url) && $board_id) {
+        global $wpdb;
+        $query_str = '%[alba_board%id="' . intval($board_id) . '"%';
+        $page_id = $wpdb->get_var($wpdb->prepare("SELECT ID FROM {$wpdb->posts} WHERE post_type IN ('post', 'page') AND post_status = 'publish' AND post_content LIKE %s LIMIT 1", $query_str));
+        
+        if (!$page_id) {
+            $query_str_unq = '%[alba_board%id=' . intval($board_id) . '%';
+            $page_id = $wpdb->get_var($wpdb->prepare("SELECT ID FROM {$wpdb->posts} WHERE post_type IN ('post', 'page') AND post_status = 'publish' AND post_content LIKE %s LIMIT 1", $query_str_unq));
+        }
+
+        if ($page_id) {
+            $public_url = get_permalink($page_id);
+            update_post_meta($board_id, 'alba_board_public_url', $public_url);
+        }
+    }
+    
+    return $public_url;
+}
+
+/**
+ * CORE UTILITY: Smart Routing Context Builder
+ * Context-aware URL generation (Guests vs WP Users)
+ */
+function alba_get_smart_card_url($card_id, $context = 'wp_user') {
+    $list_id = get_post_meta($card_id, 'alba_list_parent', true);
+    $board_id = get_post_meta($list_id, 'alba_board_parent', true);
+    $public_url = alba_board_get_public_url($board_id);
+
+    if (!empty($public_url)) {
+        return add_query_arg('alba_card', $card_id, $public_url);
+    } else {
+        // Fallback if no public page exists
+        if ($context === 'guest') {
+            // Guests must NEVER be directed to the wp-admin login screen
+            return home_url(); 
+        }
+        // WP Users can safely fall back to the backend visual board
+        return add_query_arg(['page' => 'alba-board-visual', 'board_id' => $board_id, 'alba_card' => $card_id], admin_url('admin.php'));
+    }
+}
+
+/**
  * 1. THE ENGINE: Replaces variables and relies strictly on wp_mail()
- * It uses the templates defined by the user in Settings.
  */
 function alba_board_send_notification($to_email, $subject, $user_name, $card_title, $card_content, $card_link, $template_type, $comment_text = '') {
     $options = get_option('alba_board_notifications', []);
     
-    // Default fallback templates using HEREDOC for clean formatting
     $defaults = [];
-    
     $defaults['new_card'] = <<<HTML
 <div style="background-color: #f1f5f9; padding: 40px 20px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
   <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
@@ -68,21 +113,18 @@ HTML;
 </div>
 HTML;
 
-    // Get the custom HTML template from settings, or use fallback
     $html_template = !empty($options['template_' . $template_type]) ? $options['template_' . $template_type] : $defaults[$template_type];
 
-    // Replace the placeholders with actual data
     $search = ['{user_name}', '{card_title}', '{card_content}', '{card_link}', '{comment_text}'];
     $replace = [
         esc_html($user_name),
         esc_html($card_title),
         wp_kses_post($card_content),
         esc_url($card_link),
-        esc_html($comment_text) // Only used if it's a comment notification
+        esc_html($comment_text) 
     ];
     $final_html_message = str_replace($search, $replace, $html_template);
 
-    // Filter to allow other add-ons to intercept before sending
     $process_native_mail = apply_filters('alba_board_pre_send_notification', true, $to_email, $subject, $final_html_message);
 
     if ($process_native_mail) {
@@ -92,7 +134,7 @@ HTML;
 }
 
 /**
- * 2. TRIGGER 1: New Card Created/Assigned
+ * 2. TRIGGER 1: New Card Created/Assigned (WP Users)
  */
 function alba_board_notify_on_new_card( $post_id, $post, $update ) {
     if ( get_post_type( $post_id ) !== 'alba_card' || $update ) return;
@@ -100,24 +142,23 @@ function alba_board_notify_on_new_card( $post_id, $post, $update ) {
     $options = get_option( 'alba_board_notifications' );
     if ( empty( $options['notify_on_card'] ) ) return;
 
-    // Find who to notify (Assignee first, then Author)
     $assignee_id = get_post_meta( $post_id, '_alba_assignee', true );
     $user_to_notify = $assignee_id ? get_userdata( $assignee_id ) : get_userdata( $post->post_author );
 
     if ( ! $user_to_notify || empty( $user_to_notify->user_email ) || ! is_email( $user_to_notify->user_email ) ) return;
 
-    // Build the subject
     $subject = sprintf( __( 'New task assigned: %s', 'alba-board' ), $post->post_title );
     $subject = apply_filters( 'alba_board_notification_subject_new_card', $subject, $post_id, $post );
 
-    // Call the engine
+    $card_link = alba_get_smart_card_url($post_id, 'wp_user');
+
     alba_board_send_notification(
         $user_to_notify->user_email,
         $subject,
         $user_to_notify->display_name,
         $post->post_title,
         $post->post_content,
-        get_permalink($post_id),
+        $card_link,
         'new_card'
     );
 }
@@ -127,12 +168,10 @@ add_action( 'wp_insert_post', 'alba_board_notify_on_new_card', 10, 3 );
  * 3. TRIGGER 2: New Comment Added to a Card
  */
 function alba_board_notify_on_new_comment( $comment_id, $comment_approved, $commentdata ) {
-    // Only proceed if it's an approved comment
     if ( $comment_approved !== 1 ) return;
 
     $post_id = $commentdata['comment_post_ID'];
     
-    // Ensure the comment belongs to an alba_card
     if ( get_post_type( $post_id ) !== 'alba_card' ) return;
 
     $options = get_option( 'alba_board_notifications' );
@@ -140,35 +179,75 @@ function alba_board_notify_on_new_comment( $comment_id, $comment_approved, $comm
 
     $post = get_post( $post_id );
     
-    // Find who to notify: In a Kanban, if I comment, the assignee should know.
-    // If the assignee is the one commenting, maybe the card author should know.
     $assignee_id = get_post_meta( $post_id, '_alba_assignee', true );
     $comment_author_id = $commentdata['user_id'];
     
-    // Logic: Default to notify assignee. If assignee is the commenter, notify post author.
     $notify_user_id = ($assignee_id && $assignee_id != $comment_author_id) ? $assignee_id : $post->post_author;
-    
-    // Prevent sending email to the person who just wrote the comment
     if ($notify_user_id == $comment_author_id) return;
 
     $user_to_notify = get_userdata( $notify_user_id );
 
     if ( ! $user_to_notify || empty( $user_to_notify->user_email ) || ! is_email( $user_to_notify->user_email ) ) return;
 
-    // Build the subject
     $subject = sprintf( __( 'New comment on task: %s', 'alba-board' ), $post->post_title );
     $subject = apply_filters( 'alba_board_notification_subject_new_comment', $subject, $post_id, $comment_id );
 
-    // Call the engine
+    // Determine the context based on whether the recipient is the guest assignee or a WP user
+    $guest_assignee = get_post_meta($post_id, 'alba_guest_assignee', true);
+    $context = (strpos($guest_assignee, $user_to_notify->user_email) !== false) ? 'guest' : 'wp_user';
+
+    $base_link = alba_get_smart_card_url($post_id, $context);
+
     alba_board_send_notification(
         $user_to_notify->user_email,
         $subject,
         $user_to_notify->display_name,
         $post->post_title,
         $post->post_content,
-        get_permalink($post_id) . '#comment-' . $comment_id, // Link directly to comment anchor
+        $base_link . '#comment-' . $comment_id, 
         'new_comment',
-        $commentdata['comment_content'] // Pass the comment text to the engine
+        $commentdata['comment_content']
     );
 }
 add_action( 'comment_post', 'alba_board_notify_on_new_comment', 10, 3 );
+
+/**
+ * 4. TRIGGER 3: Guest Assignee Update
+ */
+function alba_board_notify_guest_assignee($card_id, $new_guests, $old_guests) {
+    $options = get_option('alba_board_notifications');
+    if (empty($options['notify_on_card'])) return;
+
+    $post = get_post($card_id);
+    if (!$post || $post->post_type !== 'alba_card') return;
+
+    $new_emails = array_filter(array_map('trim', explode(',', $new_guests)));
+    $old_emails = array_filter(array_map('trim', explode(',', (string)$old_guests)));
+    $emails_to_notify = array_diff($new_emails, $old_emails);
+
+    if (empty($emails_to_notify)) return;
+
+    $subject = sprintf(__('New task assigned: %s', 'alba-board'), $post->post_title);
+    $subject = apply_filters('alba_board_notification_subject_guest_card', $subject, $card_id, $post);
+
+    // Context MUST be 'guest' to prevent sending them admin login URLs
+    $card_link = alba_get_smart_card_url($card_id, 'guest');
+
+    foreach ($emails_to_notify as $email) {
+        if (is_email($email)) {
+            $name_parts = explode('@', $email);
+            $user_name = ucfirst($name_parts[0]);
+
+            alba_board_send_notification(
+                $email,
+                $subject,
+                $user_name,
+                $post->post_title,
+                $post->post_content,
+                $card_link,
+                'new_card'
+            );
+        }
+    }
+}
+add_action('alba_board_guest_assigned', 'alba_board_notify_guest_assignee', 10, 3);

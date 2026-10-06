@@ -9,20 +9,21 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 add_action('admin_post_alba_export_board', 'alba_board_export_handler');
 
 function alba_board_export_handler() {
-    // 1. Validate Permissions and Security
-    if (!current_user_can('administrator')) {
-        wp_die(esc_html__('You do not have permission to export this board.', 'alba-board'));
-    }
-
-    $board_id = isset($_GET['board_id']) ? absint($_GET['board_id']) : 0;
-    $format   = isset($_GET['format']) ? sanitize_text_field($_GET['format']) : 'csv';
-
-    check_admin_referer('alba_export_board_' . $board_id);
+    $board_id = isset($_GET['board_id']) && is_scalar($_GET['board_id']) ? absint($_GET['board_id']) : 0;
+    $format   = isset($_GET['format']) && is_scalar($_GET['format']) ? sanitize_key(wp_unslash($_GET['format'])) : 'csv';
 
     $board = get_post($board_id);
     if (!$board || $board->post_type !== 'alba_board') {
         wp_die(esc_html__('Invalid board.', 'alba-board'));
     }
+    if (!current_user_can('edit_board', $board_id)) {
+        wp_die(esc_html__('You do not have permission to export this board.', 'alba-board'));
+    }
+    if (!in_array($format, ['csv', 'json'], true)) {
+        wp_die(esc_html__('Invalid export format.', 'alba-board'));
+    }
+
+    check_admin_referer('alba_export_board_' . $board_id);
 
     // --- SYSTEM INTEGRATION NAMING CONVENTION ---
     // Convert board title to a safe, lowercase, hyphen-separated string (slug)
@@ -146,7 +147,7 @@ function alba_board_export_handler() {
             // Print Rows
             foreach ($export_data as $row) {
                 unset($row['_raw_comments']); // Remove the raw array from the CSV output
-                fputcsv($output, $row);
+                fputcsv($output, array_map('alba_board_csv_safe_cell', array_values($row)));
             }
         } else {
             fputcsv($output, ['No cards found in this board.']);
@@ -155,4 +156,18 @@ function alba_board_export_handler() {
         fclose($output);
         exit;
     }
+}
+
+/** Prefix spreadsheet formula markers in exported CSV cell values. */
+function alba_board_csv_safe_cell($value) {
+    if (!is_scalar($value)) {
+        return '';
+    }
+
+    $value = (string) $value;
+    if (preg_match('/^[\x00-\x20]*[=+\-@]/', $value)) {
+        return "'" . $value;
+    }
+
+    return $value;
 }

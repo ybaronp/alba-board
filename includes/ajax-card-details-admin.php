@@ -30,17 +30,20 @@ function alba_output_card_details_admin_modal( $card_id, $force_author = null ) 
     $card = get_post( $card_id );
     $author_id = $force_author !== null ? absint( $force_author ) : intval( $card->post_author );
     
-    echo '<form id="alba-card-details-form" class="alba-card-details-form">';
+    echo '<form id="alba-card-details-form" class="alba-card-details-form" data-alba-ui="compact-actions-upload">';
     echo '<input type="hidden" id="alba-current-card-id" name="card_id" value="' . esc_attr( $card_id ) . '">';
 
+    // Cleaned Title Field (No copy link button)
     echo '<div class="alba-form-group">';
     echo '<label>' . esc_html__( 'Title:', 'alba-board' ) . '</label>';
     echo '<input type="text" name="card_title" class="alba-form-input-text" value="' . esc_attr( $card->post_title ) . '" required>';
     echo '</div>';
 
-    echo '<div class="alba-form-group">';
-    echo '<label>' . esc_html__( 'Assignee:', 'alba-board' ) . '</label>';
+    echo '<div class="alba-card-assignees-row">';
+    echo '<div class="alba-form-group" style="flex:1; margin-bottom:0;">';
+    echo '<label>' . esc_html__( 'WP Assignee:', 'alba-board' ) . '</label>';
     echo '<select name="card_author" class="alba-select2">';
+    echo '<option value="">' . esc_html__('Unassigned', 'alba-board') . '</option>';
     $users = get_users( [ 'fields' => [ 'ID', 'display_name' ] ] );
     foreach ( $users as $user ) {
         echo '<option value="' . esc_attr( $user->ID ) . '" ' . selected($user->ID, $author_id, false) . '>' . esc_html( $user->display_name ) . '</option>';
@@ -48,7 +51,34 @@ function alba_output_card_details_admin_modal( $card_id, $force_author = null ) 
     echo '</select>';
     echo '</div>';
 
-    echo '<div class="alba-form-group" style="margin-bottom: 15px;">';
+    $list_id = get_post_meta($card_id, 'alba_list_parent', true);
+    $board_id = get_post_meta($list_id, 'alba_board_parent', true);
+    $public_url = function_exists('alba_board_get_public_url') ? alba_board_get_public_url($board_id) : '';
+
+    $guest_assignee = get_post_meta($card_id, 'alba_guest_assignee', true);
+    echo '<div class="alba-form-group alba-guest-assignee-group" style="flex:1; margin-bottom:0;">';
+    echo '<label for="alba-guest-assignee">' . esc_html__( 'Guest Assignee:', 'alba-board' ) . '</label>';
+    echo '<input type="text" id="alba-guest-assignee" name="guest_assignee" class="alba-form-input-text" placeholder="Name or Email" value="' . esc_attr( $guest_assignee ) . '"' . ( empty( $public_url ) ? ' aria-describedby="alba-guest-assignee-help"' : '' ) . '>';
+    
+    // UI Warning: Alert admin if the board is strictly private
+    if (empty($public_url)) {
+        echo '<div id="alba-guest-assignee-help" class="alba-guest-assignee-help" role="note" tabindex="0">';
+        echo '<strong>' . esc_html__('Public page missing', 'alba-board') . '</strong><br>';
+        echo esc_html__('Guests cannot access the backend. Add this shortcode to any page: ', 'alba-board');
+        echo '<code>[alba_board id="' . esc_attr($board_id) . '"]</code>';
+        echo '</div>';
+    }
+
+    echo '</div>';
+    echo '</div>';
+
+    echo '<div class="alba-form-group alba-card-description">';
+    echo '<label>' . esc_html__( 'Description:', 'alba-board' ) . '</label>';
+    echo '<textarea name="card_content" class="alba-form-input-text" rows="3">' . esc_textarea( $card->post_content ) . '</textarea>';
+    echo '</div>';
+
+    echo '<div class="alba-card-addons-row">';
+    echo '<div class="alba-form-group alba-card-addon-field">';
     echo '<label for="alba-card-due-date" style="font-weight: 600; display: block; margin-bottom: 5px;">' . esc_html__( 'Due Date:', 'alba-board' ) . '</label>';
     $due_date = get_post_meta($card_id, 'alba_due_date', true);
     echo '<div style="display: flex; align-items: center; gap: 10px;">';
@@ -58,16 +88,16 @@ function alba_output_card_details_admin_modal( $card_id, $force_author = null ) 
     }
     echo '</div></div>';
 
-    echo '<div class="alba-form-group">';
-    echo '<label>' . esc_html__( 'Description:', 'alba-board' ) . '</label>';
-    echo '<textarea name="card_content" class="alba-form-input-text" rows="3">' . esc_textarea( $card->post_content ) . '</textarea>';
+    do_action('alba_admin_card_modal_after_description', $card_id);
     echo '</div>';
 
-    do_action('alba_admin_card_modal_after_description', $card_id);
-
-    // native media attachment fetch
-    echo '<div class="alba-form-group" style="margin-bottom: 15px;">';
-    echo '<label>' . esc_html__( 'Attachments:', 'alba-board' ) . '</label>';
+    echo '<div class="alba-form-group alba-card-attachments">';
+    echo '<div class="alba-card-attachments-heading">';
+    echo '<label for="alba-trigger-upload-btn">' . esc_html__( 'Attachments:', 'alba-board' ) . '</label>';
+    echo '<button type="button" id="alba-trigger-upload-btn" class="alba-card-icon-button" aria-label="' . esc_attr__( 'Upload attachment', 'alba-board' ) . '" title="' . esc_attr__( 'Upload attachment', 'alba-board' ) . '">';
+    echo '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 15V3m-4 4 4-4 4 4M4 15v5h16v-5"/></svg>';
+    echo '</button>';
+    echo '</div>';
     
     $attachments = get_attached_media('', $card_id);
     
@@ -88,7 +118,6 @@ function alba_output_card_details_admin_modal( $card_id, $force_author = null ) 
     }
     echo '</div>'; 
     echo '<input type="file" id="alba-file-upload-input" style="display: none;">';
-    echo '<button type="button" id="alba-trigger-upload-btn" class="alba-btn-cancel">+ ' . esc_html__( 'Add File', 'alba-board' ) . '</button>';
     echo '<div id="alba-upload-feedback" style="margin-top: 8px; font-size: 0.9em; font-weight: 600;"></div>';
     echo '</div>'; 
 
@@ -116,6 +145,18 @@ function alba_output_card_details_admin_modal( $card_id, $force_author = null ) 
     echo '<textarea id="alba-new-comment" name="new_comment" class="alba-form-input-text" rows="2" placeholder="' . esc_attr__('Type here...', 'alba-board') . '"></textarea>';
     echo '</div>';
 
+    echo '<div class="alba-card-details-actions">';
+    echo '<div class="alba-card-secondary-actions">';
+    echo '<button type="button" id="alba-card-archive-btn" class="alba-card-icon-button" aria-label="' . esc_attr__( 'Archive Card', 'alba-board' ) . '" title="' . esc_attr__( 'Archive Card', 'alba-board' ) . '">';
+    echo '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 9v11h16V9M3 4h18v5H3zM9 13h6"/></svg>';
+    echo '</button>';
+    if ( current_user_can( 'delete_card', $card_id ) ) {
+        echo '<button type="button" id="alba-card-trash-btn" class="alba-card-icon-button" aria-label="' . esc_attr__( 'Delete card', 'alba-board' ) . '" title="' . esc_attr__( 'Delete card (move to Trash)', 'alba-board' ) . '">';
+        echo '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 10v7M14 10v7"/></svg>';
+        echo '</button>';
+    }
+    echo '</div>';
     echo '<button type="submit" id="alba-card-save-btn" class="alba-btn-neumorphic alba-btn-compact">' . esc_html__( 'Save Changes', 'alba-board' ) . '</button>';
+    echo '</div><div id="alba-archive-feedback" role="status" style="margin-top:8px;"></div>';
     echo '</form>';
 }

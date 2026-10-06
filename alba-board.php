@@ -3,7 +3,7 @@
 Plugin Name: Alba Board
 Plugin URI: https://www.albaboard.com
 Description: Custom Kanban system for WordPress with boards, lists, cards, and dynamic interactions. Extendable via add-ons.
-Version: 2.1.5
+Version: 2.2.0
 Author: alejo30
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -37,6 +37,10 @@ function alba_board_add_caps_to_roles() {
         'edit_card', 'read_card', 'delete_card', 'edit_cards', 'edit_others_cards',
         'delete_cards', 'delete_others_cards', 'publish_cards', 'read_private_cards',
     ];
+    // WordPress maps published/private post operations to these primitive caps.
+    foreach ( [ 'boards', 'lists', 'cards' ] as $post_type_caps ) {
+        $caps = array_merge( $caps, [ 'edit_published_' . $post_type_caps, 'delete_published_' . $post_type_caps, 'edit_private_' . $post_type_caps, 'delete_private_' . $post_type_caps ] );
+    }
 
     foreach ($roles as $role_name) {
         $role = get_role($role_name);
@@ -53,6 +57,8 @@ require_once plugin_dir_path(__FILE__) . 'includes/capabilities.php';
 require_once plugin_dir_path(__FILE__) . 'includes/boards.php';
 require_once plugin_dir_path(__FILE__) . 'includes/lists.php';
 require_once plugin_dir_path(__FILE__) . 'includes/cards.php';
+require_once plugin_dir_path(__FILE__) . 'includes/archive-cards.php';
+require_once plugin_dir_path(__FILE__) . 'includes/ajax-trash-card.php';
 require_once plugin_dir_path(__FILE__) . 'includes/settings.php';
 require_once plugin_dir_path(__FILE__) . 'includes/notifications.php';
 require_once plugin_dir_path(__FILE__) . 'includes/security.php';
@@ -96,7 +102,10 @@ function alba_board_welcome_notice() {
         return;
     }
 
-    $dismiss_url = add_query_arg( array( 'alba_board_dismiss' => '1' ) );
+    $dismiss_url = wp_nonce_url(
+        add_query_arg( array( 'alba_board_dismiss' => '1' ) ),
+        'alba_board_dismiss_welcome'
+    );
     
     ?>
     <div class="notice notice-info" style="border-left-color: #2271b1; padding: 15px; position: relative;">
@@ -126,12 +135,20 @@ function alba_board_welcome_notice() {
 add_action( 'admin_init', 'alba_board_dismiss_welcome_notice' );
 
 function alba_board_dismiss_welcome_notice() {
-    if ( isset( $_GET['alba_board_dismiss'] ) && $_GET['alba_board_dismiss'] == '1' ) {
-        delete_option( 'alba_board_show_welcome_notice' );
-        update_option( 'alba_board_welcome_dismissed', true );
-        wp_safe_redirect( remove_query_arg( 'alba_board_dismiss' ) );
-        exit;
+    if ( ! isset( $_GET['alba_board_dismiss'] ) || ! is_scalar( $_GET['alba_board_dismiss'] ) || '1' !== (string) wp_unslash( $_GET['alba_board_dismiss'] ) ) {
+        return;
     }
+
+    if ( ! current_user_can( 'manage_options' ) ) {
+        wp_die( esc_html__( 'You do not have permission to dismiss this notice.', 'alba-board' ), '', array( 'response' => 403 ) );
+    }
+
+    check_admin_referer( 'alba_board_dismiss_welcome' );
+
+    delete_option( 'alba_board_show_welcome_notice' );
+    update_option( 'alba_board_welcome_dismissed', true );
+    wp_safe_redirect( remove_query_arg( array( 'alba_board_dismiss', '_wpnonce' ) ) );
+    exit;
 }
 
 add_action( 'admin_enqueue_scripts', 'alba_board_deactivation_assets' );

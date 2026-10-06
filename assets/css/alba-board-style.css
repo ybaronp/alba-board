@@ -70,6 +70,20 @@
     box-sizing: border-box;
 }
 
+/* Fullwidth Override Class (Triggered via Shortcode fullwidth="1") */
+.alba-board-fullwidth-override {
+    width: 100vw !important;
+    position: relative !important;
+    left: 50% !important;
+    right: 50% !important;
+    margin-left: -50vw !important;
+    margin-right: -50vw !important;
+    padding: 38px 20px !important;
+    box-sizing: border-box;
+    max-width: none !important;
+    border-radius: 0 !important;
+}
+
 .alba-board-outerwrap {
     background: transparent !important;
     padding: 0 !important;
@@ -409,6 +423,11 @@ textarea.alba-form-input-text:focus,
     box-shadow: 0 4px 18px 2px var(--alba-shadow-dark-hover), 0 -2px 7px 2px var(--alba-shadow-light) !important;
 }
 
+/* Preserve the premium theme's light text on its dark comment button. */
+.alba-theme-zen_monochrome #alba-card-modal #alba-add-comment-btn {
+    color: var(--alba-card-bg) !important;
+}
+
 /* Trash/Delete button */
 #alba-card-modal .alba-modal-delete-section {
     margin-top: 20px;
@@ -477,12 +496,12 @@ body.alba-body-no-scroll {
 
 /* 1. Collapsed state: Geometry fixed */
 .alba-list-collapsed {
-    min-width: 36px !important; /* Slightly wider for text breathing room */
+    min-width: 36px !important;
     max-width: 36px !important;
     width: 36px !important;
     padding: 12px 0 !important;
     background: var(--alba-card-bg) !important; 
-    border-radius: 12px !important; /* FIX: Prevents deformed pill appearance */
+    border-radius: 12px !important; 
 }
 
 /* 2. Reorganize header */
@@ -521,7 +540,7 @@ body.alba-body-no-scroll {
 
 .alba-list-collapse-btn {
     font-size: 0 !important; 
-    width: 28px; /* Slightly wider to give room */
+    width: 28px; 
     height: 24px;
     display: inline-flex;
     align-items: center;
@@ -531,7 +550,6 @@ body.alba-body-no-scroll {
     background: transparent;
     border: none;
     cursor: pointer;
-    /* Cleanest font stack possible */
     font-family: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif !important;
 }
 
@@ -546,7 +564,7 @@ body.alba-body-no-scroll {
     font-size: 13px;
     font-weight: 900;
     color: var(--alba-text-muted);
-    letter-spacing: 2px; /* ADDED: Forces space between characters to avoid the "bow tie" effect */
+    letter-spacing: 2px; 
     white-space: nowrap;
     transition: color 0.2s ease;
 }
@@ -563,7 +581,7 @@ body.alba-body-no-scroll {
 .alba-list-collapsed .alba-list-collapse-btn::after {
     content: '<>'; 
     font-size: 13px;
-    letter-spacing: 2px; /* Same spacing here for consistency */
+    letter-spacing: 2px; 
 }
 
 .alba-list-collapse-btn:hover::after {

@@ -4,7 +4,7 @@ Tags: kanban, kanban-board, task-management, project-management, workflow
 Requires at least: 5.8  
 Tested up to: 7.1.2
 Requires PHP: 7.4
-Stable tag: 2.1.5
+Stable tag: 2.2.0
 License: GPLv2 or later  
 License URI: https://www.gnu.org/licenses/gpl-2.0.html  
 
@@ -53,7 +53,7 @@ Custom Kanban for WordPress. Organize tasks, projects, and teams with a modern b
 
 **⚡ Supercharge your workflow with official add-ons:**
 
-* 💎 **Alba Board Pro: Customization & Smart Tags:** Unlocks 7 Premium Themes (Cyberpunk Neon, Stellar Earth, Vaporwave, etc.) and adds dynamic color-coded Smart Tags with frictionless inline creation.
+* 💎 **Alba Board Pro: Customization & Smart Tags:** Unlocks 12 Premium Themes (Cyberpunk Neon, Stellar Earth, Vaporwave, etc.) and adds dynamic color-coded Smart Tags with frictionless inline creation.
 * 🌐 **Alba Board Frontend Interactions:** Enable seamless card creation, commenting, and secure deletion directly from your site’s public side (frontend).
 
 > *🚀 More add-ons are in the works! Have a specific request? [Let us know!](https://albaboard.com/)*
@@ -85,14 +85,33 @@ Yes! The plugin is completely translation-ready. If it hasn't been translated in
 = 🌐 How do I enable frontend card creation? =  
 Activate the “Alba Board Frontend Interactions” add-on from the Add-ons menu.
 
+= 📦 How do I restore an archived card? =
+In **Alba Board > Boards**, open **More > Archived Cards** and click **Restore** beside the card. It returns to the list it came from and its previous status.
+
+If the card says **Restore the original list first**, that list is in the WordPress Trash. Open **Alba Board > Lists**, choose the **Trash** view, and restore the original list. Then return to **More > Archived Cards** and restore the card. The archive view also has an **Open Lists Trash** link for this case. If the original list was permanently deleted, restore it from a site backup before restoring the card.
+
+Deleting a list from a board moves the list to Trash and archives its cards. The cards remain recoverable from **Archived Cards** after the original list is restored.
+
+= 👥 How do guest assignees work? =
+In a card, enter one or more guest email addresses in **Guest Assignee**, separated by commas. When assignment notifications are enabled, Alba Board sends an email to each newly added valid address. To include a public card link, create a published page containing that board’s `[alba_board id="123"]` shortcode. Without a public board page, guest links fall back to the site homepage. Guests cannot use the WordPress admin. Click the **Guest Assignee** field to see missing-page guidance; you can click and copy its shortcode without the message disappearing. An assignment email does not grant permission to view card details or edit cards; access still requires the appropriate WordPress permissions.
+
+= 🗑️ How do I delete or restore a card? =
+In the WordPress admin board, open the card and click the trash icon beside the archive icon. Confirm to move the card to WordPress Trash. To recover it, open **Alba Board > Cards > Trash** and click **Restore**. This control is available only to users with permission to delete that card. If WordPress Trash is disabled, the control will not permanently delete the card.
+
+= 🔗 How do I share a direct link to a card? =
+Open the card on an admin or public board and copy the page URL, which includes `?alba_card=ID`. Opening that link selects the card on the corresponding board. For guest assignees, use the public board page URL.
+
+= ↔️ How do I use a board across the full page width? =
+Use the shortcode attribute `[alba_board id="123" fullwidth="1"]` on the public page.
+
 = 🎨 How do I unlock Premium Themes and colored tags? =  
-Enable the “Alba Board Pro: Customization & Smart Tags” add-on to unlock 7 spectacular themes and intuitive inline tag management.
+Enable the “Alba Board Pro: Customization & Smart Tags” add-on to unlock 12 premium themes and intuitive inline tag management.
 
 = 💻 Can developers extend Alba Board? =  
 Yes! We've implemented a robust Hooks/Actions API (`do_action`), allowing developers to extend functionalities via custom code or add-ons without modifying core files.
 
 = 🔒 Is frontend card management secure? =  
-Absolutely. All AJAX actions use WordPress nonces and capability checks to ensure your data stays safe and cache-proof.
+Frontend card creation, comments, and deletion require a logged-in user with the appropriate permissions and a valid WordPress security token. Publishing a board or assigning a guest email address does not grant permission to access protected card details or change cards.
 
 == Screenshots ==
 
@@ -102,6 +121,33 @@ Absolutely. All AJAX actions use WordPress nonces and capability checks to ensur
 4. Kanban view seamlessly integrated into the front end using shortcodes.
 
 == Changelog ==
+
+= 2.2.0 =
+* New: Delete cards from the WordPress admin board using a compact trash icon. Confirmation moves the card to WordPress Trash; restore it under **Alba Board > Cards > Trash**. Permission checks protect each card, and deletion is blocked when WordPress Trash is disabled.
+* New: Archive individual cards without archiving their list. Restore them under **Alba Board > Boards > More > Archived Cards**. If their original list is in Trash, restore that list under **Alba Board > Lists > Trash** first.
+* New: Assign guests by email, including multiple comma-separated addresses. When assignment notifications are enabled, newly added valid addresses receive emails. Publish a page containing the board shortcode to include a public card link. Guest assignment does not grant permission to view protected card details or edit cards.
+* New: Share direct card links by copying the URL after opening a card. The URL includes `?alba_card=ID`.
+* New: Copy a board's shortcode from the admin board header, or use `[alba_board id="123" fullwidth="1"]` to display a public board across the page width.
+* Improved: Clearer card layout with due date and tags aligned on the same row on desktop when those add-on fields are available. Fields stack on smaller screens, and the card dialog scrolls vertically without a horizontal scrollbar.
+* Improved: Compact archive, delete, and upload icons with accessible labels and tooltips. The upload icon sits directly beside **Attachments**. Existing theme colors are preserved.
+* Improved: Show missing-public-page guidance only when the **Guest Assignee** field is selected. The message uses theme colors and stays visible while its shortcode is clicked or copied.
+* Improved: A compact, responsive top bar for board selection, search, filters, and board actions.
+* Improved: Connect five additional premium themes through the Card Tags add-on: Celestial Glass, Neo-Brutalism, High Contrast, Solarized Hacker, and Physical Corkboard. Premium styles remain in the add-on.
+* Fixed: Add the moving aurora background to Celestial Glass on backend and frontend boards. Users who prefer reduced motion see a static background.
+* Fixed: Theme settings now enable only themes registered by the installed add-on. Newer premium themes remain listed with an update-required message until a supporting add-on is installed, preventing selections that would reset to the default theme.
+* Fixed: Restore readable light text on the dark frontend comment button in Zen Monochrome, using the theme's existing colors.
+* Fixed: Rapid clicks and repeated Enter or Command/Control + Enter shortcuts no longer create duplicate cards. Frontend creation buttons no longer accidentally submit surrounding page forms.
+* Fixed: Cards created on the frontend can be opened immediately without refreshing the page.
+* Fixed: Repeated clicks on Save no longer submit duplicate comments.
+* Fixed: Hide the archive control on frontend card dialogs; archiving remains available in the WordPress admin.
+* Fixed: Improved attachment uploads and error handling so failed uploads are reported instead of failing silently.
+* Fixed: Card details refresh after comments, tags, or other card information changes, including changes made by add-ons.
+* Security: Require valid security tokens and the appropriate permissions before frontend card creation, comments, or deletion. Enforce configured card limits on the server.
+* Security: Check permissions before creating boards, lists, or cards in the admin. Correct missing permissions for administrators and editors working with published or private items.
+* Security: Keep card details protected by permission checks in both frontend and admin requests. A published board does not bypass these checks.
+* Performance: Load core frontend board scripts and styles only on pages containing a board shortcode. Other integrations can opt in using the `alba_board_should_enqueue_frontend_assets` filter.
+* Performance: Fetch board cards together and avoid unnecessary database updates when card or list ordering has not changed.
+* Performance: Reduce repeated work while searching and filtering admin boards, and reuse valid cached card details. These changes reduce unnecessary processing; overall speed gains depend on the board size and hosting environment.
 
 = 2.1.5 =
 * New: Added more Premium themes and updated some comments within the code.
