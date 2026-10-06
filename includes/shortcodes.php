@@ -4,25 +4,46 @@ if ( ! defined( 'ABSPATH' ) ) exit; // Prevent direct access
 
 /**
  * Render the Alba Board shortcode.
- * Usage: [alba_board id="123"]
+ * Usage: [alba_board id="123" fullwidth="1"]
  */
 function alba_board_render_shortcode($atts) {
     // 1. Setup attributes and validate board ID
-    $atts = shortcode_atts(['id' => 0], $atts);
+    $atts = shortcode_atts([
+        'id' => 0,
+        'fullwidth' => 0 // Parameter for fullwidth override (CSS handled in alba-board-style.css)
+    ], $atts);
+    
     $board_id = intval($atts['id']);
+    $is_fullwidth = intval($atts['fullwidth']) === 1;
     
     if (!$board_id) {
         return '<p>' . esc_html__('Invalid board ID', 'alba-board') . '</p>';
     }
 
-    // 2. Fetch Display Options
+    // 2. Zero-Friction Auto-Capture: Learn the public URL for notifications silently
+    if ( ! is_admin() && get_the_ID() ) {
+        $current_url = get_permalink( get_the_ID() ); 
+        $stored_url  = get_post_meta( $board_id, 'alba_board_public_url', true );
+        
+        // Only trigger DB write if the URL has changed (Highly performant, self-healing)
+        if ( $current_url && $current_url !== $stored_url ) {
+            update_post_meta( $board_id, 'alba_board_public_url', $current_url );
+        }
+    }
+
+    // 3. Fetch Display Options
     $display_opts = get_option('alba_board_display', ['show_avatars' => 1, 'theme' => 'default']);
     $show_avatars = !empty($display_opts['show_avatars']);
     $theme_class  = isset($display_opts['theme']) ? 'alba-theme-' . $display_opts['theme'] : 'alba-theme-default';
+    
+    // Append fullwidth class if requested
+    if ($is_fullwidth) {
+        $theme_class .= ' alba-board-fullwidth-override';
+    }
 
     ob_start();
 
-    // 3. Render "My Tasks Only" filter for logged-in users
+    // 4. Render "My Tasks Only" filter for logged-in users
     $current_user_id = get_current_user_id();
     if ($current_user_id) {
         echo '<div class="alba-frontend-filters" style="margin-bottom: 25px; display: flex; justify-content: flex-end; padding-right: 15px;">';
@@ -33,7 +54,7 @@ function alba_board_render_shortcode($atts) {
         echo '</div>';
     }
 
-    // 4. Query all lists associated with this board
+    // 5. Query all lists associated with this board
     $lists = get_posts([
         'post_type'   => 'alba_list',
         'numberposts' => -1,
@@ -42,39 +63,30 @@ function alba_board_render_shortcode($atts) {
         'meta_key'    => 'alba_board_parent',
         'meta_value'  => $board_id
     ]);
+
+    $cards_by_list = alba_board_get_cards_grouped_by_list( wp_list_pluck( $lists, 'ID' ) );
     
     echo '<div class="alba-master-theme-wrapper ' . esc_attr($theme_class) . '">';
     echo '<div class="alba-board-outerwrap">';
     echo '<div class="alba-board-wrapper">';
     
-    // 5. Loop through each list
+    // 6. Loop through each list
     foreach ($lists as $list) {
-        // The container needs the ID for the collapse logic
         echo '<div class="alba-list-column" data-list-id="' . esc_attr($list->ID) . '">';
         
         echo '<div class="alba-list-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">';
         echo '<h3 style="margin:0;">' . esc_html($list->post_title) . '</h3>';
-        
-        // 👉 NEW: Collapse Toggle Button for Frontend
         echo '<button type="button" class="alba-list-collapse-btn" title="' . esc_attr__('Collapse/Expand', 'alba-board') . '" style="background:none; border:none; cursor:pointer; font-size:16px; opacity:0.6; color:var(--alba-text-main);">↔</button>';
         echo '</div>';
 
         echo '<div class="alba-cards" data-list-id="' . esc_attr($list->ID) . '">';
         
-        $cards = get_posts([
-            'post_type'   => 'alba_card',
-            'numberposts' => -1,
-            'orderby'     => 'menu_order',
-            'order'       => 'ASC',
-            'meta_key'    => 'alba_list_parent',
-            'meta_value'  => $list->ID
-        ]);
+        $cards = isset( $cards_by_list[ $list->ID ] ) ? $cards_by_list[ $list->ID ] : [];
         
         foreach ($cards as $card) {
             echo '<div class="alba-card" data-card-id="' . esc_attr($card->ID) . '" data-author="' . esc_attr($card->post_author) . '">';
             echo '<span class="alba-card-title">' . esc_html($card->post_title) . '</span>';
             
-            // Preview: Due Date displayed on the card face
             $due_date = get_post_meta($card->ID, 'alba_due_date', true);
             if (!empty($due_date)) {
                 $formatted_date = date_i18n('M j', strtotime($due_date)); 
@@ -113,6 +125,20 @@ function alba_board_render_shortcode($atts) {
         </div>
     </div>
     </div> 
+
+    <!-- Script to auto-open specific card based on URL parameter ?alba_card=ID -->
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const cardId = urlParams.get('alba_card');
+        if (cardId) {
+            const cardElement = document.querySelector('.alba-card[data-card-id="' + cardId + '"]');
+            if (cardElement) {
+                setTimeout(() => cardElement.click(), 300);
+            }
+        }
+    });
+    </script>
     <?php
     
     return ob_get_clean();

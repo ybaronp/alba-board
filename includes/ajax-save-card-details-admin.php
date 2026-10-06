@@ -10,13 +10,13 @@ function alba_ajax_save_card_details_admin() {
         wp_send_json_error(['message' => esc_html__('Invalid security token.', 'alba-board')]);
     }
     
-    if (!current_user_can('edit_cards')) {
-        wp_send_json_error(['message' => esc_html__('Permission denied.', 'alba-board')]);
-    }
-    
     $card_id = isset($_POST['card_id']) ? absint($_POST['card_id']) : 0;
-    if (!$card_id) {
-        wp_send_json_error(['message' => esc_html__('Invalid card ID.', 'alba-board')]);
+    $card = $card_id ? get_post($card_id) : false;
+    if (!$card || 'alba_card' !== $card->post_type) {
+        wp_send_json_error(['message' => esc_html__('Invalid card.', 'alba-board')], 400);
+    }
+    if (!current_user_can('edit_card', $card_id)) {
+        wp_send_json_error(['message' => esc_html__('Permission denied.', 'alba-board')], 403);
     }
 
     $post_data = [ 
@@ -24,22 +24,59 @@ function alba_ajax_save_card_details_admin() {
         'post_title' => isset($_POST['card_title']) ? sanitize_text_field(wp_unslash($_POST['card_title'])) : '', 
         'post_content' => isset($_POST['card_content']) ? sanitize_textarea_field(wp_unslash($_POST['card_content'])) : '' 
     ];
+    
     if (isset($_POST['card_author'])) {
-        $post_data['post_author'] = absint($_POST['card_author']);
+        $author_id = absint($_POST['card_author']);
+        if ($author_id && !get_userdata($author_id)) {
+            wp_send_json_error(['message' => esc_html__('Invalid assignee.', 'alba-board')], 400);
+        }
+        $post_data['post_author'] = $author_id;
     }
 
-    $updated = wp_update_post($post_data);
-    if (is_wp_error($updated)) {
-        wp_send_json_error(['message' => esc_html__('Error updating card.', 'alba-board')]);
-    }
-
+    $due_date = null;
     if (isset($_POST['due_date'])) {
-        update_post_meta($card_id, 'alba_due_date', sanitize_text_field(wp_unslash($_POST['due_date'])));
+        $due_date = sanitize_text_field(wp_unslash($_POST['due_date']));
+        if ('' !== $due_date && (
+            !preg_match('/^\d{4}-\d{2}-\d{2}$/', $due_date) ||
+            !checkdate((int) substr($due_date, 5, 2), (int) substr($due_date, 8, 2), (int) substr($due_date, 0, 4))
+        )) {
+            wp_send_json_error(['message' => esc_html__('Enter a valid due date.', 'alba-board')], 400);
+        }
+    }
+    
+    $updated = wp_update_post($post_data, true);
+    if (is_wp_error($updated) || !$updated) {
+        wp_send_json_error(['message' => esc_html__('Error updating card.', 'alba-board')], 500);
+    }
+
+    if (null !== $due_date) {
+        if ('' === $due_date) {
+            delete_post_meta($card_id, 'alba_due_date');
+        } else {
+            update_post_meta($card_id, 'alba_due_date', $due_date);
+        }
+    }
+
+    // Guest Assignee strict capture and event trigger
+    if (isset($_POST['guest_assignee'])) {
+        $guest_val = sanitize_text_field(wp_unslash($_POST['guest_assignee']));
+        $old_guest_val = get_post_meta($card_id, 'alba_guest_assignee', true);
+
+        if (!empty($guest_val)) {
+            update_post_meta($card_id, 'alba_guest_assignee', $guest_val);
+        } else {
+            delete_post_meta($card_id, 'alba_guest_assignee');
+        }
+
+        // Fire action only if the string changed, passing both new and old values
+        if ($guest_val !== $old_guest_val) {
+            do_action('alba_board_guest_assigned', $card_id, $guest_val, $old_guest_val);
+        }
     }
 
     do_action('alba_save_card_details_admin', $card_id, wp_unslash($_POST));
 
-    if (!empty($_POST['new_comment'])) {
+    if (isset($_POST['new_comment']) && '' !== trim(sanitize_textarea_field(wp_unslash($_POST['new_comment'])))) {
         $current_user = wp_get_current_user();
         $comments = get_post_meta($card_id, 'alba_comments', true);
         if (!is_array($comments)) { 
@@ -64,7 +101,7 @@ function alba_ajax_save_card_details_admin() {
 }
 
 // ==========================================
-// UPLOAD / DELETE ATTACHMENTS (V1.3.0 CORE + DIAGNOSTICS)
+// UPLOAD / DELETE ATTACHMENTS (V1.3.0 CORE)
 // ==========================================
 
 add_action('wp_ajax_alba_upload_attachment', 'alba_board_ajax_upload_attachment');
@@ -74,35 +111,23 @@ function alba_board_ajax_upload_attachment() {
         wp_send_json_error(['message' => esc_html__('Invalid security token.', 'alba-board')]);
     }
 
-    if (!current_user_can('edit_cards')) {
-        wp_send_json_error(['message' => esc_html__('Permission denied.', 'alba-board')]);
-    }
-
     $card_id = isset($_POST['card_id']) ? absint($_POST['card_id']) : 0;
-    if (get_post_type($card_id) !== 'alba_card') {
-        wp_send_json_error(['message' => esc_html__('Invalid card.', 'alba-board')]);
+    if (!$card_id || 'alba_card' !== get_post_type($card_id)) {
+        wp_send_json_error(['message' => esc_html__('Invalid card.', 'alba-board')], 400);
+    }
+    if (!current_user_can('edit_card', $card_id)) {
+        wp_send_json_error(['message' => esc_html__('Permission denied.', 'alba-board')], 403);
     }
     
-    // Exact PHP Error Diagnostics
-    if (!isset($_FILES['file'])) {
-        wp_send_json_error(['message' => 'PHP Error: No file received. $_FILES array is completely empty.']);
-    }
-    
-    if ($_FILES['file']['error'] !== UPLOAD_ERR_OK) {
-        $err_code = $_FILES['file']['error'];
-        $err_msg = 'Upload failed. PHP Error Code: ' . $err_code;
-        if ($err_code == UPLOAD_ERR_INI_SIZE) $err_msg = 'The uploaded file exceeds the upload_max_filesize directive in your server php.ini.';
-        if ($err_code == UPLOAD_ERR_FORM_SIZE) $err_msg = 'The uploaded file exceeds the MAX_FILE_SIZE directive in the HTML form.';
-        if ($err_code == UPLOAD_ERR_PARTIAL) $err_msg = 'The uploaded file was only partially uploaded.';
-        if ($err_code == UPLOAD_ERR_NO_FILE) $err_msg = 'No file was actually sent in the request (Browser dropped it).';
-        if ($err_code == UPLOAD_ERR_NO_TMP_DIR) $err_msg = 'Server Error: Missing a temporary folder.';
-        if ($err_code == UPLOAD_ERR_CANT_WRITE) $err_msg = 'Server Error: Failed to write file to disk.';
-        if ($err_code == UPLOAD_ERR_EXTENSION) $err_msg = 'Server Error: A PHP extension stopped the file upload.';
-        
-        wp_send_json_error(['message' => $err_msg]);
+    if (!isset($_FILES['file']['error']) || UPLOAD_ERR_OK !== (int) $_FILES['file']['error']) {
+        if (!isset($_FILES['file']['error'])) {
+            wp_send_json_error(['message' => esc_html__('No file was received.', 'alba-board')], 400);
+        }
+        wp_send_json_error(['message' => sprintf(esc_html__('Upload failed (error %d). Check the file size and server upload limits.', 'alba-board'), absint($_FILES['file']['error']))], 400);
     }
 
-    $options = get_option('alba_board_uploads');
+    $options = get_option('alba_board_uploads', []);
+    $options = is_array($options) ? $options : [];
     $max_files = isset($options['max_files']) ? intval($options['max_files']) : 3;
     $max_size_mb = isset($options['max_size']) ? intval($options['max_size']) : 20;
     $allowed_formats_str = isset($options['allowed_formats']) ? $options['allowed_formats'] : 'jpg,png,pdf,docx,csv';
@@ -111,7 +136,6 @@ function alba_board_ajax_upload_attachment() {
         wp_send_json_error(['message' => esc_html__('File uploads are disabled.', 'alba-board')]);
     }
 
-    // V1.3.0 logic
     $current_attachments = get_post_meta($card_id, 'alba_card_attachments');
     if (count($current_attachments) >= $max_files) {
         wp_send_json_error(['message' => sprintf(esc_html__('Maximum of %d files allowed.', 'alba-board'), $max_files)]);
@@ -125,7 +149,6 @@ function alba_board_ajax_upload_attachment() {
     $file_name = isset($_FILES['file']['name']) ? sanitize_file_name(wp_unslash($_FILES['file']['name'])) : '';
     $file_ext = strtolower(pathinfo($file_name, PATHINFO_EXTENSION));
     
-    // Clean array formats to avoid empty spaces
     $allowed_formats = array_filter(array_map('trim', explode(',', $allowed_formats_str)));
     
     if (!in_array($file_ext, $allowed_formats)) {
@@ -136,7 +159,6 @@ function alba_board_ajax_upload_attachment() {
     require_once(ABSPATH . 'wp-admin/includes/file.php');
     require_once(ABSPATH . 'wp-admin/includes/media.php');
 
-    // Filter to allow specific extensions like CSV securely
     $custom_mimes = function($mimes) use ($allowed_formats) {
         if (in_array('csv', $allowed_formats)) {
             $mimes['csv'] = 'text/csv';
@@ -151,10 +173,9 @@ function alba_board_ajax_upload_attachment() {
     remove_filter('upload_mimes', $custom_mimes, 99);
 
     if (is_wp_error($attachment_id)) {
-        wp_send_json_error(['message' => $attachment_id->get_error_message()]);
+        wp_send_json_error(['message' => esc_html__('WordPress could not process this upload. Check that the file type is allowed and try again.', 'alba-board')], 400);
     }
 
-    // Save using V1.3.0 logic
     add_post_meta($card_id, 'alba_card_attachments', $attachment_id);
 
     delete_transient('alba_card_live_admin_' . $card_id);
@@ -175,24 +196,28 @@ function alba_board_ajax_delete_attachment() {
         wp_send_json_error(['message' => esc_html__('Invalid security token.', 'alba-board')]);
     }
 
-    if (!current_user_can('edit_cards')) {
-        wp_send_json_error(['message' => esc_html__('Permission denied.', 'alba-board')]);
-    }
-
     $card_id = isset($_POST['card_id']) ? absint($_POST['card_id']) : 0;
     $attachment_id = isset($_POST['attachment_id']) ? absint($_POST['attachment_id']) : 0;
+    if (!$card_id || 'alba_card' !== get_post_type($card_id)) {
+        wp_send_json_error(['message' => esc_html__('Invalid card.', 'alba-board')], 400);
+    }
+    if (!current_user_can('edit_card', $card_id)) {
+        wp_send_json_error(['message' => esc_html__('Permission denied.', 'alba-board')], 403);
+    }
 
     if (!$card_id || !$attachment_id) {
         wp_send_json_error(['message' => esc_html__('Missing data.', 'alba-board')]);
     }
 
-    // Verify ownership using V1.3.0 logic
+    $attachment = get_post($attachment_id);
     $current_attachments = get_post_meta($card_id, 'alba_card_attachments');
-    if (!in_array($attachment_id, $current_attachments)) {
+    if (!$attachment || (int) $attachment->post_parent !== $card_id || !in_array($attachment_id, $current_attachments)) {
         wp_send_json_error(['message' => esc_html__('Attachment does not belong to this card.', 'alba-board')]);
     }
 
-    wp_delete_attachment($attachment_id, true);
+    if (!wp_delete_attachment($attachment_id, true)) {
+        wp_send_json_error(['message' => esc_html__('Could not delete the attachment.', 'alba-board')], 500);
+    }
     delete_post_meta($card_id, 'alba_card_attachments', $attachment_id);
 
     delete_transient('alba_card_live_admin_' . $card_id);

@@ -76,6 +76,21 @@
 .alba-is-hidden { display: none !important; }
 .alba-board-wrapper { display: flex; align-items: flex-start; gap: 24px; overflow-x: auto; padding: 10px 10px 40px 10px; }
 
+.alba-guest-assignee-help {
+    display: none;
+    margin-top: 7px;
+    padding: 8px 10px;
+    border: 1px solid var(--alba-border-color);
+    border-radius: 8px;
+    background: var(--alba-input-bg);
+    color: var(--alba-text-main);
+    font-size: 11px;
+    line-height: 1.45;
+}
+.alba-guest-assignee-group:focus-within .alba-guest-assignee-help { display: block; }
+.alba-guest-assignee-help strong { color: var(--alba-text-title); }
+.alba-guest-assignee-help code { padding: 0; background: transparent; color: var(--alba-text-main); font-weight: 600; }
+
 /* --- Lists (Columns) with SCROLL --- */
 .alba-list { 
     background: var(--alba-card-bg); 
@@ -164,6 +179,175 @@
 .alba-form-group { margin-bottom: 15px; }
 .alba-form-group label { font-weight: 600; color: var(--alba-text-main); display: block; margin-bottom: 6px; }
 
+/* --- Card Details Form Layout --- */
+#alba-card-modal-admin .alba-modal-content {
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    width: calc(100vw - 32px);
+    max-width: 1100px;
+    max-height: calc(100vh - 32px);
+    overflow: hidden;
+}
+
+#alba-modal-body-admin {
+    flex: 1 1 auto;
+    min-height: 0;
+    min-width: 0;
+    width: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    overscroll-behavior: contain;
+}
+
+.alba-card-details-form { width: 100%; min-width: 0; max-width: 100%; }
+.alba-card-details-form,
+.alba-card-details-form * { box-sizing: border-box; }
+
+.alba-card-assignees-row,
+.alba-card-addons-row {
+    display: grid;
+    gap: 16px;
+    align-items: start;
+}
+
+.alba-card-assignees-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin-bottom: 18px;
+}
+
+.alba-card-assignees-row > .alba-form-group,
+.alba-card-addons-row > .alba-form-group {
+    min-width: 0;
+    margin-bottom: 0 !important;
+}
+
+#alba-card-modal-admin .alba-card-addons-row > .alba-form-group > label {
+    margin-bottom: 5px !important;
+}
+
+#alba-card-modal-admin .alba-card-addons-row > .alba-form-group > br {
+    display: none !important;
+}
+
+.alba-card-addons-row {
+    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.6fr);
+    margin-bottom: 6px;
+}
+
+.alba-card-addon-field > div {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    min-width: 0;
+}
+
+.alba-card-addon-field #alba-card-due-date {
+    box-sizing: border-box;
+    flex: 1 1 0;
+    width: 1px !important;
+    min-width: 0;
+    max-width: none !important;
+    min-height: 42px;
+}
+
+.alba-card-addon-field #alba-clear-date {
+    flex: 0 0 auto;
+    white-space: nowrap;
+}
+
+.alba-card-addons-row .select2-container { min-width: 0; max-width: 100%; }
+.alba-card-description textarea { min-height: 112px; }
+
+.alba-card-attachments-heading {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 6px;
+    margin-bottom: 8px;
+}
+
+.alba-card-attachments-heading label {
+    display: inline-flex;
+    align-items: center;
+    min-height: 32px;
+    line-height: 20px;
+    margin: 0 !important;
+}
+.alba-card-attachments-heading #alba-trigger-upload-btn {
+    flex: 0 0 32px;
+    width: 32px;
+    height: 32px;
+    border-color: transparent;
+    color: var(--alba-text-main);
+    margin: 0;
+}
+.alba-card-attachments-heading #alba-trigger-upload-btn:hover {
+    border-color: var(--alba-border-color);
+}
+.alba-card-icon-button svg { display: block; flex-shrink: 0; }
+#alba-attachments-list { min-width: 0; max-width: 100%; margin-bottom: 0 !important; }
+.alba-card-comments-scrollable { min-width: 0; max-width: 100%; overflow-x: hidden; }
+
+.alba-card-details-actions {
+    position: sticky;
+    bottom: 0;
+    z-index: 2;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 8px;
+    padding: 12px 0 2px;
+    border-top: 1px solid var(--alba-border-color);
+    background: var(--alba-card-bg);
+    box-shadow: 0 -8px 12px -12px var(--alba-shadow-dark);
+}
+
+.alba-card-details-actions .alba-btn-compact { margin-top: 0 !important; }
+
+.alba-card-secondary-actions { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.alba-card-icon-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 36px;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    border: 1px solid var(--alba-border-color);
+    border-radius: 8px;
+    background: transparent;
+    color: var(--alba-text-muted);
+    cursor: pointer;
+}
+.alba-card-icon-button:hover { color: var(--alba-text-main); background: var(--alba-input-bg); }
+#alba-card-trash-btn:hover { color: var(--alba-danger); }
+.alba-card-icon-button:focus-visible { outline: 2px solid var(--alba-text-main); outline-offset: 2px; }
+.alba-card-icon-button:disabled { opacity: 0.5; cursor: wait; }
+
+@media (max-width: 680px) {
+    #alba-card-modal-admin .alba-modal-content {
+        width: calc(100vw - 20px);
+        max-height: calc(100vh - 20px);
+        padding: 54px 18px 18px;
+        border-radius: 20px;
+    }
+
+    .alba-card-assignees-row,
+    .alba-card-addons-row {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 0;
+    }
+
+    .alba-card-assignees-row > .alba-form-group,
+    .alba-card-addons-row > .alba-form-group { margin-bottom: 15px !important; }
+
+    .alba-card-details-actions { margin-left: -2px; margin-right: -2px; }
+}
+
 /* --- Custom Buttons --- */
 .alba-btn-neumorphic { 
     background: var(--alba-btn-bg) !important; 
@@ -231,11 +415,48 @@ input[type="text"].alba-form-input-text:focus, textarea.alba-form-input-text:foc
 }
 .alba-mb-8 { margin-bottom: 8px !important; }
 
-/* --- Top Action Bar & Filters --- */
-.alba-top-action-bar { display: flex; align-items: center; margin-bottom: 25px; flex-wrap: wrap; gap: 15px; }
-.alba-filters-wrapper { display: flex; gap: 10px; align-items: center; }
-.alba-top-buttons-group { display: flex; gap: 8px; flex-wrap: wrap; }
-.alba-board-selector { border-radius: 12px !important; border: 1px solid var(--alba-border-color) !important; padding: 6px 28px 6px 12px !important; background: var(--alba-input-bg) !important; color: var(--alba-text-main) !important; box-shadow: inset 2px 2px 5px var(--alba-shadow-dark), inset -2px -2px 5px var(--alba-shadow-light) !important; outline: none; backdrop-filter: blur(8px); }
+/* --- Compact Top Action Bar & Filters --- */
+.alba-board-page-title { color: var(--alba-text-title); font-size: 20px !important; font-weight: 600 !important; line-height: 1.3; margin: 2px 0 10px !important; }
+.alba-top-action-bar { display: flex; align-items: center; margin: 0 0 18px; flex-wrap: wrap; gap: 8px; position: relative; z-index: 20; }
+.alba-board-select-form { flex: 0 1 205px; margin: 0; }
+.alba-board-select-form .alba-board-selector { width: 100%; }
+.alba-filters-wrapper { display: flex; gap: 7px; align-items: center; flex: 1 1 280px; min-width: 220px; }
+.alba-filters-wrapper > .alba-filter-input { height: 36px; }
+input[type="search"].alba-filter-input { width: min(230px, 28vw); min-width: 150px; padding: 7px 11px !important; border-radius: 9px !important; box-shadow: none !important; font-size: 13px; }
+
+.alba-top-buttons-group { display: flex; align-items: center; gap: 6px; flex: 0 0 auto; margin-left: auto; }
+.alba-top-buttons-group > .alba-btn-neumorphic { padding: 7px 11px !important; border-radius: 9px !important; box-shadow: none !important; font-size: 13px; line-height: 20px; }
+.alba-board-selector { border-radius: 9px !important; border: 1px solid var(--alba-border-color) !important; padding: 6px 28px 6px 10px !important; background: var(--alba-input-bg) !important; color: var(--alba-text-main) !important; box-shadow: none !important; outline: none; backdrop-filter: blur(8px); font-size: 13px; }
+
+.alba-control-menu { position: relative; flex: 0 0 auto; }
+.alba-control-trigger { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 36px; box-sizing: border-box; padding: 6px 10px; border: 1px solid var(--alba-border-color); border-radius: 9px; background: var(--alba-input-bg); color: var(--alba-text-main); font: inherit; font-size: 13px; line-height: 20px; text-decoration: none; cursor: pointer; list-style: none; white-space: nowrap; }
+.alba-control-menu > summary::-webkit-details-marker { display: none !important; }
+.alba-control-menu > summary::marker { content: ''; }
+.alba-control-menu > summary::after { content: ''; width: 6px; height: 6px; margin-top: -3px; border-right: 1px solid currentColor; border-bottom: 1px solid currentColor; transform: rotate(45deg); opacity: .55; }
+.alba-control-menu[open] > summary::after { margin-top: 3px; transform: rotate(225deg); }
+.alba-control-trigger:hover, .alba-control-trigger:focus-visible { border-color: var(--alba-text-muted); color: var(--alba-text-title); outline: none; }
+.alba-control-menu-panel { position: absolute; top: calc(100% + 6px); right: 0; z-index: 100; min-width: 180px; padding: 6px; border: 1px solid var(--alba-border-color); border-radius: 10px; background: var(--alba-card-bg); box-shadow: 0 10px 26px rgba(0, 0, 0, .18); backdrop-filter: blur(14px); }
+.alba-filter-menu-panel { display: grid; gap: 6px; width: 190px; }
+.alba-filter-menu-panel label { margin: 2px 0 0; color: var(--alba-text-muted); font-size: 11px; font-weight: 600; }
+.alba-filter-menu-panel .alba-board-selector { width: 100%; min-height: 34px; }
+.alba-tools-menu-panel { display: grid; min-width: 170px; }
+.alba-menu-action { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; box-sizing: border-box; padding: 8px 9px; border: 0; border-radius: 6px; background: transparent; color: var(--alba-text-main); font: inherit; font-size: 13px; line-height: 1.35; text-align: left; text-decoration: none; cursor: pointer; }
+.alba-menu-action:hover, .alba-menu-action:focus-visible { background: var(--alba-input-bg); color: var(--alba-text-title); outline: none; }
+.alba-menu-count { color: var(--alba-text-muted); font-size: 12px; }
+
+@media (max-width: 1100px) {
+    .alba-top-action-bar { align-items: flex-start; }
+    .alba-filters-wrapper { flex-basis: 250px; }
+    .alba-top-buttons-group { margin-left: 0; }
+}
+@media (max-width: 782px) {
+    .alba-top-action-bar { gap: 7px; }
+    .alba-board-select-form { flex: 1 1 100%; max-width: 100%; }
+    .alba-filters-wrapper { flex: 1 1 100%; min-width: 0; }
+    input[type="search"].alba-filter-input { width: auto; flex: 1 1 auto; }
+    .alba-top-buttons-group { flex: 1 1 100%; margin-left: 0; }
+    .alba-tools-menu-panel { right: auto; left: 0; }
+}
 
 /* --- Empty State --- */
 .alba-empty-state { text-align: center; padding: 50px 20px; background: var(--alba-card-bg); border-radius: 28px; box-shadow: 6px 6px 16px var(--alba-shadow-dark), -6px -6px 14px var(--alba-shadow-light); max-width: 600px; margin: 40px auto; border: 1px solid var(--alba-border-color); backdrop-filter: blur(12px); }
@@ -266,46 +487,41 @@ input[type="text"].alba-form-input-text:focus, textarea.alba-form-input-text:foc
    ALBA BOARD: LIST COLLAPSE STYLES
    ======================================================== */
 
-/* 1. Prepare containers for smooth transition */
 .alba-list-column, 
 .alba-list {
     transition: min-width 0.3s ease, max-width 0.3s ease, width 0.3s ease;
     overflow: hidden;
 }
 
-/* 2. Collapsed state: Fixed narrow width */
 .alba-list-collapsed {
     min-width: 30px !important;
     max-width: 30px !important;
     width: 30px !important;
     padding: 10px 0 !important;
-    background: var(--alba-card-bg); /* Keeps background clean */
+    background: var(--alba-card-bg);
 }
 
-/* 3. Reorganize header to be vertical */
 .alba-list-collapsed .alba-list-header {
     flex-direction: column;
     align-items: center !important;
     justify-content: flex-start !important;
     height: 100%;
-    padding-right: 0 !important; /* Removes right padding for perfect centering */
+    padding-right: 0 !important;
     width: 100%;
 }
 
-/* 4. Typographic magic: Rotate title 90 degrees */
 .alba-list-collapsed .alba-list-header h3 {
     writing-mode: vertical-rl;
     transform: rotate(180deg);
     white-space: nowrap;
     margin: 15px 0 0 0 !important; 
     font-size: 13px;
-    line-height: 1; /* Strips invisible margins for perfect centering */
+    line-height: 1;
     letter-spacing: 1px;
     opacity: 0.6;
     text-align: center;
 }
 
-/* 5. Hide internal elements that shouldn't be visible */
 .alba-list-collapsed .alba-cards, 
 .alba-list-collapsed .alba-cards-container, 
 .alba-list-collapsed .alba-list-footer,
@@ -318,7 +534,6 @@ input[type="text"].alba-form-input-text:focus, textarea.alba-form-input-text:foc
    ALBA BOARD: COLLAPSE BUTTON DYNAMIC ICONS
    ======================================================== */
 
-/* 1. Hide the default HTML icon and setup button container */
 .alba-list-collapse-btn {
     font-size: 0 !important; 
     width: 24px;
@@ -330,13 +545,11 @@ input[type="text"].alba-form-input-text:focus, textarea.alba-form-input-text:foc
     opacity: 0.6;
 }
 
-/* Hover scale effect for the button */
 .alba-list-collapse-btn:hover {
     transform: scale(1.2);
     opacity: 1 !important;
 }
 
-/* 2. Icon when list is OPEN (Suggests "Compress") */
 .alba-list-collapse-btn::after {
     content: '→←'; 
     font-size: 14px;
@@ -345,14 +558,12 @@ input[type="text"].alba-form-input-text:focus, textarea.alba-form-input-text:foc
     transition: color 0.2s ease;
 }
 
-/* 3. Icon when list is CLOSED (Suggests "Expand") */
 .alba-list-collapsed .alba-list-collapse-btn::after {
     content: '↔'; 
     font-size: 16px;
     transform: rotate(90deg); 
 }
 
-/* Hover color effect for the dynamic icon */
 .alba-list-collapse-btn:hover::after {
     color: var(--alba-text-main);
 }

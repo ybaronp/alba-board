@@ -5,9 +5,7 @@
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-// Register AJAX endpoints for frontend
 add_action('wp_ajax_alba_get_card_details', 'alba_board_get_card_details_ajax');
-// Hook nopriv removed as requested by security audit
 
 function alba_board_get_card_details_ajax() {
     $nonce = isset($_GET['nonce']) ? sanitize_text_field(wp_unslash($_GET['nonce'])) : '';
@@ -20,13 +18,18 @@ function alba_board_get_card_details_ajax() {
         wp_send_json_error(['message' => esc_html__('Invalid card id.', 'alba-board')]);
     }
 
-    // STRICT CAPABILITY GATE
-    if ( ! current_user_can( 'edit_cards' ) ) {
+    if ( 'alba_card' !== get_post_type( $card_id ) || ! current_user_can( 'edit_card', $card_id ) ) {
         wp_send_json_error(['message' => esc_html__('You do not have permission to view this card.', 'alba-board')]);
     }
 
     $cache_key = 'alba_card_live_frontend_' . $card_id;
     $cached_html = get_transient( $cache_key );
+
+    // Regenerate modal markup cached before the frontend archive control was removed.
+    if ( false !== $cached_html && false !== strpos( $cached_html, 'alba-modal-archive' ) ) {
+        delete_transient( $cache_key );
+        $cached_html = false;
+    }
 
     if ( false !== $cached_html ) {
         wp_send_json_success(['html' => $cached_html, 'cached' => true]);
@@ -54,15 +57,28 @@ function alba_output_card_details_frontend_modal( $card_id ) {
     
     ?>
     <div class="alba-modal-inner">
+        <!-- Clean Title (No copy link button) -->
         <h2 class="alba-modal-title"><?php echo esc_html($card->post_title); ?></h2>
         
         <?php
         $author_id = $card->post_author;
         $user = get_user_by('ID', $author_id);
-        if ($user): ?>
+        $guest_assignee = get_post_meta($card_id, 'alba_guest_assignee', true);
+        
+        if ($user || $guest_assignee): ?>
             <div class="alba-assignee">
                 <strong><?php esc_html_e('Assignee:', 'alba-board'); ?></strong>
-                <?php echo esc_html($user->display_name); ?>
+                <?php 
+                if ($user) {
+                    echo esc_html($user->display_name); 
+                }
+                if ($user && $guest_assignee) {
+                    echo ' / ';
+                }
+                if ($guest_assignee) {
+                    echo esc_html($guest_assignee) . ' <em style="opacity:0.7; font-size:0.9em;">' . esc_html__('(Guest)', 'alba-board') . '</em>';
+                }
+                ?>
             </div>
         <?php endif; 
         
@@ -98,7 +114,7 @@ function alba_output_card_details_frontend_modal( $card_id ) {
             </div>
         <?php endif; ?>
         
-        <div class="comments-title"><strong><?php esc_html_e('Comments:', 'alba-board'); ?></strong></div>
+        <div class="comments-title" style="margin-top: 20px;"><strong><?php esc_html_e('Comments:', 'alba-board'); ?></strong></div>
         <div class="alba-card-comments-scrollable" id="alba-comments-list">
             <?php
             $comments = get_post_meta($card_id, 'alba_comments', true);
@@ -126,9 +142,6 @@ function alba_output_card_details_frontend_modal( $card_id ) {
                 <textarea id="alba-new-comment-text" class="alba-form-input-text" data-card-id="<?php echo esc_attr($card_id); ?>" rows="2" placeholder="<?php esc_attr_e('Write a comment...', 'alba-board'); ?>"></textarea>
                 <button id="alba-add-comment-btn" class="alba-btn-neumorphic"><?php esc_html_e('Add comment', 'alba-board'); ?></button>
                 <div id="alba-comment-feedback"></div>
-            </div>
-            <div class="alba-modal-delete-section" style="margin-top: 15px; text-align: right;">
-                <button id="alba-modal-delete" class="alba-btn-cancel" title="<?php esc_attr_e('Delete', 'alba-board'); ?>"><?php esc_html_e('Delete Card', 'alba-board'); ?></button>
             </div>
         <?php endif; ?>
     </div>

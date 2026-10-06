@@ -38,6 +38,45 @@ function alba_board_register_card_post_type() {
 }
 add_action('init', 'alba_board_register_card_post_type');
 
+/**
+ * Fetch published cards for several lists in one query and group them by list ID.
+ *
+ * @param int[] $list_ids List post IDs.
+ * @return array<int, WP_Post[]> Cards grouped by list ID.
+ */
+function alba_board_get_cards_grouped_by_list( $list_ids ) {
+    $list_ids = array_values( array_unique( array_filter( array_map( 'absint', (array) $list_ids ) ) ) );
+    $cards_by_list = array_fill_keys( $list_ids, [] );
+
+    if ( empty( $list_ids ) ) {
+        return $cards_by_list;
+    }
+
+    $cards = get_posts( [
+        'post_type'              => 'alba_card',
+        'post_status'            => 'publish',
+        'numberposts'            => -1,
+        'orderby'                => [ 'menu_order' => 'ASC', 'ID' => 'ASC' ],
+        'meta_query'             => [
+            [
+                'key'     => 'alba_list_parent',
+                'value'   => $list_ids,
+                'compare' => 'IN',
+            ],
+        ],
+        'update_post_meta_cache' => true,
+    ] );
+
+    foreach ( $cards as $card ) {
+        $list_id = absint( get_post_meta( $card->ID, 'alba_list_parent', true ) );
+        if ( isset( $cards_by_list[ $list_id ] ) ) {
+            $cards_by_list[ $list_id ][] = $card;
+        }
+    }
+
+    return $cards_by_list;
+}
+
 // Save card-list relationship via custom field
 function alba_board_save_card_relationship($post_id, $post, $update) {
     if (get_post_type($post_id) !== 'alba_card') return;

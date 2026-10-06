@@ -13,7 +13,7 @@ function alba_board_map_meta_cap($caps, $cap, $user_id, $args) {
         'edit_list', 'delete_list', 'read_list',
         'edit_card', 'delete_card', 'read_card',
     ];
-    if ( ! in_array( $cap, $meta_caps ) ) {
+    if ( ! in_array( $cap, $meta_caps, true ) ) {
         return $caps;
     }
 

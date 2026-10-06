@@ -1,11 +1,11 @@
 // assets/js/alba-deactivation.js
 
 document.addEventListener('DOMContentLoaded', function() {
-    // Tomamos los datos dinámicos que nos pasará PHP
+    // Read the dynamic data passed by PHP
     var pluginSlug = albaDeactivationData.pluginSlug;
     var sendingText = albaDeactivationData.sendingText;
     
-    // Selectores
+    // Selectors
     var deactivateLink = document.querySelector('tr[data-plugin="' + pluginSlug + '"] .deactivate a');
     var overlay = document.getElementById('alba-feedback-overlay');
     var skipBtn = document.getElementById('alba-skip-deactivate');
@@ -17,19 +17,19 @@ document.addEventListener('DOMContentLoaded', function() {
     if (deactivateLink && overlay) {
         deactivateLink.addEventListener('click', function(e) {
             e.preventDefault();
-            deactivationUrl = this.href; // Guarda la URL de desactivación de WP
-            overlay.style.display = 'flex'; // Muestra el modal
+            deactivationUrl = this.href; // Save the WordPress deactivation URL
+            overlay.style.display = 'flex'; // Show the modal
         });
     }
 
-    // Muestra la caja de texto si cambian de opción
+    // Show the text box when the selected option changes
     radios.forEach(function(radio) {
         radio.addEventListener('change', function() {
             detailsBox.style.display = 'block';
         });
     });
 
-    // Botón "Saltar y Desactivar"
+    // "Skip and Deactivate" button
     if (skipBtn) {
         skipBtn.addEventListener('click', function(e) {
             e.preventDefault();
@@ -37,7 +37,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Botón "Enviar y Desactivar"
+    // "Send and Deactivate" button
     if (submitBtn) {
         submitBtn.addEventListener('click', function(e) {
             e.preventDefault();
@@ -48,7 +48,7 @@ document.addEventListener('DOMContentLoaded', function() {
             var reasonValue = selectedReason ? selectedReason.value : 'Other';
             var details = detailsBox.value;
 
-            // Envía a la API
+            // Send the response to the API
             fetch('https://albaboard.com/wp-json/alba/v1/feedback', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
