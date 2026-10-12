@@ -567,3 +567,48 @@ input[type="search"].alba-filter-input { width: min(230px, 28vw); min-width: 150
 .alba-list-collapse-btn:hover::after {
     color: var(--alba-text-main);
 }
+
+
+/* Keep the dragged card visible above columns and outside clipped scroll areas. */
+.alba-card.alba-card-drag-preview {
+    opacity: 0.95 !important;
+    z-index: 100000 !important;
+    pointer-events: none !important;
+    transition: none !important;
+    margin: 0 !important;
+    cursor: grabbing;
+}
+.alba-card.sortable-ghost:not(.alba-card-drag-preview) {
+    opacity: 0.25;
+}
+
+.alba-card[aria-busy="true"] { position: relative; }
+/* A quiet, wordless save marker; it never intercepts card dragging. */
+.alba-card[aria-busy="true"]::after {
+    content: "";
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 10px;
+    height: 10px;
+    border: 2px solid currentColor;
+    border-right-color: transparent;
+    border-radius: 50%;
+    opacity: .55;
+    pointer-events: none;
+    animation: alba-card-saving .8s linear infinite;
+}
+@keyframes alba-card-saving { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) {
+    .alba-card[aria-busy="true"]::after { animation: none; }
+}
+
+/* Keep the themed dialog above WordPress navigation, including add-on stacking contexts. */
+body.wp-admin .alba-master-theme-wrapper.alba-admin-modal-open { z-index: 100000 !important; }
+#alba-modal-body-admin .alba-modal-inner { color: var(--alba-text-main); overflow-wrap: anywhere; }
+#alba-modal-body-admin .alba-modal-title { color: var(--alba-text-main); padding-right: 30px; }
+#alba-modal-body-admin .alba-due-date { color: var(--alba-text-muted) !important; }
+#alba-modal-body-admin .alba-comment-author { margin-right: 10px; }
+#alba-modal-body-admin .alba-comment-date { color: var(--alba-text-muted); font-size: 12px; }
+#alba-modal-body-admin .alba-board-comment { margin: 12px 0; padding: 12px; }
+#alba-modal-body-admin .alba-add-comment-section textarea { box-sizing: border-box; width: 100%; }

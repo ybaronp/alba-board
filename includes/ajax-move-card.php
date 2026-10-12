@@ -28,13 +28,15 @@ function alba_board_ajax_move_card() {
         wp_send_json_error([ 'message' => esc_html__('Permission denied.', 'alba-board') ], 403);
     }
 
+    // Preserve array shape so malformed/nested input is rejected by strict validation below.
+    // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
     $order_param = isset($_POST['order']) && is_array($_POST['order']) ? wp_unslash($_POST['order']) : [];
     $order       = [];
     $seen_ids    = [];
     $ordered_cards = [];
 
     foreach ($order_param as $position => $raw_card_id) {
-        if (!is_scalar($position) || !preg_match('/^\d+$/', (string) $position) || !is_scalar($raw_card_id)) {
+        if (!is_scalar($position) || !preg_match('/^\d+$/', (string) $position) || !is_scalar($raw_card_id) || !preg_match('/^[0-9]+$/', (string) $raw_card_id)) {
             wp_send_json_error([ 'message' => esc_html__('Invalid card order.', 'alba-board') ], 400);
         }
 
@@ -47,7 +49,6 @@ function alba_board_ajax_move_card() {
             'alba_card' !== $ordered_card->post_type ||
             'publish' !== $ordered_card->post_status ||
             ($ordered_card_id !== $card_id && (int) get_post_meta($ordered_card_id, 'alba_list_parent', true) !== $new_list_id) ||
-            !current_user_can('edit_card', $ordered_card_id) ||
             isset($seen_ids[$ordered_card_id]) ||
             isset($order[$position])
         ) {
@@ -68,6 +69,23 @@ function alba_board_ajax_move_card() {
         wp_send_json_error([ 'message' => esc_html__('Invalid card order.', 'alba-board') ], 400);
     }
 
+    if ( ! current_user_can( 'edit_others_cards' ) ) {
+        $destination_cards = get_posts( [ 'post_type' => 'alba_card', 'post_status' => 'publish',
+            'numberposts' => -1, 'meta_key' => 'alba_list_parent', 'meta_value' => $new_list_id,
+            'orderby' => [ 'menu_order' => 'ASC', 'ID' => 'ASC' ] ] );
+        $fixed_order = [];
+        foreach ( $destination_cards as $destination_card ) {
+            if ( ! current_user_can( 'edit_card', $destination_card->ID ) ) $fixed_order[] = (int) $destination_card->ID;
+        }
+        $submitted_fixed_order = [];
+        foreach ( $order as $ordered_card_id ) {
+            if ( ! current_user_can( 'edit_card', $ordered_card_id ) ) $submitted_fixed_order[] = $ordered_card_id;
+        }
+        if ( $fixed_order !== $submitted_fixed_order ) {
+            wp_send_json_error( [ 'message' => esc_html__( 'You cannot reorder other users\' cards.', 'alba-board' ) ], 403 );
+        }
+    }
+    // Other cards only receive numeric position bookkeeping; their relative order is unchanged.
     update_post_meta($card_id, 'alba_list_parent', $new_list_id);
 
     foreach ($order as $position => $ordered_card_id) {

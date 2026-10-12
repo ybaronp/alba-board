@@ -32,7 +32,7 @@ function alba_board_admin_menu() {
     add_menu_page(
         esc_html__('Alba Board', 'alba-board'),
         esc_html__('Alba Board', 'alba-board'),
-        'edit_boards',
+        'edit_cards',
         'alba-board-visual', // The visual board slug
         'alba_render_admin_board_page', // Visual board render function
         'dashicons-layout',
@@ -44,7 +44,7 @@ function alba_board_admin_menu() {
         'alba-board-visual',
         esc_html__('Board View', 'alba-board'),
         esc_html__('Board View', 'alba-board'),
-        'edit_boards',
+        'edit_cards',
         'alba-board-visual',
         'alba_render_admin_board_page'
     );

@@ -97,7 +97,17 @@ function alba_ajax_save_card_details_admin() {
     ob_start();
     alba_output_card_details_admin_modal($card_id);
     $html = ob_get_clean();
-    wp_send_json_success(['html' => $html]);
+    $card = get_post($card_id);
+    $display_opts = get_option('alba_board_display', ['show_avatars' => 1]);
+    ob_start();
+    alba_board_render_admin_card_summary($card, !empty($display_opts['show_avatars']));
+    $card_html = ob_get_clean();
+    wp_send_json_success([
+        'html' => $html,
+        'card_html' => $card_html,
+        'card_id' => $card_id,
+        'author_id' => (int) $card->post_author,
+    ]);
 }
 
 // ==========================================
@@ -123,6 +133,7 @@ function alba_board_ajax_upload_attachment() {
         if (!isset($_FILES['file']['error'])) {
             wp_send_json_error(['message' => esc_html__('No file was received.', 'alba-board')], 400);
         }
+        /* translators: Upload error code. */
         wp_send_json_error(['message' => sprintf(esc_html__('Upload failed (error %d). Check the file size and server upload limits.', 'alba-board'), absint($_FILES['file']['error']))], 400);
     }
 
@@ -138,11 +149,13 @@ function alba_board_ajax_upload_attachment() {
 
     $current_attachments = get_post_meta($card_id, 'alba_card_attachments');
     if (count($current_attachments) >= $max_files) {
+        /* translators: Maximum number of files. */
         wp_send_json_error(['message' => sprintf(esc_html__('Maximum of %d files allowed.', 'alba-board'), $max_files)]);
     }
 
     $file_size = isset($_FILES['file']['size']) ? absint($_FILES['file']['size']) : 0;
     if ($file_size > ($max_size_mb * 1024 * 1024)) {
+        /* translators: Maximum file size in megabytes. */
         wp_send_json_error(['message' => sprintf(esc_html__('File exceeds the maximum limit of %d MB.', 'alba-board'), $max_size_mb)]);
     }
 

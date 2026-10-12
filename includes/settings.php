@@ -160,29 +160,29 @@ function alba_board_show_avatars_callback() {
 
 function alba_board_limit_cards_callback() { 
     $options = get_option('alba_board_limits'); 
-    $val = isset($options['limit_cards']) ? esc_attr($options['limit_cards']) : ''; 
-    echo '<input type="number" name="alba_board_limits[limit_cards]" value="' . $val . '" min="0" placeholder="' . esc_attr__('No limit', 'alba-board') . '">'; 
+    $val = isset($options['limit_cards']) ? $options['limit_cards'] : ''; 
+    echo '<input type="number" name="alba_board_limits[limit_cards]" value="' . esc_attr($val) . '" min="0" placeholder="' . esc_attr__('No limit', 'alba-board') . '">'; 
     echo '<p class="description">' . esc_html__('Leave empty or 0 for unlimited cards per list.', 'alba-board') . '</p>';
 }
 
 function alba_board_max_files_callback() { 
     $options = get_option('alba_board_uploads'); 
-    $val = isset($options['max_files']) ? esc_attr($options['max_files']) : 3; 
-    echo '<input type="number" name="alba_board_uploads[max_files]" value="' . $val . '" min="0" max="20">'; 
+    $val = isset($options['max_files']) ? $options['max_files'] : 3; 
+    echo '<input type="number" name="alba_board_uploads[max_files]" value="' . esc_attr($val) . '" min="0" max="20">'; 
     echo '<p class="description">' . esc_html__('Maximum number of attachments allowed per card.', 'alba-board') . '</p>';
 }
 
 function alba_board_max_size_callback() { 
     $options = get_option('alba_board_uploads'); 
-    $val = isset($options['max_size']) ? esc_attr($options['max_size']) : 2; 
-    echo '<input type="number" name="alba_board_uploads[max_size]" value="' . $val . '" min="1" max="100">'; 
+    $val = isset($options['max_size']) ? $options['max_size'] : 2; 
+    echo '<input type="number" name="alba_board_uploads[max_size]" value="' . esc_attr($val) . '" min="1" max="100">'; 
     echo '<p class="description">' . esc_html__('Maximum file size in Megabytes (MB).', 'alba-board') . '</p>';
 }
 
 function alba_board_allowed_formats_callback() { 
     $options = get_option('alba_board_uploads'); 
-    $val = isset($options['allowed_formats']) ? esc_attr($options['allowed_formats']) : 'jpg,png,pdf,docx'; 
-    echo '<input type="text" name="alba_board_uploads[allowed_formats]" value="' . $val . '" class="regular-text">'; 
+    $val = isset($options['allowed_formats']) ? $options['allowed_formats'] : 'jpg,png,pdf,docx'; 
+    echo '<input type="text" name="alba_board_uploads[allowed_formats]" value="' . esc_attr($val) . '" class="regular-text">'; 
     echo '<p class="description">' . esc_html__('Comma-separated list of allowed extensions (e.g., jpg,png,pdf).', 'alba-board') . '</p>';
 }
 
@@ -251,8 +251,7 @@ function alba_board_render_template_editor($field_name, $default_template) {
 }
 
 function alba_board_notify_template_new_callback() {
-    $default = <<<HTML
-<div style="background-color: #f1f5f9; padding: 40px 20px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+    $default = '<div style="background-color: #f1f5f9; padding: 40px 20px; font-family: -apple-system, BlinkMacSystemFont, \'Segoe UI\', Roboto, Helvetica, Arial, sans-serif;">
   <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
     <div style="background: linear-gradient(135deg, #0f172a 0%, #3730a3 50%, #3b82f6 100%); padding: 30px; text-align: center;">
       <h2 style="color: #ffffff; margin: 0; font-size: 24px; font-weight: 800; letter-spacing: 2px;">New Card</h2>
@@ -276,15 +275,13 @@ function alba_board_notify_template_new_callback() {
       </p>
     </div>
   </div>
-</div>
-HTML;
+</div>';
 
     alba_board_render_template_editor('template_new_card', $default);
 }
 
 function alba_board_notify_template_comment_callback() {
-    $default = <<<HTML
-<div style="background-color: #f1f5f9; padding: 40px 20px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+    $default = '<div style="background-color: #f1f5f9; padding: 40px 20px; font-family: -apple-system, BlinkMacSystemFont, \'Segoe UI\', Roboto, Helvetica, Arial, sans-serif;">
   <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
     <div style="background: linear-gradient(135deg, #0f172a 0%, #3730a3 50%, #3b82f6 100%); padding: 30px; text-align: center;">
       <h2 style="color: #ffffff; margin: 0; font-size: 24px; font-weight: 800; letter-spacing: 2px;">New Comment</h2>
@@ -307,8 +304,7 @@ function alba_board_notify_template_comment_callback() {
       </p>
     </div>
   </div>
-</div>
-HTML;
+</div>';
 
     alba_board_render_template_editor('template_new_comment', $default);
 }

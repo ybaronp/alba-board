@@ -11,7 +11,7 @@ function alba_board_enqueue_admin_assets($hook) {
     }
 
     $plugin_url = plugin_dir_url(dirname(__FILE__)) . 'assets/';
-    $plugin_version = '2.2.0'; 
+    $plugin_version = '2.2.5'; 
     $backend_script_path = plugin_dir_path(dirname(__FILE__)) . 'assets/js/alba-backend-kanban.js';
     $admin_style_path = plugin_dir_path(dirname(__FILE__)) . 'assets/css/admin-alba-board-style.css';
     $admin_style_version = file_exists($admin_style_path) ? filemtime($admin_style_path) : $plugin_version;
@@ -20,12 +20,14 @@ function alba_board_enqueue_admin_assets($hook) {
     wp_enqueue_style('select2', $plugin_url . 'css/select2.min.css', [], '4.1.0');
     wp_enqueue_script('select2', $plugin_url . 'js/select2.min.js', ['jquery'], '4.1.0', true);
 
-    wp_enqueue_style('flatpickr-css', 'https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css', [], '4.6.13');
-    wp_enqueue_style('flatpickr-dark-css', 'https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/dark.css', [], '4.6.13');
-    wp_enqueue_script('flatpickr-js', 'https://cdn.jsdelivr.net/npm/flatpickr', [], '4.6.13', true);
+    wp_enqueue_style('flatpickr-css', $plugin_url . 'vendor/flatpickr/flatpickr.min.css', [], '4.6.13');
+    wp_enqueue_style('flatpickr-dark-css', $plugin_url . 'vendor/flatpickr/dark.css', [], '4.6.13');
+    wp_enqueue_script('flatpickr-js', $plugin_url . 'vendor/flatpickr/flatpickr.min.js', [], '4.6.13', true);
 
     $backend_script_version = file_exists($backend_script_path) ? filemtime($backend_script_path) : $plugin_version;
     wp_enqueue_script('alba-backend-kanban', $plugin_url . 'js/alba-backend-kanban.js', ['sortablejs', 'jquery', 'select2', 'flatpickr-js'], $backend_script_version, true);
+    wp_enqueue_script('alba-core-interactions', $plugin_url . 'js/alba-frontend-interactions.js', ['alba-backend-kanban'], (string) filemtime(plugin_dir_path(dirname(__FILE__)) . 'assets/js/alba-frontend-interactions.js'), true);
+    wp_localize_script('alba-core-interactions', 'albaBoardFrontend', alba_board_interaction_config());
     wp_enqueue_style('alba-board-admin-neomorphism', $plugin_url . 'css/admin-alba-board-style.css', [], $admin_style_version);
 
     wp_localize_script('alba-backend-kanban', 'albaBoard', [
@@ -43,6 +45,8 @@ function alba_board_enqueue_admin_assets($hook) {
         'trash_card_confirm'      => __( 'Move this card to Trash? You can restore it from Alba Board > Cards > Trash.', 'alba-board' ),
         'trash_card_error'        => __( 'Could not move this card to Trash. Please try again.', 'alba-board' ),
         'move_list_nonce'         => wp_create_nonce('alba_move_list_nonce'),
+        'current_user_id' => get_current_user_id(),
+        'can_edit_others_cards' => current_user_can('edit_others_cards'),
         'can_move_cards'          => current_user_can('edit_cards') || current_user_can('edit_others_cards'),
         'can_move_lists'          => current_user_can('edit_lists') || current_user_can('edit_others_lists'),
         'loading'                 => __('Loading...', 'alba-board'),

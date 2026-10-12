@@ -27,7 +27,7 @@ function alba_board_register_rest_routes() {
 // Security Check: Ensure only allowed users can query the API
 function alba_board_rest_permissions_check( $request ) {
     $card_id = absint( $request['id'] );
-    return $card_id && 'alba_card' === get_post_type( $card_id ) && current_user_can( 'edit_card', $card_id );
+    return alba_board_can_view_shared_card( $card_id );
 }
 
 // The Core Function: Fetch HTML and Cache via Transients (Redis)
@@ -42,12 +42,12 @@ function alba_board_rest_get_card_details( $request ) {
         require_once dirname(__FILE__) . '/ajax-card-details.php';
     }
     
-    $cache_key = 'alba_card_live_' . $context . '_' . $card_id;
+    $cache_key = alba_board_card_modal_cache_key( $context, $card_id );
     
     $cached_html = get_transient( $cache_key );
 
     // Refresh admin modal markup when a cached response predates current form fields.
-    if ( false !== $cached_html && 'admin' === $context ) {
+    if ( false !== $cached_html && 'admin' === $context && current_user_can( 'edit_card', $card_id ) ) {
         $has_current_field_layout = false !== strpos( $cached_html, 'alba-card-addons-row' );
         $has_trash_control = false !== strpos( $cached_html, 'alba-card-trash-btn' );
         $can_delete_card = current_user_can( 'delete_card', $card_id );
@@ -60,7 +60,7 @@ function alba_board_rest_get_card_details( $request ) {
     }
 
     // Replace cached frontend modal markup that still contains the removed archive control.
-    if ( false !== $cached_html && 'frontend' === $context && false !== strpos( $cached_html, 'alba-modal-archive' ) ) {
+    if ( false !== $cached_html && 'frontend' === $context && (false !== strpos($cached_html, 'alba-modal-archive') || false === strpos($cached_html, 'data-alba-frontend-ui=') || substr_count($cached_html, 'id="alba-modal-delete"') !== (int) current_user_can('delete_card', $card_id)) ) {
         delete_transient( $cache_key );
         $cached_html = false;
     }
@@ -91,6 +91,7 @@ add_action( 'save_post_alba_card', 'alba_board_clear_card_cache', 10, 3 );
 add_action( 'before_delete_post', 'alba_board_clear_card_cache', 10, 3 );
 function alba_board_clear_card_cache( $post_id, $post = null, $update = false ) {
     if ( get_post_type( $post_id ) === 'alba_card' ) {
+        set_transient( 'alba_card_modal_revision_' . absint( $post_id ), wp_generate_uuid4(), 2 * DAY_IN_SECONDS );
         delete_transient( 'alba_card_live_admin_' . $post_id );
         delete_transient( 'alba_card_live_frontend_' . $post_id );
     }

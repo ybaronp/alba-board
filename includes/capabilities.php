@@ -7,6 +7,10 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 add_filter('map_meta_cap', 'alba_board_map_meta_cap', 10, 4);
 
 function alba_board_map_meta_cap($caps, $cap, $user_id, $args) {
+    // The native Cards screen uses delete_post rather than delete_card.
+    if ( 'delete_post' === $cap && ! empty( $args[0] ) && 'alba_card' === get_post_type( $args[0] ) && ! user_can( $user_id, 'delete_others_cards' ) ) {
+        return [ 'do_not_allow' ];
+    }
     // Only for our custom meta caps (WordPress calls these in singular)
     $meta_caps = [
         'edit_board', 'delete_board', 'read_board',
@@ -15,6 +19,11 @@ function alba_board_map_meta_cap($caps, $cap, $user_id, $args) {
     ];
     if ( ! in_array( $cap, $meta_caps, true ) ) {
         return $caps;
+    }
+
+    // Deleting cards requires a Manager-level capability, even for the author.
+    if ( 'delete_card' === $cap && ! user_can( $user_id, 'delete_others_cards' ) ) {
+        return [ 'do_not_allow' ];
     }
 
     // Get post object for context

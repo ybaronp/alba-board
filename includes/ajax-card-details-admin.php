@@ -10,9 +10,11 @@ function alba_board_time_ago_or_date( $datetime ) {
         return __( 'Just now', 'alba-board' ); 
     } elseif ( $diff < 3600 ) { 
         $mins = floor( $diff / 60 ); 
+        /* translators: Number of minutes. */
         return sprintf( _n( '%d minute ago', '%d minutes ago', $mins, 'alba-board' ), $mins ); 
     } elseif ( $diff < 86400 ) { 
         $hours = floor( $diff / 3600 ); 
+        /* translators: Number of hours. */
         return sprintf( _n( '%d hour ago', '%d hours ago', $hours, 'alba-board' ), $hours ); 
     } else { 
         return date_i18n( 'Y-m-d H:i', $timestamp ); 
@@ -27,6 +29,14 @@ function alba_output_card_details_admin_modal( $card_id, $force_author = null ) 
         return; 
     }
 
+    if ( ! alba_board_can_view_shared_card( $card_id ) ) {
+        echo esc_html__( 'You do not have permission to view this card.', 'alba-board' );
+        return;
+    }
+    if ( ! current_user_can( 'edit_card', $card_id ) ) {
+        alba_output_card_details_frontend_modal( $card_id );
+        return;
+    }
     $card = get_post( $card_id );
     $author_id = $force_author !== null ? absint( $force_author ) : intval( $card->post_author );
     
