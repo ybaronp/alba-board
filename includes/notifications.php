@@ -58,8 +58,7 @@ function alba_board_send_notification($to_email, $subject, $user_name, $card_tit
     $options = get_option('alba_board_notifications', []);
     
     $defaults = [];
-    $defaults['new_card'] = <<<HTML
-<div style="background-color: #f1f5f9; padding: 40px 20px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+    $defaults['new_card'] = '<div style="background-color: #f1f5f9; padding: 40px 20px; font-family: -apple-system, BlinkMacSystemFont, \'Segoe UI\', Roboto, Helvetica, Arial, sans-serif;">
   <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
     <div style="background: linear-gradient(135deg, #0f172a 0%, #3730a3 50%, #3b82f6 100%); padding: 30px; text-align: center;">
       <h2 style="color: #ffffff; margin: 0; font-size: 24px; font-weight: 800; letter-spacing: 2px;">ALBA BOARD</h2>
@@ -83,11 +82,9 @@ function alba_board_send_notification($to_email, $subject, $user_name, $card_tit
       </p>
     </div>
   </div>
-</div>
-HTML;
+</div>';
 
-    $defaults['new_comment'] = <<<HTML
-<div style="background-color: #f1f5f9; padding: 40px 20px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+    $defaults['new_comment'] = '<div style="background-color: #f1f5f9; padding: 40px 20px; font-family: -apple-system, BlinkMacSystemFont, \'Segoe UI\', Roboto, Helvetica, Arial, sans-serif;">
   <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
     <div style="background: linear-gradient(135deg, #0f172a 0%, #3730a3 50%, #3b82f6 100%); padding: 30px; text-align: center;">
       <h2 style="color: #ffffff; margin: 0; font-size: 24px; font-weight: 800; letter-spacing: 2px;">ALBA BOARD</h2>
@@ -110,8 +107,7 @@ HTML;
       </p>
     </div>
   </div>
-</div>
-HTML;
+</div>';
 
     $html_template = !empty($options['template_' . $template_type]) ? $options['template_' . $template_type] : $defaults[$template_type];
 
@@ -147,6 +143,7 @@ function alba_board_notify_on_new_card( $post_id, $post, $update ) {
 
     if ( ! $user_to_notify || empty( $user_to_notify->user_email ) || ! is_email( $user_to_notify->user_email ) ) return;
 
+    /* translators: Card title. */
     $subject = sprintf( __( 'New task assigned: %s', 'alba-board' ), $post->post_title );
     $subject = apply_filters( 'alba_board_notification_subject_new_card', $subject, $post_id, $post );
 
@@ -189,6 +186,7 @@ function alba_board_notify_on_new_comment( $comment_id, $comment_approved, $comm
 
     if ( ! $user_to_notify || empty( $user_to_notify->user_email ) || ! is_email( $user_to_notify->user_email ) ) return;
 
+    /* translators: Card title. */
     $subject = sprintf( __( 'New comment on task: %s', 'alba-board' ), $post->post_title );
     $subject = apply_filters( 'alba_board_notification_subject_new_comment', $subject, $post_id, $comment_id );
 
@@ -227,6 +225,7 @@ function alba_board_notify_guest_assignee($card_id, $new_guests, $old_guests) {
 
     if (empty($emails_to_notify)) return;
 
+    /* translators: Card title. */
     $subject = sprintf(__('New task assigned: %s', 'alba-board'), $post->post_title);
     $subject = apply_filters('alba_board_notification_subject_guest_card', $subject, $card_id, $post);
 

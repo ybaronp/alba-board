@@ -79,7 +79,7 @@ function alba_board_render_shortcode($atts) {
         echo '<button type="button" class="alba-list-collapse-btn" title="' . esc_attr__('Collapse/Expand', 'alba-board') . '" style="background:none; border:none; cursor:pointer; font-size:16px; opacity:0.6; color:var(--alba-text-main);">↔</button>';
         echo '</div>';
 
-        echo '<div class="alba-cards" data-list-id="' . esc_attr($list->ID) . '">';
+        echo '<div class="alba-cards" data-list-id="' . esc_attr($list->ID) . '" data-can-create="' . (current_user_can('edit_cards') && current_user_can('edit_list', $list->ID) ? '1' : '0') . '">';
         
         $cards = isset( $cards_by_list[ $list->ID ] ) ? $cards_by_list[ $list->ID ] : [];
         

@@ -18,15 +18,15 @@ function alba_board_get_card_details_ajax() {
         wp_send_json_error(['message' => esc_html__('Invalid card id.', 'alba-board')]);
     }
 
-    if ( 'alba_card' !== get_post_type( $card_id ) || ! current_user_can( 'edit_card', $card_id ) ) {
+    if ( 'alba_card' !== get_post_type( $card_id ) || ! alba_board_can_view_shared_card( $card_id ) ) {
         wp_send_json_error(['message' => esc_html__('You do not have permission to view this card.', 'alba-board')]);
     }
 
-    $cache_key = 'alba_card_live_frontend_' . $card_id;
+    $cache_key = alba_board_card_modal_cache_key( 'frontend', $card_id );
     $cached_html = get_transient( $cache_key );
 
     // Regenerate modal markup cached before the frontend archive control was removed.
-    if ( false !== $cached_html && false !== strpos( $cached_html, 'alba-modal-archive' ) ) {
+    if ( false !== $cached_html && (false !== strpos($cached_html, 'alba-modal-archive') || false === strpos($cached_html, 'data-alba-frontend-ui=') || substr_count($cached_html, 'id="alba-modal-delete"') !== (int) current_user_can('delete_card', $card_id)) ) {
         delete_transient( $cache_key );
         $cached_html = false;
     }
@@ -52,8 +52,7 @@ function alba_output_card_details_frontend_modal( $card_id ) {
     $card = get_post($card_id);
     if (!$card || $card->post_type !== 'alba_card') return;
 
-    include_once(ABSPATH . 'wp-admin/includes/plugin.php');
-    $addon_active = is_plugin_active('alba-board-frontend-interactions/alba-board-frontend-interactions.php');
+    $can_comment = alba_board_can_comment_card( $card_id );
     
     ?>
     <div class="alba-modal-inner">
@@ -91,7 +90,6 @@ function alba_output_card_details_frontend_modal( $card_id ) {
                 <span class="dashicons dashicons-calendar-alt" style="font-size: 14px; margin-top: 3px;"></span> <?php echo esc_html($formatted_full_date); ?>
             </div>
         <?php endif; ?>
-
         <div class="alba-description" style="margin-top: 15px;">
             <?php
             $description = trim($card->post_content);
@@ -137,11 +135,16 @@ function alba_output_card_details_frontend_modal( $card_id ) {
         </div>
         
         <?php 
-        if ($addon_active): ?>
-            <div class="alba-add-comment-section">
+        if ($can_comment): ?>
+            <div class="alba-add-comment-section" data-alba-frontend-ui="core-interactions">
                 <textarea id="alba-new-comment-text" class="alba-form-input-text" data-card-id="<?php echo esc_attr($card_id); ?>" rows="2" placeholder="<?php esc_attr_e('Write a comment...', 'alba-board'); ?>"></textarea>
-                <button id="alba-add-comment-btn" class="alba-btn-neumorphic"><?php esc_html_e('Add comment', 'alba-board'); ?></button>
+                <button type="button" id="alba-add-comment-btn" class="alba-btn-neumorphic"><?php esc_html_e('Add comment', 'alba-board'); ?></button>
                 <div id="alba-comment-feedback"></div>
+            </div>
+        <?php endif; ?>
+        <?php if (current_user_can('delete_card', $card_id)): ?>
+            <div class="alba-modal-delete-section">
+                <button type="button" id="alba-modal-delete" class="alba-btn-neumorphic" data-card-id="<?php echo esc_attr($card_id); ?>"><?php esc_html_e('Delete card', 'alba-board'); ?></button>
             </div>
         <?php endif; ?>
     </div>

@@ -55,15 +55,95 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- 1. SORTABLE CARDS ---
     const originalCardLocations = new WeakMap();
+    const cardMoves = [];
+    let savingCardMove = false;
+    let draggingCard = false;
+    let failedMoveMessage = null;
+
+    // Only attach the navigation guard while unsaved moves exist.
+    function warnBeforeLeaving(event) {
+      event.preventDefault();
+      event.returnValue = '';
+    }
+    let guardingPendingMoves = false;
+    function updateMoveSavingState() {
+      const pending = cardMoves.length > 0;
+      if (pending === guardingPendingMoves) return;
+      guardingPendingMoves = pending;
+      if (pending) window.addEventListener('beforeunload', warnBeforeLeaving);
+      else window.removeEventListener('beforeunload', warnBeforeLeaving);
+    }
+
+
+    function recoverFailedMoves() {
+      if (!failedMoveMessage || draggingCard) return;
+      alert(failedMoveMessage);
+      window.location.reload();
+    }
+
+    async function saveNextCardMove() {
+      if (savingCardMove || failedMoveMessage || !cardMoves.length) return;
+      savingCardMove = true;
+      const move = cardMoves[0];
+      try {
+        const result = await fetch(albaBoard.ajaxurl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: move.params
+        });
+        const response = await result.json();
+        if (!response.success) throw new Error(response.data && response.data.message || albaBoard.move_error || 'Could not move the card.');
+        cardMoves.shift();
+      } catch (error) {
+        // Later drops may depend on this move. Refresh confirmed positions if any are pending.
+        if (cardMoves.length > 1 || draggingCard) {
+          failedMoveMessage = error.message || albaBoard.move_error || 'Could not move the card.';
+        } else {
+          const location = move.originalLocation;
+          if (location && location.parent) {
+            location.parent.insertBefore(move.card, location.nextSibling && location.nextSibling.parentNode === location.parent ? location.nextSibling : null);
+          }
+          checkEmptyStates();
+          alert(error.message || albaBoard.move_error || 'Could not move the card.');
+        }
+        cardMoves.forEach(pending => pending.card.removeAttribute('aria-busy'));
+        cardMoves.length = 0;
+      } finally {
+        savingCardMove = false;
+        if (!cardMoves.some(pending => pending.card === move.card)) move.card.removeAttribute('aria-busy');
+        updateMoveSavingState();
+        recoverFailedMoves();
+        saveNextCardMove();
+      }
+    }
     if (albaBoard.can_move_cards) document.querySelectorAll('.alba-cards-container').forEach(list => {
         if (typeof Sortable !== "undefined") {
             new Sortable(list, {
                 group: 'alba-cards',
+                draggable: '.alba-card',
+                // Use pointer dragging consistently, including Safari and nested scroll areas.
+                forceFallback: true,
+                fallbackOnBody: true,
+                fallbackClass: 'alba-card-drag-preview',
+                fallbackTolerance: 3,
                 animation: 150,
                 ghostClass: 'sortable-ghost',
                 dragClass: 'sortable-drag',
-                filter: '.alba-no-cards-msg',
+                filter: '.alba-no-cards-msg' + (albaBoard.can_edit_others_cards ? '' : ', .alba-card:not([data-author="' + albaBoard.current_user_id + '"])'),
+                preventOnFilter: false,
                 onStart: function (evt) {
+                    draggingCard = true;
+                    // The floating copy lives outside the theme wrapper; preserve its appearance.
+                    const preview = document.querySelector('body > .alba-card-drag-preview');
+                    if (preview) {
+                        const style = getComputedStyle(evt.item);
+                        Array.from(style).filter(name => name.startsWith('--')).forEach(name => {
+                            preview.style.setProperty(name, style.getPropertyValue(name));
+                        });
+                        ['background', 'color', 'font-family', 'font-size', 'border', 'box-shadow'].forEach(name => {
+                            preview.style.setProperty(name, style.getPropertyValue(name));
+                        });
+                    }
                     originalCardLocations.set(evt.item, {
                         parent: evt.from,
                         nextSibling: evt.item.nextSibling
@@ -71,7 +151,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 },
 
                 onEnd: function (evt) {
+                    draggingCard = false;
+                    if (failedMoveMessage) { recoverFailedMoves(); return; }
                     const card = evt.item;
+                    if (evt.from === evt.to && evt.oldDraggableIndex === evt.newDraggableIndex) return;
                     const cardId = card.dataset.cardId;
                     const newListId = evt.to.dataset.listId;
                     const orderedCardIds = Array.from(evt.to.querySelectorAll('.alba-card')).map(el => el.dataset.cardId);
@@ -79,40 +162,18 @@ document.addEventListener('DOMContentLoaded', () => {
                     checkEmptyStates(); 
 
                     if (cardId && newListId) {
+                        card.setAttribute('aria-busy', 'true');
                         const params = new URLSearchParams();
                         params.append('action', 'alba_move_card');
                         params.append('card_id', cardId);
                         params.append('new_list_id', newListId);
                         params.append('nonce', albaBoard.nonce);
-
                         orderedCardIds.forEach((id, index) => {
                             params.append(`order[${index}]`, id);
                         });
-
-                        fetch(albaBoard.ajaxurl, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                            body: params
-                        })
-                        .then(res => res.json())
-                        .then(response => {
-                            if (!response.success) {
-                                const originalLocation = originalCardLocations.get(card);
-                                if (originalLocation && originalLocation.parent) {
-                                    originalLocation.parent.insertBefore(card, originalLocation.nextSibling && originalLocation.nextSibling.parentNode === originalLocation.parent ? originalLocation.nextSibling : null);
-                                }
-                                checkEmptyStates();
-                                alert(response.data && response.data.message ? response.data.message : (albaBoard.move_error || 'Could not move the card.'));
-                            }
-                        })
-                        .catch(() => {
-                            const originalLocation = originalCardLocations.get(card);
-                            if (originalLocation && originalLocation.parent) {
-                                originalLocation.parent.insertBefore(card, originalLocation.nextSibling && originalLocation.nextSibling.parentNode === originalLocation.parent ? originalLocation.nextSibling : null);
-                            }
-                            checkEmptyStates();
-                            alert(albaBoard.move_error || 'Could not move the card.');
-                        });
+                        cardMoves.push({ card, params, originalLocation: originalCardLocations.get(card) });
+          updateMoveSavingState();
+                        saveNextCardMove();
                     }
                 }
             });
@@ -359,15 +420,17 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- 5. MODAL LOGIC ---
     const modalAdmin = document.getElementById('alba-card-modal-admin');
     const modalBody = document.getElementById('alba-modal-body-admin');
+    const modalThemeWrapper = modalAdmin && modalAdmin.closest('.alba-master-theme-wrapper');
     let currentOpenedCard = null;
 
     document.querySelectorAll('.alba-card').forEach(card => {
         card.addEventListener('click', function(e) {
             if (e.target.closest('.alba-card-action-btn') || e.target.closest('a') || e.target.closest('button')) return;
             const cardId = card.dataset.cardId; currentOpenedCard = card;
+            if (modalThemeWrapper) modalThemeWrapper.classList.add('alba-admin-modal-open');
             
             if(modalAdmin) { modalAdmin.classList.remove('alba-is-hidden'); modalAdmin.classList.add('active'); }
-            if(modalBody) modalBody.innerHTML = albaBoard.loading || 'Loading...';
+            if(modalBody) { modalBody.removeAttribute('role'); modalBody.innerHTML = albaBoard.loading || 'Loading...'; }
 
             // ZERO FRICTION UX: Update URL immediately 
             updateUrlWithCard(cardId);
@@ -376,17 +439,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 method: 'GET',
                 headers: { 'X-WP-Nonce': albaBoard.rest_nonce }
             })
-            .then(res => res.json())
+            .then(async res => { const response = await res.json(); if (!res.ok || !response.html) throw new Error(response.message || albaBoard.fetch_error); return response; })
             .then(response => {
-                if(modalBody && response.html) {
+                if(modalBody && response.html && currentOpenedCard === card) {
                     modalBody.innerHTML = response.html;
                     bindSaveButtonHandler(); 
                     bindAttachmentHandlers(); 
                     jQuery(document).trigger('alba_modal_loaded');
                 }
             })
-            .catch(() => { 
-                if(modalBody) modalBody.innerHTML = albaBoard.fetch_error || 'Error loading card.'; 
+            .catch(error => {
+                if(modalBody && currentOpenedCard === card) { modalBody.textContent = error.message || albaBoard.fetch_error || 'Error loading card.'; modalBody.setAttribute('role', 'alert'); } 
             });
         });
     });
@@ -396,7 +459,8 @@ document.addEventListener('DOMContentLoaded', () => {
             modalAdmin.classList.add('alba-is-hidden'); 
             modalAdmin.classList.remove('active'); 
         } 
-        currentOpenedCard = null; 
+        currentOpenedCard = null;
+        if (modalThemeWrapper) modalThemeWrapper.classList.remove('alba-admin-modal-open');
         removeCardFromUrl(); // Revert URL natively
     };
     
@@ -459,13 +523,30 @@ document.addEventListener('DOMContentLoaded', () => {
             const newCommentField = document.getElementById('alba-new-comment');
             if (newCommentField) formData.set('new_comment', newCommentField.value);
             
+            const savedCardElement = currentOpenedCard;
+            const savedCardId = String(formData.get('card_id'));
             saveBtn.textContent = 'Saving...'; saveBtn.style.opacity = '0.7';
             saveBtn.disabled = true;
             
             fetch(albaBoard.ajaxurl, { method: 'POST', body: formData })
             .then(res => res.json())
             .then(response => {
-                if (response && response.success) { location.reload(); } 
+                if (response && response.success && response.data && response.data.html) {
+                    const data = response.data;
+                    // Preserve the card element, its click listener, and its sorted position.
+                    if (savedCardElement && data.card_html && String(data.card_id) === savedCardId) {
+                        savedCardElement.innerHTML = data.card_html;
+                        savedCardElement.dataset.author = String(data.author_id);
+                    }
+                    // A late response must not replace a different card or reopen a closed modal.
+                    if (currentOpenedCard === savedCardElement && modalAdmin.classList.contains('active')) {
+                        modalBody.innerHTML = data.html;
+                        bindSaveButtonHandler();
+                        bindAttachmentHandlers();
+                        jQuery(document).trigger('alba_modal_loaded');
+                    }
+                    jQuery(document).trigger('alba_card_updated', [savedCardId, data]);
+                } 
                 else { saveBtn.textContent = 'Save Changes'; saveBtn.style.opacity = '1'; saveBtn.disabled = false; }
             })
             .catch(() => { saveBtn.textContent = 'Save Changes'; saveBtn.style.opacity = '1'; saveBtn.disabled = false; });

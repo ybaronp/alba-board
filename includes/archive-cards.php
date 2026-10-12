@@ -12,6 +12,7 @@ function alba_board_register_archived_card_status() {
         'exclude_from_search'       => true,
         'show_in_admin_all_list'    => true,
         'show_in_admin_status_list' => true,
+        /* translators: Card title. */
         'label_count'               => _n_noop( 'Archived <span class="count">(%s)</span>', 'Archived <span class="count">(%s)</span>', 'alba-board' ),
     ] );
 }

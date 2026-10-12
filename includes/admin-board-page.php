@@ -6,6 +6,39 @@
 
 if ( ! defined( 'ABSPATH' ) ) exit; // Prevent direct access
 
+/** Render the same card summary for board loads and in-place saves. */
+function alba_board_render_admin_card_summary( $card, $show_avatars ) {
+    echo '<strong class="alba-card-title">' . esc_html($card->post_title) . '</strong>';
+    
+    $due_date = get_post_meta($card->ID, 'alba_due_date', true);
+    if (!empty($due_date)) {
+        $formatted_date = date_i18n('M j', strtotime($due_date));
+        echo '<div style="font-size: 11px; color: #64748b; margin-top: 6px; display: flex; align-items: center; gap: 4px;">';
+        echo '<span class="dashicons dashicons-calendar-alt" style="font-size: 13px; height: 13px; width: 13px;"></span> ';
+        echo esc_html($formatted_date);
+        echo '</div>';
+    }
+
+    echo '<div class="alba-card-footer">';
+    echo '<div class="alba-card-tags-wrapper">';
+    do_action('alba_board_card_tags', $card->ID); 
+    echo '</div>';
+
+    if ($show_avatars) {
+        $author_id = $card->post_author;
+        if ($author_id) {
+            $author_name = get_the_author_meta('display_name', $author_id);
+            /* translators: Assignee display name. */
+            echo '<div class="alba-card-avatar" title="' . esc_attr(sprintf(__('Assigned to: %s', 'alba-board'), $author_name)) . '">';
+            echo get_avatar($author_id, 26, '', $author_name, ['class' => 'alba-avatar-img']);
+            echo '</div>';
+        } else { echo '<div></div>'; }
+    } else { echo '<div></div>'; }
+    
+    echo '</div>';
+}
+
+
 /**
  * 1. APPLICATION LAYER (State Mutation & Redirects)
  */
@@ -131,12 +164,18 @@ function alba_render_admin_board_page() {
     $boards = get_posts(['post_type' => 'alba_board', 'numberposts' => -1, 'orderby' => 'title', 'order' => 'ASC']);
     
     $selected_board_id = 0;
+    // Read-only board/view selection: sanitized below; no state changes require a nonce.
+    // phpcs:ignore WordPress.Security.NonceVerification.Recommended
     if ( isset($_GET['board_id']) ) {
+        // Read-only board/view selection: sanitized below; no state changes require a nonce.
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended
         $selected_board_id = absint($_GET['board_id']);
     } elseif ( !empty($boards) ) {
         $first_board = (object) reset($boards);
         $selected_board_id = $first_board->ID;
     }
+    // Read-only board/view selection: sanitized below; no state changes require a nonce.
+    // phpcs:ignore WordPress.Security.NonceVerification.Recommended
     $is_archive_view = isset( $_GET['view'] ) && 'archived' === sanitize_key( wp_unslash( $_GET['view'] ) );
     
     $display_opts = get_option('alba_board_display', ['show_avatars' => 1, 'theme' => 'default']);
@@ -267,33 +306,8 @@ function alba_render_admin_board_page() {
                         foreach ($cards as $card) {
                             $card = (object) $card;
                             echo '<div class="alba-card" data-card-id="' . esc_attr($card->ID) . '" data-author="' . esc_attr($card->post_author) . '">';
-                            echo '<strong class="alba-card-title">' . esc_html($card->post_title) . '</strong>';
-                            
-                            $due_date = get_post_meta($card->ID, 'alba_due_date', true);
-                            if (!empty($due_date)) {
-                                $formatted_date = date_i18n('M j', strtotime($due_date));
-                                echo '<div style="font-size: 11px; color: #64748b; margin-top: 6px; display: flex; align-items: center; gap: 4px;">';
-                                echo '<span class="dashicons dashicons-calendar-alt" style="font-size: 13px; height: 13px; width: 13px;"></span> ';
-                                echo esc_html($formatted_date);
-                                echo '</div>';
-                            }
-
-                            echo '<div class="alba-card-footer">';
-                            echo '<div class="alba-card-tags-wrapper">';
-                            do_action('alba_board_card_tags', $card->ID); 
+                            alba_board_render_admin_card_summary( $card, $show_avatars );
                             echo '</div>';
-
-                            if ($show_avatars) {
-                                $author_id = $card->post_author;
-                                if ($author_id) {
-                                    $author_name = get_the_author_meta('display_name', $author_id);
-                                    echo '<div class="alba-card-avatar" title="' . esc_attr(sprintf(__('Assigned to: %s', 'alba-board'), $author_name)) . '">';
-                                    echo get_avatar($author_id, 26, '', $author_name, ['class' => 'alba-avatar-img']);
-                                    echo '</div>';
-                                } else { echo '<div></div>'; }
-                            } else { echo '<div></div>'; }
-                            
-                            echo '</div></div>'; 
                         }
                     } 
                     
@@ -318,8 +332,8 @@ function alba_render_admin_board_page() {
             }
 
             echo '<div class="alba-list alba-add-list-wrapper">';
-            $add_list_text = empty($lists) ? esc_html__('Add List', 'alba-board') : esc_html__('Add another list', 'alba-board');
-            echo '<button type="button" class="alba-show-add-list-btn">+ ' . $add_list_text . '</button>';
+            $add_list_text = empty($lists) ? __('Add List', 'alba-board') : __('Add another list', 'alba-board');
+            echo '<button type="button" class="alba-show-add-list-btn">+ ' . esc_html($add_list_text) . '</button>';
             echo '<form class="alba-new-list-form alba-stacked-form alba-is-hidden" method="post">';
             wp_nonce_field('alba_create_list_action');
             echo '<input type="hidden" name="alba_create_list" value="1">'; 
@@ -373,6 +387,8 @@ add_action('wp_ajax_alba_delete_list_action', function() {
 
 add_action('wp_ajax_alba_move_list_action', function() {
     check_ajax_referer('alba_move_list_nonce', 'nonce');
+    // Preserve array shape so malformed/nested input is rejected by strict validation below.
+    // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
     $raw_orders = isset($_POST['order']) && is_array($_POST['order']) ? wp_unslash($_POST['order']) : [];
     if (!$raw_orders) {
         wp_send_json_error(['message' => esc_html__('No list order was provided.', 'alba-board')], 400);
@@ -381,7 +397,7 @@ add_action('wp_ajax_alba_move_list_action', function() {
     $list_orders = [];
     $seen_lists  = [];
     foreach ($raw_orders as $position => $raw_list_id) {
-        if (!is_scalar($position) || !preg_match('/^\d+$/', (string) $position) || !is_scalar($raw_list_id)) {
+        if (!is_scalar($position) || !preg_match('/^\d+$/', (string) $position) || !is_scalar($raw_list_id) || !preg_match('/^[0-9]+$/', (string) $raw_list_id)) {
             wp_send_json_error(['message' => esc_html__('Invalid list order.', 'alba-board')], 400);
         }
 

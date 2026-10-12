@@ -1,66 +1,113 @@
-// assets/js/alba-deactivation.js
-
+/** Optional feedback before native WordPress deactivation. */
 document.addEventListener('DOMContentLoaded', function() {
-    // Read the dynamic data passed by PHP
-    var pluginSlug = albaDeactivationData.pluginSlug;
-    var sendingText = albaDeactivationData.sendingText;
-    
-    // Selectors
-    var deactivateLink = document.querySelector('tr[data-plugin="' + pluginSlug + '"] .deactivate a');
+    if (!window.albaDeactivationData) return;
+    var config = window.albaDeactivationData;
+    var deactivateLink = document.querySelector('tr[data-plugin="' + config.pluginSlug + '"] .deactivate a');
     var overlay = document.getElementById('alba-feedback-overlay');
+    if (!deactivateLink || !overlay) return;
+    var modal = document.getElementById('alba-feedback-modal');
+    var form = document.getElementById('alba-feedback-form');
     var skipBtn = document.getElementById('alba-skip-deactivate');
+    var cancelBtn = document.getElementById('alba-cancel-deactivate');
     var submitBtn = document.getElementById('alba-submit-feedback');
     var detailsBox = document.getElementById('alba-feedback-details');
-    var radios = document.querySelectorAll('input[name="alba_reason"]');
+    var comment = document.getElementById('alba-feedback-comment');
+    var prompt = document.getElementById('alba-feedback-prompt');
+    var status = document.getElementById('alba-feedback-status');
+    var radios = Array.from(form.querySelectorAll('input[name="alba_reason"]'));
     var deactivationUrl = '';
+    var busy = false;
+    var navigating = false;
+    var previousOverflow = '';
 
-    if (deactivateLink && overlay) {
-        deactivateLink.addEventListener('click', function(e) {
-            e.preventDefault();
-            deactivationUrl = this.href; // Save the WordPress deactivation URL
-            overlay.style.display = 'flex'; // Show the modal
-        });
+    function close() {
+        if (busy) return;
+        overlay.hidden = true;
+        document.body.style.overflow = previousOverflow;
+        deactivateLink.focus();
     }
-
-    // Show the text box when the selected option changes
+    function deactivate() {
+        if (!deactivationUrl || navigating) return;
+        navigating = true;
+        window.location.assign(deactivationUrl);
+    }
+    deactivateLink.addEventListener('click', function(event) {
+        event.preventDefault();
+        if (!overlay.hidden || busy || navigating) return;
+        deactivationUrl = deactivateLink.href;
+        form.reset();
+        comment.hidden = true;
+        status.textContent = '';
+        previousOverflow = document.body.style.overflow;
+        document.body.style.overflow = 'hidden';
+        overlay.hidden = false;
+        radios[0].focus();
+    });
     radios.forEach(function(radio) {
         radio.addEventListener('change', function() {
-            detailsBox.style.display = 'block';
+            comment.hidden = false;
+            prompt.textContent = radio.dataset.prompt;
+            detailsBox.placeholder = radio.dataset.prompt;
+            status.textContent = '';
+            if (radio.value === 'Other') detailsBox.focus();
         });
     });
-
-    // "Skip and Deactivate" button
-    if (skipBtn) {
-        skipBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            if (deactivationUrl) window.location.href = deactivationUrl;
-        });
-    }
-
-    // "Send and Deactivate" button
-    if (submitBtn) {
-        submitBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            submitBtn.disabled = true;
-            submitBtn.textContent = sendingText;
-
-            var selectedReason = document.querySelector('input[name="alba_reason"]:checked');
-            var reasonValue = selectedReason ? selectedReason.value : 'Other';
-            var details = detailsBox.value;
-
-            // Send the response to the API
-            fetch('https://albaboard.com/wp-json/alba/v1/feedback', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    reason: reasonValue,
-                    details: details
-                })
-            }).then(function() {
-                if (deactivationUrl) window.location.href = deactivationUrl;
-            }).catch(function() {
-                if (deactivationUrl) window.location.href = deactivationUrl;
+    cancelBtn.addEventListener('click', close);
+    overlay.addEventListener('click', function(event) {
+        if (event.target === overlay) close();
+    });
+    document.addEventListener('keydown', function(event) {
+        if (overlay.hidden) return;
+        if (event.key === 'Escape') { event.preventDefault(); close(); }
+        if (event.key !== 'Tab') return;
+        // Keep focus in the dialog; only the checked radio is a Tab stop.
+        var selected = form.querySelector('input[name="alba_reason"]:checked');
+        var stops = Array.from(modal.querySelectorAll('a[href],button,input,textarea'))
+            .filter(function(element) {
+                return !element.disabled && element.getClientRects().length &&
+                    (element.type !== 'radio' || element === (selected || radios[0]));
             });
-        });
-    }
+        if (!stops.length) { event.preventDefault(); modal.focus(); return; }
+        var first = stops[0], last = stops[stops.length - 1];
+        if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+        else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+    });
+    skipBtn.addEventListener('click', deactivate);
+    form.addEventListener('submit', async function(event) {
+        event.preventDefault();
+        if (busy || navigating || overlay.hidden) return;
+        var selected = form.querySelector('input[name="alba_reason"]:checked');
+        if (!selected) {
+            status.textContent = config.reasonRequired;
+            radios[0].focus();
+            return;
+        }
+        busy = true;
+        modal.setAttribute('aria-busy', 'true');
+        submitBtn.textContent = config.sendingText;
+        [submitBtn, skipBtn, cancelBtn, detailsBox].concat(radios).forEach(function(control) { control.disabled = true; });
+        var controller = new AbortController();
+        var timeout;
+        try {
+            await Promise.race([
+                fetch('https://albaboard.com/wp-json/alba/v1/feedback', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({reason: selected.value, details: detailsBox.value.trim()}),
+                    signal: controller.signal
+                }).then(function(response) { if (!response.ok) throw new Error('Feedback request failed'); }),
+                new Promise(function(resolve, reject) {
+                    timeout = window.setTimeout(function() {
+                        controller.abort();
+                        reject(new Error('Feedback request timed out'));
+                    }, 5000);
+                })
+            ]);
+        } catch (error) {
+            // Feedback is optional: service failure must not prevent deactivation.
+        } finally {
+            window.clearTimeout(timeout);
+            deactivate();
+        }
+    });
 });

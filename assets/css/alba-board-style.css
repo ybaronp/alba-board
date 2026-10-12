@@ -587,3 +587,38 @@ body.alba-body-no-scroll {
 .alba-list-collapse-btn:hover::after {
     color: var(--alba-text-main);
 }
+
+
+/* Keep the dragged card visible above columns and outside clipped scroll areas. */
+.alba-card.alba-card-drag-preview {
+    opacity: 0.95 !important;
+    z-index: 100000 !important;
+    pointer-events: none !important;
+    transition: none !important;
+    margin: 0 !important;
+    cursor: grabbing;
+}
+.alba-card.sortable-ghost:not(.alba-card-drag-preview) {
+    opacity: 0.25;
+}
+
+.alba-card[aria-busy="true"] { position: relative; }
+/* A quiet, wordless save marker; it never intercepts card dragging. */
+.alba-card[aria-busy="true"]::after {
+    content: "";
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 10px;
+    height: 10px;
+    border: 2px solid currentColor;
+    border-right-color: transparent;
+    border-radius: 50%;
+    opacity: .55;
+    pointer-events: none;
+    animation: alba-card-saving .8s linear infinite;
+}
+@keyframes alba-card-saving { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) {
+    .alba-card[aria-busy="true"]::after { animation: none; }
+}

@@ -50,15 +50,9 @@ function alba_board_export_handler() {
         'order'       => 'ASC'
     ]);
 
+    $cards_by_list = alba_board_get_cards_grouped_by_list( wp_list_pluck( $lists, 'ID' ) );
     foreach ($lists as $list) {
-        $cards = get_posts([
-            'post_type'   => 'alba_card',
-            'numberposts' => -1,
-            'meta_key'    => 'alba_list_parent',
-            'meta_value'  => $list->ID,
-            'orderby'     => 'menu_order',
-            'order'       => 'ASC'
-        ]);
+        $cards = isset($cards_by_list[$list->ID]) ? $cards_by_list[$list->ID] : [];
 
         foreach ($cards as $card) {
             // A. Assignee
@@ -153,6 +147,8 @@ function alba_board_export_handler() {
             fputcsv($output, ['No cards found in this board.']);
         }
         
+        // php://output is a response stream, not a filesystem file; WP_Filesystem cannot close it.
+        // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose
         fclose($output);
         exit;
     }

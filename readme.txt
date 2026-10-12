@@ -1,10 +1,10 @@
-=== Alba Board - Custom Kanban Board and Task Management ===
+=== Alba Board ===
 Contributors: alejo30  
 Tags: kanban, kanban-board, task-management, project-management, workflow
 Requires at least: 5.8  
-Tested up to: 7.1.2
+Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 2.2.0
+Stable tag: 2.2.5
 License: GPLv2 or later  
 License URI: https://www.gnu.org/licenses/gpl-2.0.html  
 
@@ -36,7 +36,7 @@ Custom Kanban for WordPress. Organize tasks, projects, and teams with a modern b
 
 * 📋 Kanban-style board view seamlessly integrated into WP admin and Frontend
 * 🎨 Dynamic Theme Engine (Soft UI, Dark Mode, Glassmorphism)
-* 🚀 Drag & drop cards and entire lists with zero lag
+* 🚀 Reorder cards and lists with immediate visual feedback and background card saves
 * 📜 Independent vertical scrolling for long lists
 * 📂 File attachments natively inside cards
 * 📝 Rich card editor: title, description, assignee, tags, and custom fields
@@ -54,7 +54,7 @@ Custom Kanban for WordPress. Organize tasks, projects, and teams with a modern b
 **⚡ Supercharge your workflow with official add-ons:**
 
 * 💎 **Alba Board Pro: Customization & Smart Tags:** Unlocks 12 Premium Themes (Cyberpunk Neon, Stellar Earth, Vaporwave, etc.) and adds dynamic color-coded Smart Tags with frictionless inline creation.
-* 🌐 **Alba Board Frontend Interactions:** Enable seamless card creation, commenting, and secure deletion directly from your site’s public side (frontend).
+* Frontend card creation, commenting, and recoverable deletion are included in the free core plugin.
 
 > *🚀 More add-ons are in the works! Have a specific request? [Let us know!](https://albaboard.com/)*
 
@@ -83,7 +83,7 @@ We love suggestions! Since Alba Board is actively being developed, your input is
 Yes! The plugin is completely translation-ready. If it hasn't been translated into your language yet, you can easily translate it using plugins like Loco Translate, or contribute to the community translations.
 
 = 🌐 How do I enable frontend card creation? =  
-Activate the “Alba Board Frontend Interactions” add-on from the Add-ons menu.
+Add the `[alba_board id="123"]` shortcode to a page. Frontend creation, comments, and deletion are included in the free plugin. Log in with the appropriate card and list permissions to use them. The older Frontend Interactions add-on is no longer required; the core prevents its client and handlers from duplicating these actions.
 
 = 📦 How do I restore an archived card? =
 In **Alba Board > Boards**, open **More > Archived Cards** and click **Restore** beside the card. It returns to the list it came from and its previous status.
@@ -96,7 +96,14 @@ Deleting a list from a board moves the list to Trash and archives its cards. The
 In a card, enter one or more guest email addresses in **Guest Assignee**, separated by commas. When assignment notifications are enabled, Alba Board sends an email to each newly added valid address. To include a public card link, create a published page containing that board’s `[alba_board id="123"]` shortcode. Without a public board page, guest links fall back to the site homepage. Guests cannot use the WordPress admin. Click the **Guest Assignee** field to see missing-page guidance; you can click and copy its shortcode without the message disappearing. An assignment email does not grant permission to view card details or edit cards; access still requires the appropriate WordPress permissions.
 
 = 🗑️ How do I delete or restore a card? =
-In the WordPress admin board, open the card and click the trash icon beside the archive icon. Confirm to move the card to WordPress Trash. To recover it, open **Alba Board > Cards > Trash** and click **Restore**. This control is available only to users with permission to delete that card. If WordPress Trash is disabled, the control will not permanently delete the card.
+Board Managers, Editors, and Administrators can delete cards. Board Members cannot delete cards on either the public board or the WordPress admin, including cards they created. In the admin board, open the card and click the trash icon; on the public board, use **Delete card**. Confirm to move the card to WordPress Trash. To recover it, open **Alba Board > Cards > Trash** and click **Restore**. If WordPress Trash is disabled, the control will not permanently delete the card.
+
+= Which Board roles are available? =
+**Board Member:** Create cards and edit, comment on, move, or archive their own cards. Members can create and edit lists, but cannot delete cards, lists, or boards. They cannot change plugin settings.
+
+**Board Manager:** Create and manage boards, lists, and cards, including other users' cards and recoverable deletion. Editors have the same board-management permissions. Administrators can also change plugin settings.
+
+Other WordPress roles do not receive protected card access automatically. A published board or a guest assignment does not grant these permissions. If a user has multiple roles, WordPress combines their permissions; a Member who is also an Editor, Manager, or Administrator retains that higher role's deletion access. Legacy duplicate Board roles are consolidated automatically while retaining users' additional roles.
 
 = 🔗 How do I share a direct link to a card? =
 Open the card on an admin or public board and copy the page URL, which includes `?alba_card=ID`. Opening that link selects the card on the corresponding board. For guest assignees, use the public board page URL.
@@ -121,6 +128,56 @@ Frontend card creation, comments, and deletion require a logged-in user with the
 4. Kanban view seamlessly integrated into the front end using shortcodes.
 
 == Changelog ==
+
+= 2.2.5 =
+* Fixed: Keep themed admin card dialogs above WordPress navigation and make shared-card headings readable.
+* Improved: Board Members can read and comment on published cards in published shared boards on the front end and back end, while editing remains restricted to their own cards.
+* Fixed: Members can move their own cards in mixed-owner lists; server validation preserves other users' relative card order and rejects unauthorized moves.
+* Fixed: Show a clear card access error instead of leaving the back-end modal on Loading.
+* Security: Separate shared reading/commenting from editing, uploads, archiving, deletion, and time tracking. Private or unpublished shared content remains restricted.
+* Security: Isolate cached card details by viewer and permissions, and invalidate all views when a card changes.
+
+
+= 2.2.4 =
+* Keep cards draggable while previous moves save in the background; save drops in order without blocking the board.
+* Recover confirmed positions if a failed save invalidates subsequent queued moves.
+
+= 2.2.3 =
+* Fixed: Restore a visible, themed card preview that follows the pointer while dragging above scrollable columns, with an insertion placeholder and animated neighboring cards.
+* Improved: Use consistent pointer-based card dragging on the frontend and backend, including Safari and scrollable lists. Only cards can be dragged, excluding empty-list placeholders and creation controls.
+* Reliability: Prevent overlapping card moves while the new list and position are saving. Restore the original position on a rejected or failed request, then allow dragging again.
+* Improved: Show the server-provided reason when a frontend card move is rejected.
+
+= 2.2.2 =
+* Performance: Admin card saves and comments update the open card and board summary without reloading the entire board.
+* Improved: Refresh titles, assignees, avatars, due dates, and add-on tags in place while preserving card position and click behaviour.
+* Fixed: A delayed save response no longer replaces another card opened while the save was processing or reopens a closed dialog.
+* Compatibility: Reinitialize card attachment and add-on controls after saving. Emit the alba_card_updated JavaScript event with the card ID and save response for integrations.
+
+= 2.2.1 =
+* Performance: Stop card-limit queries at the configured limit and fetch export cards together instead of querying each list separately.
+* Security: Reject malformed card and list ordering values before changing positions.
+* Improved: A subtle, wordless indicator shows pending card moves without blocking dragging. Warn before leaving while moves are unsaved; respect reduced-motion preferences.
+* Reliability: Bundle Flatpickr 4.6.13 locally, including its license and unminified source, instead of loading the date picker from an external CDN.
+* Improved: Keep cards draggable while previous moves save in the background; save drops in order without blocking the board.
+* Fixed: Recover confirmed positions if a failed save invalidates subsequent queued moves.
+* Fixed: Restore a visible, themed card preview that follows the pointer while dragging above scrollable columns, with an insertion placeholder and animated neighboring cards.
+* Improved: Use consistent pointer-based card dragging on the frontend and backend, including scrollable lists. Only cards can be dragged, excluding empty-list placeholders and creation controls.
+* Improved: Show the server-provided reason when a frontend card move is rejected.
+* Performance: Admin card saves and comments update the open card and board summary without reloading the entire board.
+* Improved: Refresh titles, assignees, avatars, due dates, and add-on tags in place while preserving card position and click behaviour.
+* Fixed: A delayed save response no longer replaces another card opened while the save was processing or reopens a closed dialog.
+* Compatibility: Reinitialize card attachment and add-on controls after saving. Emit the alba_card_updated JavaScript event with the card ID and save response for integrations.
+* Improved: Clearer optional deactivation feedback with separate testing and Other reasons, no preselected answer, and helpful comment prompts. Recent user-requested improvements are linked from the form.
+* Fixed: Show the optional comment field for every selected reason, including Other. Canceling or deactivating without feedback sends no response.
+* Reliability: Prevent duplicate feedback submissions and let deactivation continue if the feedback service fails or takes longer than five seconds. Add keyboard navigation and a dialog that fits smaller screens.
+* Security: Board Members cannot delete cards on the frontend or backend. Card deletion is reserved for Board Managers, Editors, and Administrators.
+* Fixed: Consolidate legacy duplicate Board Member and Board Manager roles, preserve user assignments, and register current board capabilities.
+* Improved: Board Members can open the WordPress admin board to work with their own cards without receiving board-management permissions.
+* New: Frontend card creation, commenting, and deletion are now included in the free plugin. The Frontend Interactions add-on is no longer required.
+* Improved: Frontend deletion moves cards to WordPress Trash with confirmation, so they can be restored.
+* Security: Preserve per-card and per-list permissions, security token checks, and server-side card limits.
+* Compatibility: Prevent duplicate clients and actions when the older Frontend Interactions add-on remains active.
 
 = 2.2.0 =
 * New: Delete cards from the WordPress admin board using a compact trash icon. Confirmation moves the card to WordPress Trash; restore it under **Alba Board > Cards > Trash**. Permission checks protect each card, and deletion is blocked when WordPress Trash is disabled.

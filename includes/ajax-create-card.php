@@ -3,12 +3,12 @@
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-add_action('wp_ajax_alba_create_card', 'alba_core_ajax_create_card');
+add_action('wp_ajax_alba_create_card', 'alba_core_ajax_create_card', 5);
 
 function alba_core_ajax_create_card() {
     // 1. Nonce validation with wp_unslash and sanitize
     $nonce = isset($_POST['nonce']) ? sanitize_text_field(wp_unslash($_POST['nonce'])) : '';
-    if (empty($nonce) || !wp_verify_nonce($nonce, 'alba_create_card_nonce')) {
+    if (empty($nonce) || (!wp_verify_nonce($nonce, 'alba_create_card_nonce') && !wp_verify_nonce($nonce, 'alba_frontend_nonce'))) {
         wp_send_json_error(['message' => esc_html__('Invalid security token.', 'alba-board')]);
     }
 
@@ -38,7 +38,7 @@ function alba_core_ajax_create_card() {
             'meta_key'    => 'alba_list_parent',
             'meta_value'  => $list_id,
             'post_status' => 'publish',
-            'numberposts' => -1,
+            'numberposts' => $max_cards,
             'fields'      => 'ids'
         ]);
         if (count($existing_cards) >= $max_cards) {
@@ -64,6 +64,7 @@ function alba_core_ajax_create_card() {
     // 7. Return response
     wp_send_json_success([
         'message' => esc_html__('Card created successfully.', 'alba-board'),
-        'card_id' => (int) $card_id
+        'card_id' => (int) $card_id,
+        'author_id' => get_current_user_id()
     ]);
 }

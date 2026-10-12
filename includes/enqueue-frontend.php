@@ -43,7 +43,7 @@ function alba_board_enqueue_assets() {
     $plugin_url = plugin_dir_url(dirname(__FILE__));
     $plugin_path = plugin_dir_path(dirname(__FILE__));
     $frontend_script_path = $plugin_path . 'assets/js/alba-board-frontend.js';
-    $plugin_version = '2.2.0';
+    $plugin_version = '2.2.5';
 
     wp_enqueue_script(
         'sortablejs',
@@ -77,6 +77,8 @@ function alba_board_enqueue_assets() {
         'loading'                 => __('Loading...', 'alba-board'),
         'confirm_delete'          => __('Are you sure you want to delete this card?', 'alba-board'),
         'delete_error'            => __('Error deleting card', 'alba-board'),
+        'current_user_id' => get_current_user_id(),
+        'can_edit_others_cards' => current_user_can('edit_others_cards'),
         'can_move_cards'          => current_user_can('edit_cards') || current_user_can('edit_others_cards'),
     ];
 
