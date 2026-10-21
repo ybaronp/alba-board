@@ -72,7 +72,7 @@ document.addEventListener('DOMContentLoaded', () => {
     savingCardMove = true;
     const move = cardMoves[0];
     try {
-      const result = await fetch(albaBoard.ajaxurl, {
+      const result = await window.albaBoardRequest.fetch(albaBoard.ajaxurl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: move.params
@@ -182,11 +182,18 @@ document.addEventListener('DOMContentLoaded', () => {
     document.body.classList.add("alba-body-no-scroll");
     
     modalBody.innerHTML = albaBoard.loading || 'Loading...';
+    let heading = modal.querySelector('.alba-card-modal-heading');
+    if (!heading) {
+        heading = document.createElement('div');
+        heading.className = 'alba-card-modal-heading';
+        modal.querySelector('.alba-modal-content').prepend(heading);
+    }
+    heading.replaceChildren();
 
     // Keep the selected card in the browser URL.
     updateUrlWithCard(cardId);
 
-    fetch(albaBoard.rest_url + 'alba-board/v1/card/' + encodeURIComponent(cardId) + '?context=frontend', { 
+    window.albaBoardRequest.fetch(albaBoard.rest_url + 'alba-board/v1/card/' + encodeURIComponent(cardId) + '?context=frontend', { 
         method: 'GET',
         headers: {
             'X-WP-Nonce': albaBoard.rest_nonce
@@ -196,6 +203,11 @@ document.addEventListener('DOMContentLoaded', () => {
     .then(response => {
         if (response && response.html) {
             modalBody.innerHTML = response.html;
+            const title = modalBody.querySelector('.alba-modal-title');
+            if (title) {
+                title.title = title.textContent;
+                heading.replaceChildren(title);
+            }
         } else if (response && response.message) {
             modalBody.textContent = response.message; modalBody.setAttribute('role', 'alert');
         }

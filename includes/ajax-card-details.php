@@ -61,7 +61,7 @@ function alba_output_card_details_frontend_modal( $card_id ) {
         
         <?php
         $author_id = $card->post_author;
-        $user = get_user_by('ID', $author_id);
+        $user = false; // Members are displayed in the unified member field below.
         $guest_assignee = get_post_meta($card_id, 'alba_guest_assignee', true);
         
         if ($user || $guest_assignee): ?>
@@ -112,6 +112,7 @@ function alba_output_card_details_frontend_modal( $card_id ) {
             </div>
         <?php endif; ?>
         
+        <?php alba_board_render_card_members( $card_id ); ?>
         <div class="comments-title" style="margin-top: 20px;"><strong><?php esc_html_e('Comments:', 'alba-board'); ?></strong></div>
         <div class="alba-card-comments-scrollable" id="alba-comments-list">
             <?php
@@ -124,7 +125,7 @@ function alba_output_card_details_frontend_modal( $card_id ) {
                     <div class="alba-board-comment" data-comment-index="<?php echo esc_attr($i); ?>">
                         <span class="alba-comment-author"><strong><?php echo esc_html($c['author']); ?></strong></span>
                         <span class="alba-comment-date"><?php echo esc_html($c['date']); ?></span>
-                        <div class="alba-comment-text"><?php echo esc_html($c['text']); ?></div>
+                        <div class="alba-comment-text"><?php echo alba_board_format_card_comment($c['text'], $card_id); ?></div>
                     </div>
                     <?php
                 }

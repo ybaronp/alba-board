@@ -7,7 +7,7 @@ add_action('wp_ajax_alba_save_card_details_admin', 'alba_ajax_save_card_details_
 function alba_ajax_save_card_details_admin() {
     $nonce = isset($_POST['nonce']) ? sanitize_text_field(wp_unslash($_POST['nonce'])) : '';
     if (empty($nonce) || !wp_verify_nonce($nonce, 'alba_save_card_details_admin')) {
-        wp_send_json_error(['message' => esc_html__('Invalid security token.', 'alba-board')]);
+        wp_send_json_error(['code' => 'alba_invalid_nonce', 'message' => esc_html__('Invalid security token.', 'alba-board')], 403);
     }
     
     $card_id = isset($_POST['card_id']) ? absint($_POST['card_id']) : 0;
@@ -17,6 +17,12 @@ function alba_ajax_save_card_details_admin() {
     }
     if (!current_user_can('edit_card', $card_id)) {
         wp_send_json_error(['message' => esc_html__('Permission denied.', 'alba-board')], 403);
+    }
+
+    $members = null;
+    if ( isset( $_POST['card_members_present'] ) ) {
+        $members = alba_board_validate_members( $card_id, isset( $_POST['card_members'] ) ? wp_unslash( $_POST['card_members'] ) : [] );
+        if ( is_wp_error( $members ) ) wp_send_json_error( [ 'message' => $members->get_error_message() ], 400 );
     }
 
     $post_data = [ 
@@ -48,6 +54,8 @@ function alba_ajax_save_card_details_admin() {
     if (is_wp_error($updated) || !$updated) {
         wp_send_json_error(['message' => esc_html__('Error updating card.', 'alba-board')], 500);
     }
+
+    if ( null !== $members ) alba_board_update_card_members( $card_id, $members );
 
     if (null !== $due_date) {
         if ('' === $due_date) {
@@ -118,7 +126,7 @@ add_action('wp_ajax_alba_upload_attachment', 'alba_board_ajax_upload_attachment'
 function alba_board_ajax_upload_attachment() {
     $nonce = isset($_POST['nonce']) ? sanitize_text_field(wp_unslash($_POST['nonce'])) : '';
     if (empty($nonce) || !wp_verify_nonce($nonce, 'alba_upload_attachment_nonce')) {
-        wp_send_json_error(['message' => esc_html__('Invalid security token.', 'alba-board')]);
+        wp_send_json_error(['code' => 'alba_invalid_nonce', 'message' => esc_html__('Invalid security token.', 'alba-board')], 403);
     }
 
     $card_id = isset($_POST['card_id']) ? absint($_POST['card_id']) : 0;
@@ -206,7 +214,7 @@ add_action('wp_ajax_alba_delete_attachment', 'alba_board_ajax_delete_attachment'
 function alba_board_ajax_delete_attachment() {
     $nonce = isset($_POST['nonce']) ? sanitize_text_field(wp_unslash($_POST['nonce'])) : '';
     if (empty($nonce) || !wp_verify_nonce($nonce, 'alba_delete_attachment_nonce')) {
-        wp_send_json_error(['message' => esc_html__('Invalid security token.', 'alba-board')]);
+        wp_send_json_error(['code' => 'alba_invalid_nonce', 'message' => esc_html__('Invalid security token.', 'alba-board')], 403);
     }
 
     $card_id = isset($_POST['card_id']) ? absint($_POST['card_id']) : 0;

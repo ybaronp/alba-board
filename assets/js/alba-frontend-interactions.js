@@ -6,7 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (!config) return;
   const labels = config.strings;
   async function request(action, fields) {
-    const response = await fetch(config.ajaxurl, {
+    const response = await window.albaBoardRequest.fetch(config.ajaxurl, {
       method: 'POST',
       headers: {'Content-Type': 'application/x-www-form-urlencoded'},
       body: new URLSearchParams({action, nonce: config.nonce, ...fields})
@@ -83,7 +83,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const author = document.createElement('strong'); author.textContent = comment.author;
             const authorLabel = document.createElement('span'); authorLabel.className = 'alba-comment-author'; authorLabel.appendChild(author);
             const date = document.createElement('span'); date.className = 'alba-comment-date'; date.textContent = comment.date;
-            const text = document.createElement('div'); text.className = 'alba-comment-text'; text.textContent = comment.text;
+            const text = document.createElement('div'); text.className = 'alba-comment-text';
+            (comment.segments || [{text:comment.text,mention:false}]).forEach(part=>{
+              if(part.mention){const name=document.createElement('strong');name.className='alba-comment-mention';name.textContent=part.text;text.appendChild(name);}
+              else text.appendChild(document.createTextNode(part.text));
+            });
             row.append(authorLabel, date, text); list.appendChild(row);
           });
           list.scrollTop = list.scrollHeight;

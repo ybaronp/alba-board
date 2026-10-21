@@ -1,80 +1,69 @@
-=== Alba Board ===
+=== Task & Project Management – Alba Board ===
 Contributors: alejo30  
-Tags: kanban, kanban-board, task-management, project-management, workflow
+Tags: task management, project management, task manager, kanban board, to do list
 Requires at least: 5.8  
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 2.2.5
+Stable tag: 2.3.0
 License: GPLv2 or later  
 License URI: https://www.gnu.org/licenses/gpl-2.0.html  
 
-Custom Kanban for WordPress. Organize tasks, projects, and teams with a modern board UI, Premium Themes, and Smart Tags. 🌍
+Organize tasks, assign work, and track project progress with visual boards in WordPress. Keep comments and files together.
 
 == Description ==
 
-👋 **A quick note from the developer:** *Alba Board is an actively growing plugin. My main goal is to build the most intuitive, visually stunning, and genuinely useful project management tool for WordPress. Because we are new, **your feedback directly shapes our roadmap.** Missing a feature? Is something not working as expected? Please let me know! It only takes 60 seconds: [💬 Share your feedback here](https://albaboard.com/).*
+**Alba Board helps you organize tasks, assign work, and see what needs to happen next, directly in WordPress.** Keep each project's work on a visual board, move task cards between lists as work progresses, and keep related comments and files together.
 
----
+Use it to track client projects, plan content, manage team to-do lists, or organize your own work. Create lists for the steps in your process, such as To Do, In Progress, and Done. Each card represents a task, so you can see the status of your work at a glance.
 
-🎬 **Watch it in action:** https://www.youtube.com/watch?v=nCBS9oGEhEo
+Work from the WordPress dashboard or display a board on a website page with the `[alba_board id="123"]` shortcode. Logged-in users can create cards, comment, and manage tasks according to their WordPress permissions. Publishing a board does not grant access to protected card details or permission to edit tasks.
 
-**Alba Board** brings an intuitive, modern Kanban board directly to your WordPress site. Whether you need it for project management, task tracking, client workflows, editorial calendars, or personal productivity, Alba Board provides a seamless, app-like experience right inside your WP admin dashboard and on your public pages.
-
-💡 **Why choose Alba Board?**
-
-* 🎨 **Visual Theme Engine:** Enjoy a polished, modern aesthetic with our dynamic theme selector. Choose between Clean Canvas, Deep Space, or unlock premium Glassmorphism and Neumorphism styles.
-* 🖱️ **Visual & Fluid:** Manage cards and rearrange entire lists using butter-smooth drag-and-drop mechanics (powered by Sortable.js and AJAX).
-* 📜 **Independent List Scrolling:** Say goodbye to infinitely long pages. Columns intelligently adapt to your screen height with elegant, independent scrollbars.
-* 📎 **Rich Task Management:** Add file attachments, custom fields, colored tags, assignees, and detailed descriptions to any card.
-* 🌍 **Multi-Language Ready:** Completely translation-ready (i18n). Alba Board adapts to your native language so your entire team feels at home.
-* 📊 **Stay on Top of Things:** Includes a native WordPress Dashboard Widget so users can instantly see their assigned tasks upon logging in.
-* 🔐 **Your Data, Your Rules:** No vendor lock-in. Administrators can export entire boards to CSV or JSON formats with a single click.
-
-🔗 **Full documentation, guides & more:** [https://albaboard.com/](https://albaboard.com/)
+**Watch it in action:** https://www.youtube.com/watch?v=nCBS9oGEhEo
 
 == Features ==
 
-* 📋 Kanban-style board view seamlessly integrated into WP admin and Frontend
-* 🎨 Dynamic Theme Engine (Soft UI, Dark Mode, Glassmorphism)
-* 🚀 Reorder cards and lists with immediate visual feedback and background card saves
-* 📜 Independent vertical scrolling for long lists
-* 📂 File attachments natively inside cards
-* 📝 Rich card editor: title, description, assignee, tags, and custom fields
-* 💬 Comments UI (admin + frontend) for effortless team collaboration
-* 🌍 100% Translation-ready & Multilingual support
-* 📌 Dashboard widget: "My Alba Board Tasks"
-* 📥 Data Export (CSV/JSON) for easy backups
-* 👥 Select users as assignees with live search & avatars
-* 🧩 Extendable via Add-ons and a robust Hooks/Actions API
-* 📱 Desktop & mobile friendly interface
-* 🛡️ Built securely: strictly uses WordPress user permissions & nonces
+* **Organize work visually:** Create boards, lists, and task cards for your projects and to-do lists.
+* **Track progress:** Drag and drop cards between lists and rearrange lists to match your workflow.
+* **Assign work:** Assign tasks to WordPress users and view assigned tasks in the dashboard widget.
+* **Keep context together:** Add task descriptions, file attachments, and comments to cards.
+* **Use boards on website pages:** Display a board with a shortcode; frontend card creation, comments, and recoverable deletion are included in the free plugin, subject to user permissions.
+* **Recover completed or deleted work:** Archive cards in the admin board and restore recoverable cards when needed.
+* **Export your data:** Administrators can export boards to CSV or JSON.
+* **Choose your appearance:** Select a built-in visual theme and scroll long lists independently.
+* **Work in your language:** Translation-ready strings support community translations.
+* **Extend your workflow:** Developers can use WordPress hooks and add-ons without modifying the core plugin.
 
 == Add-ons & Extensions ==
 
-**⚡ Supercharge your workflow with official add-ons:**
+The free plugin includes the board and task-management features listed above. Optional add-ons provide additional customization.
 
-* 💎 **Alba Board Pro: Customization & Smart Tags:** Unlocks 12 Premium Themes (Cyberpunk Neon, Stellar Earth, Vaporwave, etc.) and adds dynamic color-coded Smart Tags with frictionless inline creation.
-* Frontend card creation, commenting, and recoverable deletion are included in the free core plugin.
+* **Alba Board Pro: Customization & Smart Tags:** Adds premium visual themes and color-coded Smart Tags with inline creation. These features require the separate add-on.
 
-> *🚀 More add-ons are in the works! Have a specific request? [Let us know!](https://albaboard.com/)*
+[Explore Alba Board and its add-ons](https://albaboard.com/).
 
 == Installation ==
 
-1. 📂 Upload the `alba-board` folder to `/wp-content/plugins/`.
-2. 🔌 Activate **Alba Board** from the Plugins menu in WordPress.
-3. 🗂️ Access your board in the admin panel under: **Alba Board**.
-4. ⚙️ Customize your colors and limits under **Alba Board > Settings**.
-5. *Note: For the assignee dropdown to work perfectly, ensure `select2.min.js` and `select2.min.css` are allowed to load.*
+1. Install the plugin from the WordPress Plugins screen, or upload the `alba-board` folder to `/wp-content/plugins/`.
+2. Activate **Task & Project Management – Alba Board** from the Plugins screen.
+3. Open **Alba Board** in the WordPress admin menu.
+4. Create your first board, or use **Create a Sample Board** to explore a working example.
+5. Adjust appearance and card limits under **Alba Board > Settings**.
+6. To display a board on a page, copy its shortcode or add `[alba_board id="123"]`, replacing `123` with your board ID.
 
 == Support, Docs & Feedback ==
 
-We are building this tool for you, and we want to hear from you!
+* [Documentation and guides](https://albaboard.com/docs/)
+* [Get support or suggest an improvement](https://albaboard.com/contact-us/)
+* [Try the live demo](https://albaboard.com/bring-your-ideas-to-alba-board/)
 
-* 🗣️ **Share Feedback & Feature Requests:** [https://albaboard.com/](https://albaboard.com/)
-* 📖 **Docs, guides & demos:** [https://albaboard.com/docs/](https://albaboard.com/docs/)
-* ⭐ **Rate us & leave a review:** As a new plugin, your reviews make a massive difference in helping others find us!
+What were you trying to organize, and what would make that easier? Your feedback helps guide future improvements.
+
+If you have used Alba Board, you are welcome to [share an honest review](https://wordpress.org/support/plugin/alba-board/reviews/).
 
 == Frequently Asked Questions ==
+
+= Can I use Alba Board as a Kanban board? =
+Yes. A Kanban board organizes tasks into lists that represent stages of work. Create lists such as To Do, In Progress, and Done, then drag task cards between them as work progresses. You can use this board in the WordPress dashboard or display it on a page with the board shortcode.
 
 = 🙋‍♂️ How can I suggest a new feature or report a bug? =
 We love suggestions! Since Alba Board is actively being developed, your input is highly valued. Please drop us a quick message via our website: https://albaboard.com/
@@ -125,9 +114,54 @@ Frontend card creation, comments, and deletion require a logged-in user with the
 1. Admin board view with beautiful Neumorphism UI and custom themes.
 2. Independent list scrolling with customized scrollbars.
 3. Card details showing Smart Tags, file attachments, and comments.
-4. Kanban view seamlessly integrated into the front end using shortcodes.
+4. Visual task board displayed on a website page using a shortcode.
+
+== Privacy & Optional Feedback ==
+
+Usage reporting is off by default. Site administrators can opt in under Alba Board > Feedback & Privacy. Once enabled, a weekly HTTPS request sends a random installation ID and reporting/deletion credential, ISO week, Alba Board/WordPress/PHP versions, selected Alba theme, and approximate board/list/card/Board-user counts and feature activity ranges to https://albaboard.com/wp-json/alba/v2/insights. Activity ranges reflect use since opting in, not exact weekly action counts. No pre-consent activity is backfilled.
+
+The summary excludes site URLs, names, emails, card contents, comments, uploaded files, filenames, and unrelated plugin inventories. The ID makes reports pseudonymous, not anonymous. Administrators can preview the summary fields, stop future reporting, or request deletion of linked usage reports. The receiver keeps usage reports for 90 days, subject to its scheduled cleanup. Hosting logs and backups may have separate retention.
+
+Optional surveys send selected use-case and improvement categories, Alba Board version, submission ID, and any comment you choose to enter to https://albaboard.com/wp-json/alba/v2/survey. Survey submission has its own explicit confirmation and does not enable usage reporting or marketing. Leave out confidential information. New survey records are retained for 180 days.
+
+The optional deactivation form sends your selected reason and any comment only when you choose Send feedback & deactivate, using https://albaboard.com/wp-json/alba/v1/feedback. Deactivate without feedback sends nothing. New feedback records are retained for 180 days; email notifications and backups may have separate retention.
+
+Review and survey invitations appear only on Alba Board admin pages, can be postponed or permanently dismissed, and do not appear on public boards. Clicking a review link does not prove a review was posted.
+
+Service provider and privacy policy: https://albaboard.com/elementor-page-220/
+
+With explicit usage-sharing consent, future plugin activations/deactivations and reporting preference events are also sent to the lifecycle endpoint at https://albaboard.com/wp-json/alba/v2/lifecycle. Events contain a random installation ID, private credential, random event ID, event type, and plugin version. The service records receipt time and keeps these records for 90 days; linked deletion includes lifecycle records. Older consent requires confirmation. No earlier activations are backfilled. Delivery is best effort; missing reports do not establish deactivation or uninstall. Multisite lifecycle reporting is not supported.
+
+For controlled development/staging tests, a site administrator can set ALBA_BOARD_REPORTING_ENVIRONMENT to staging in wp-config.php. This selects the fixed test receiver only when WordPress identifies the environment as local, development, or staging; production environments retain the production destination. Test mode is clearly labeled in Feedback & Privacy and does not grant sharing consent. Browser feedback and server reports request JSON and require a successful JSON acknowledgement. Optional server reports allow up to 20 seconds for a response. Network failures or hosting restrictions can still prevent delivery; failed requests are not counted as successful reports or deletions.
 
 == Changelog ==
+
+= 2.3.0 =
+* Improved Feedback & Privacy button placement and added a one-time administrator announcement for existing installations about optional usage insights. Sharing preferences are never enabled automatically.
+* Fixed: Count membership activity only when people are added or removed, excluding empty, unchanged and reordered selections.
+* New: Add several Board users to a card from one Card Members field on the frontend or backend, while preserving existing card ownership.
+* New: Mention someone by typing @ in a comment and choosing a name. Eligible recipients receive a card-link email when mention notifications are enabled.
+* Notifications: Notify card members about new comments when enabled. Send one email per recipient when a member is also mentioned, exclude the sender, and use the assignment-notification setting for newly added members.
+* Privacy: Suggest only Board Members and Board Managers who can access the card. Membership and mentions do not grant private-card access or change editing and deletion permissions.
+* Improved: Keep the card title in the fixed header while scrolling. The backend title remains editable and saves with the card, without a redundant Title label.
+* Fixed: Reserve space for the close button so it stays clear of card fields and scrollbars on desktop and mobile. Add an accessible Close card label.
+* Improved: Grow description and comment text boxes to fit their content, including when opening a card or changing its width. Empty or cleared text boxes keep their original height; saved comments use the main card scroll area.
+* Improved: Place Card Members and Guest Assignee side by side on desktop, align their empty fields, and stack them on smaller screens.
+* Improved: Show saved mentions as bold names, with guidance inside the comment box. Keep full names visible in suggestions that open above or below the field without clipping.
+* Accessibility: Use Up/Down to navigate name suggestions, Enter to select, and Escape to dismiss. Ctrl/Command+Enter keeps the existing comment shortcut.
+* Fixed: Renew expired card security tokens once when needed, preserving login and card permissions. Show session and connection errors without silently retrying changes after a network failure.
+* Fixed: Keep same-host board requests on the current site address, including alternate Local ports, and reject request redirects that could forward board data elsewhere.
+* New: Add an administrator-only Feedback & Privacy page with a voluntary survey and a preview of optional usage summaries.
+* Privacy: Keep automatic reporting off until explicit opt-in. Share approximate usage ranges and future activation/deactivation events without card content, names, emails, or site URLs. Include controls to stop reporting and delete linked pseudonymous usage and lifecycle reports.
+* Improved: Invite an honest review after two days of use and feedback after seven days, only on Alba Board admin pages. Remind me later and Do not ask again save in place; the native fallback returns to the originating board or settings page.
+* Improved: Keep feedback summaries short and full privacy and retention disclosures available in expandable sections.
+* Reliability: Require a successful JSON acknowledgement for optional reports and allow up to 20 seconds for server responses. Failed feedback delivery still permits deactivation. Provide an explicitly labeled test destination for controlled non-production use without enabling sharing consent.
+* Appearance: Use active theme colors for member controls and thinner frontend board and My Tasks Only highlights while preserving bottom-right shadows.
+* Appearance: Add a compact Kanban sidebar icon with animation across all three columns and respect reduced-motion preferences.
+* Compatibility: Offer Grayscale Glass as a separate premium theme with Card Tags 2.0.6 while retaining colorful Celestial Glass. Premium styles and List Focus remain in the add-on.
+* Reliability: Refresh cached member names after profile or role changes and refresh frontend stylesheets when they change.
+* Documentation: Clarify task organization, project progress, and optional add-on features in the product title and description.
+
 
 = 2.2.5 =
 * Fixed: Keep themed admin card dialogs above WordPress navigation and make shared-card headings readable.

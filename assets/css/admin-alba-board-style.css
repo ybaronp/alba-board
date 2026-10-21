@@ -188,6 +188,8 @@
     max-width: 1100px;
     max-height: calc(100vh - 32px);
     overflow: hidden;
+    /* Reserve a fixed close-control row outside the scrolling form. */
+    padding-top: 64px;
 }
 
 #alba-modal-body-admin {
@@ -198,6 +200,29 @@
     overflow-y: auto;
     overflow-x: hidden;
     overscroll-behavior: contain;
+}
+
+#alba-card-modal-admin .alba-card-modal-heading {
+    position: absolute;
+    top: 16px;
+    left: 30px;
+    right: 72px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    min-width: 0;
+}
+#alba-card-modal-admin .alba-card-title-field { margin: 0; width: 100%; }
+#alba-card-modal-admin .alba-card-title-field input {
+    width: 100%;
+    height: 36px;
+    margin: 0;
+    padding: 6px 12px;
+    font-size: 18px;
+    font-weight: 600;
+}
+@media (max-width: 680px) {
+    #alba-card-modal-admin .alba-card-modal-heading { left: 18px; }
 }
 
 .alba-card-details-form { width: 100%; min-width: 0; max-width: 100%; }
@@ -216,9 +241,23 @@
     margin-bottom: 18px;
 }
 
+/* An empty member-chip row should not offset the search field. */
+.alba-card-assignees-row .alba-card-member-list:empty {
+    display: none;
+    margin: 0;
+}
+#alba-card-modal-admin .alba-card-assignees-row #alba-card-members,
+#alba-card-modal-admin .alba-card-assignees-row #alba-guest-assignee {
+    box-sizing: border-box;
+    height: 42px;
+    margin: 0;
+    padding: 10px;
+}
+
 .alba-card-assignees-row > .alba-form-group,
 .alba-card-addons-row > .alba-form-group {
     min-width: 0;
+    margin-top: 0;
     margin-bottom: 0 !important;
 }
 
@@ -259,6 +298,18 @@
 
 .alba-card-addons-row .select2-container { min-width: 0; max-width: 100%; }
 .alba-card-description textarea { min-height: 112px; }
+
+/* Card text expands with its content; only the modal itself scrolls. */
+#alba-modal-body-admin textarea[name="card_content"],
+#alba-modal-body-admin textarea#alba-new-comment {
+    max-height: none;
+    overflow-y: hidden;
+}
+#alba-modal-body-admin .alba-card-comments-scrollable,
+#alba-modal-body-admin #alba-comments-list {
+    max-height: none !important;
+    overflow-y: visible !important;
+}
 
 .alba-card-attachments-heading {
     display: flex;
@@ -332,7 +383,7 @@
     #alba-card-modal-admin .alba-modal-content {
         width: calc(100vw - 20px);
         max-height: calc(100vh - 20px);
-        padding: 54px 18px 18px;
+        padding: 64px 18px 18px;
         border-radius: 20px;
     }
 

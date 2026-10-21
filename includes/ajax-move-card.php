@@ -10,7 +10,7 @@ function alba_board_ajax_move_card() {
         empty($_POST['nonce']) ||
         ! wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['nonce'])), 'alba_move_card_nonce')
     ) {
-        wp_send_json_error([ 'message' => esc_html__('Invalid nonce.', 'alba-board') ], 403);
+        wp_send_json_error([ 'code' => 'alba_invalid_nonce', 'message' => esc_html__('Invalid nonce.', 'alba-board') ], 403);
     }
 
     $card_id     = isset($_POST['card_id']) ? absint($_POST['card_id']) : 0;

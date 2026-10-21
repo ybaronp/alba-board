@@ -1,9 +1,9 @@
 <?php
 /*
-Plugin Name: Alba Board
+Plugin Name: Task & Project Management – Alba Board
 Plugin URI: https://www.albaboard.com
-Description: Custom Kanban system for WordPress with boards, lists, cards, and dynamic interactions. Extendable via add-ons.
-Version: 2.2.5
+Description: Organize tasks, assign work, and track project progress with visual boards in WordPress. Keep comments and files together.
+Version: 2.3.0
 Author: alejo30
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -61,7 +61,9 @@ require_once plugin_dir_path(__FILE__) . 'includes/cards.php';
 require_once plugin_dir_path(__FILE__) . 'includes/archive-cards.php';
 require_once plugin_dir_path(__FILE__) . 'includes/ajax-trash-card.php';
 require_once plugin_dir_path(__FILE__) . 'includes/settings.php';
+require_once plugin_dir_path(__FILE__) . 'includes/product-feedback.php';
 require_once plugin_dir_path(__FILE__) . 'includes/notifications.php';
+require_once plugin_dir_path(__FILE__) . 'includes/card-collaboration.php';
 require_once plugin_dir_path(__FILE__) . 'includes/security.php';
 require_once plugin_dir_path(__FILE__) . 'includes/ajax-create-card.php';
 require_once plugin_dir_path(__FILE__) . 'includes/frontend-interactions.php';
@@ -162,6 +164,7 @@ function alba_board_deactivation_assets( $hook ) {
     wp_enqueue_script( 'alba-deactivation-script', plugin_dir_url( __FILE__ ) . 'assets/js/alba-deactivation.js', array(), (string) filemtime( plugin_dir_path( __FILE__ ) . 'assets/js/alba-deactivation.js' ), true );
     wp_localize_script( 'alba-deactivation-script', 'albaDeactivationData', array(
         'pluginSlug'  => plugin_basename( __FILE__ ),
+        'feedbackUrl' => alba_board_product_service_url( 'v1/feedback' ),
         'sendingText' => __( 'Sending...', 'alba-board' ),
         'reasonRequired' => __( 'Choose a reason, or deactivate without feedback.', 'alba-board' )
     ));

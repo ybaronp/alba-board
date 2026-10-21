@@ -161,6 +161,7 @@ function alba_board_handle_form_submissions() {
  * 2. UI LAYER (Rendering Only)
  */
 function alba_render_admin_board_page() {
+    alba_board_usage_count( 'backend' );
     $boards = get_posts(['post_type' => 'alba_board', 'numberposts' => -1, 'orderby' => 'title', 'order' => 'ASC']);
     
     $selected_board_id = 0;
@@ -347,7 +348,7 @@ function alba_render_admin_board_page() {
     }
 
     ?>
-    <div id="alba-card-modal-admin" class="alba-is-hidden"><div class="alba-modal-content"><button id="alba-modal-close-admin" type="button">✕</button><div id="alba-modal-body-admin"><?php esc_html_e('Loading...', 'alba-board'); ?></div></div></div>
+    <div id="alba-card-modal-admin" class="alba-is-hidden"><div class="alba-modal-content"><button id="alba-modal-close-admin" type="button" aria-label="<?php esc_attr_e( 'Close card', 'alba-board' ); ?>">✕</button><div id="alba-modal-body-admin"><?php esc_html_e('Loading...', 'alba-board'); ?></div></div></div>
     <?php 
     echo '</div>'; 
     echo '</div>'; 

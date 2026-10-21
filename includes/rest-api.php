@@ -48,7 +48,7 @@ function alba_board_rest_get_card_details( $request ) {
 
     // Refresh admin modal markup when a cached response predates current form fields.
     if ( false !== $cached_html && 'admin' === $context && current_user_can( 'edit_card', $card_id ) ) {
-        $has_current_field_layout = false !== strpos( $cached_html, 'alba-card-addons-row' );
+        $has_current_field_layout = false !== strpos( $cached_html, 'alba-card-addons-row' ) && false !== strpos( $cached_html, 'alba-card-title-field' ) && false !== strpos( $cached_html, 'data-alba-members-layout="paired"' );
         $has_trash_control = false !== strpos( $cached_html, 'alba-card-trash-btn' );
         $can_delete_card = current_user_can( 'delete_card', $card_id );
         $has_compact_actions = false !== strpos( $cached_html, 'data-alba-ui="compact-actions-upload"' );

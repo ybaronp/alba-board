@@ -5,6 +5,11 @@ if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
     exit;
 }
 
+wp_clear_scheduled_hook( 'alba_board_usage_send' );
+foreach ( [ 'alba_board_usage_consent', 'alba_board_usage_consent_schema', 'alba_board_usage_identity', 'alba_board_usage_activity', 'alba_board_usage_last_sent', 'alba_board_feedback_started', 'alba_board_feedback_used', 'alba_board_feedback_state' ] as $alba_feedback_option ) {
+    delete_option( $alba_feedback_option );
+}
+
 $alba_board_delete_data = get_option('alba_delete_on_uninstall', false);
 if ( ! $alba_board_delete_data ) {
     return;

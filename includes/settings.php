@@ -16,6 +16,7 @@ add_action('admin_menu', 'alba_board_register_settings_page');
 
 function alba_board_register_settings() {
     register_setting('alba_board_settings_group', 'alba_board_limits', ['type' => 'array', 'sanitize_callback' => 'alba_board_sanitize_limits']);
+    add_settings_field('alba_board_notify_mentions', esc_html__('Email notifications for @mentions', 'alba-board'), 'alba_board_notify_mentions_callback', 'alba-board-settings', 'alba_board_section_notifications');
     register_setting('alba_board_settings_group', 'alba_board_notifications', ['type' => 'array', 'sanitize_callback' => 'alba_board_sanitize_notifications']);
     register_setting('alba_board_settings_group', 'alba_delete_on_uninstall', ['type' => 'boolean', 'sanitize_callback' => 'absint', 'default' => 0]);
     register_setting('alba_board_settings_group', 'alba_board_uploads', ['type' => 'array', 'sanitize_callback' => 'alba_board_sanitize_uploads']);
@@ -59,6 +60,7 @@ function alba_board_sanitize_limits($input) {
 function alba_board_sanitize_notifications($input) { 
     $output = []; 
     $output['notify_on_card'] = !empty($input['notify_on_card']) ? 1 : 0; 
+    $output['notify_on_mention'] = !empty($input['notify_on_mention']) ? 1 : 0;
     $output['notify_on_comment'] = !empty($input['notify_on_comment']) ? 1 : 0; 
     
     // Allow basic HTML in templates
@@ -122,6 +124,7 @@ function alba_board_theme_callback() {
         'vaporwave' => __('Cotton Candy (Pastel Glass)', 'alba-board'),
         'zen_monochrome' => __('Zen Monochrome (Minimalist)', 'alba-board'),
         'celestial_glass' => __('Celestial Glass (Living Aurora)', 'alba-board'),
+        'grayscale_glass' => __('Grayscale Glass (Moving Waves)', 'alba-board'),
         'neo_brutalism' => __('Neo-Brutalism (Raw & Functional)', 'alba-board'),
         'a11y_high_contrast' => __('High Contrast (Accessibility WCAG AAA)', 'alba-board'),
         'solarized_hacker' => __('Solarized Hacker (Eye Care Ergonomics)', 'alba-board'),
@@ -322,4 +325,9 @@ function alba_board_settings_page_callback() {
     do_settings_sections('alba-board-settings'); 
     submit_button();
     echo '</form></div>';
+}
+function alba_board_notify_mentions_callback() {
+    $options = get_option('alba_board_notifications', []);
+    $enabled = !isset($options['notify_on_mention']) || !empty($options['notify_on_mention']);
+    echo '<input type="checkbox" name="alba_board_notifications[notify_on_mention]" value="1" ' . checked(true, $enabled, false) . '>';
 }

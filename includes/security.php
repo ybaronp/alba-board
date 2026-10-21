@@ -3,6 +3,46 @@
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
+/** Read-only token renewal, like WordPress rest-nonce; authentication and board capability are required. */
+function alba_board_refresh_session() {
+    nocache_headers();
+    $expected_user = isset( $_POST['user_id'] ) && is_scalar( $_POST['user_id'] ) ? absint( $_POST['user_id'] ) : 0;
+    if ( ! current_user_can( 'edit_cards' ) || ! $expected_user || get_current_user_id() !== $expected_user ) {
+        wp_send_json_error( null, 403 );
+    }
+    // No state is changed. A valid old nonce cannot be required when renewing an expired one.
+    $actions = [
+        'alba_move_card' => 'alba_move_card_nonce', 'alba_move_list_action' => 'alba_move_list_nonce',
+        'alba_delete_list_action' => 'alba_delete_list_nonce', 'alba_save_card_details_admin' => 'alba_save_card_details_admin',
+        'alba_upload_attachment' => 'alba_upload_attachment_nonce', 'alba_delete_attachment' => 'alba_delete_attachment_nonce',
+        'alba_manage_archived_card' => 'alba_manage_card_archive', 'alba_trash_card' => 'alba_trash_card',
+        'alba_create_card' => 'alba_frontend_nonce', 'alba_add_card_comment' => 'alba_frontend_nonce', 'alba_delete_card' => 'alba_frontend_nonce',
+    ];
+    $tokens = [];
+    foreach ( $actions as $action => $nonce_action ) $tokens[$action] = wp_create_nonce( $nonce_action );
+    wp_send_json_success( [
+        'board' => [
+            'rest_nonce' => wp_create_nonce( 'wp_rest' ), 'nonce' => $tokens['alba_move_card'],
+            'move_list_nonce' => $tokens['alba_move_list_action'], 'delete_list_nonce' => $tokens['alba_delete_list_action'],
+            'save_card_details_nonce' => $tokens['alba_save_card_details_admin'], 'upload_attachment_nonce' => $tokens['alba_upload_attachment'],
+            'delete_attachment_nonce' => $tokens['alba_delete_attachment'], 'manage_card_archive_nonce' => $tokens['alba_manage_archived_card'],
+            'trash_card_nonce' => $tokens['alba_trash_card'],
+        ],
+        'frontend' => $tokens['alba_create_card'], 'actions' => $tokens,
+    ] );
+}
+add_action( 'wp_ajax_alba_board_refresh_session', 'alba_board_refresh_session' );
+
+function alba_board_enqueue_session_script() {
+    $path = plugin_dir_path( dirname( __FILE__ ) ) . 'assets/js/alba-board-session.js';
+    wp_enqueue_script( 'alba-board-session', plugin_dir_url( dirname( __FILE__ ) ) . 'assets/js/alba-board-session.js', [], (string) filemtime( $path ), true );
+    wp_localize_script( 'alba-board-session', 'albaSession', [
+        'ajaxurl' => admin_url( 'admin-ajax.php' ), 'user_id' => get_current_user_id(),
+        'error' => __( 'Your session has expired or changed. Refresh the page and sign in again if needed.', 'alba-board' ),
+        'network_error' => __( 'Could not reach WordPress. Check your connection and try again.', 'alba-board' ),
+    ] );
+}
+
 // Permission check when saving Boards, Lists, or Cards
 function alba_board_check_permissions_before_save($post_id, $post) {
     // Skip for autosaves, AJAX, or revisions
@@ -44,7 +84,7 @@ add_action('save_post', 'alba_board_check_permissions_before_save', 1, 2);
 /** Authorize free frontend actions and protect older add-on handlers. */
 function alba_board_authorize_frontend_card_action() {
     if (!check_ajax_referer('alba_frontend_nonce', 'nonce', false)) {
-        wp_send_json_error(['message' => __('Security token expired. Refresh the page and try again.', 'alba-board')], 403);
+        wp_send_json_error(['code' => 'alba_invalid_nonce', 'message' => __('Security token expired. Refresh the page and try again.', 'alba-board')], 403);
     }
     $hook = current_filter();
     if ( false !== strpos( $hook, 'alba_create_card' ) ) {
@@ -73,12 +113,13 @@ foreach ( [ 'alba_create_card', 'alba_add_card_comment', 'alba_delete_card' ] as
 }
 
 /** Read/comment access is distinct from ownership-based editing. */
-function alba_board_can_view_shared_card( $card_id ) {
+function alba_board_can_view_shared_card( $card_id, $user_id = null ) {
+    $user_id = null === $user_id ? get_current_user_id() : absint( $user_id );
     $card = get_post( absint( $card_id ) );
-    if ( ! is_user_logged_in() || ! $card || 'alba_card' !== $card->post_type ) return false;
-    if ( current_user_can( 'edit_card', $card->ID ) ) return true;
+    if ( ! $user_id || ! $card || 'alba_card' !== $card->post_type ) return false;
+    if ( user_can( $user_id, 'edit_card', $card->ID ) ) return true;
     // Existing Board roles have edit_cards; ordinary subscribers/authors do not.
-    if ( ! current_user_can( 'edit_cards' ) || 'publish' !== $card->post_status ) return false;
+    if ( ! user_can( $user_id, 'edit_cards' ) || 'publish' !== $card->post_status ) return false;
     $list = get_post( absint( get_post_meta( $card->ID, 'alba_list_parent', true ) ) );
     $board = $list ? get_post( absint( get_post_meta( $list->ID, 'alba_board_parent', true ) ) ) : null;
     return $list && 'alba_list' === $list->post_type && 'publish' === $list->post_status
@@ -97,7 +138,8 @@ function alba_board_card_modal_cache_key( $context, $card_id ) {
         $revision = wp_generate_uuid4();
         set_transient( $revision_key, $revision, 2 * DAY_IN_SECONDS );
     }
-    return 'alba_modal_v225_' . sanitize_key( $context ) . '_' . absint( $card_id ) . '_'
+    return 'alba_modal_collaboration3_' . sanitize_key( $context ) . '_' . absint( $card_id ) . '_'
         . get_current_user_id() . '_' . (int) current_user_can( 'edit_card', $card_id ) . '_'
-        . (int) current_user_can( 'delete_card', $card_id ) . '_' . $revision;
+        . (int) current_user_can( 'delete_card', $card_id ) . '_' . $revision . '_'
+        . get_option( 'alba_board_people_revision', '1' );
 }

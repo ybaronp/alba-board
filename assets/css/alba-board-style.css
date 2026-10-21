@@ -61,7 +61,8 @@
     background: var(--alba-bg) !important;
     padding: 38px 0;
     border-radius: 32px;
-    box-shadow: 20px 20px 46px var(--alba-shadow-dark), -20px -20px 54px var(--alba-shadow-light);
+    /* Keep the depth shadow while limiting the highlight to the board edge. */
+    box-shadow: 20px 20px 46px var(--alba-shadow-dark), -3px -3px 10px -2px var(--alba-shadow-light);
     margin-bottom: 34px;
     width: 100%;
     overflow-x: auto;
@@ -248,6 +249,11 @@
 }
 
 /* --- MODAL + BLUR --- */
+/* Keep the open card above site headers while retaining its theme wrapper. */
+.alba-master-theme-wrapper:has(> #alba-card-modal.active) {
+    z-index: 100000 !important;
+}
+
 #alba-card-modal {
     display: none;
     position: fixed;
@@ -280,14 +286,15 @@
     max-width: 680px;
     width: 95vw;
     box-shadow: 0 2px 44px 2px var(--alba-shadow-dark), 0 2px 80px 8px var(--alba-shadow-dark-hover) !important;
-    padding: 44px 32px 32px 32px;
+    padding: 66px 32px 32px;
+    box-sizing: border-box;
     position: relative;
-    min-width: 320px;
+    min-width: 0;
     max-height: 85vh; 
     font-family: 'Fira Mono', 'Roboto Mono', 'monospace', monospace;
     display: flex;
     flex-direction: column;
-    overflow-y: auto;
+    overflow: hidden;
     border: 1px solid var(--alba-border-color) !important;
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
@@ -336,8 +343,35 @@
     padding-right: 40px; 
 }
 
+#alba-card-modal .alba-card-modal-heading {
+    position: absolute;
+    top: 18px;
+    left: 32px;
+    right: 76px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    min-width: 0;
+}
+#alba-card-modal .alba-card-modal-heading h2 {
+    margin: 0;
+    padding: 0;
+    font-size: 1.25em;
+    line-height: 1.4;
+    color: var(--alba-text-title);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
 #alba-modal-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    min-width: 0;
     width: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    overscroll-behavior: contain;
     color: var(--alba-text-main);
 }
 
@@ -359,6 +393,18 @@
     box-shadow: inset 3px 3px 15px var(--alba-shadow-dark), inset -3px -3px 8px var(--alba-shadow-light) !important;
     padding: 12px 12px 8px 12px;
     border: 1px solid var(--alba-border-color) !important;
+}
+
+/* Saved comments and drafts use the modal's scroll area. */
+#alba-modal-body .alba-card-comments-scrollable,
+#alba-modal-body #alba-comments-list {
+    max-height: none !important;
+    overflow-y: visible !important;
+}
+#alba-modal-body textarea[name="card_content"],
+#alba-modal-body textarea#alba-new-comment-text {
+    max-height: none;
+    overflow-y: hidden;
 }
 
 .alba-board-comment,

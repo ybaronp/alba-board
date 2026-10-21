@@ -1,0 +1,72 @@
+.alba-card-collaboration { margin-block: 16px; min-width: 0; }
+.alba-card-member-list { display: flex; flex-wrap: wrap; gap: 6px; margin-block: 8px; }
+.alba-card-member { display: inline-flex; align-items: center; gap: 6px; border: 1px solid currentColor; border-radius: 6px; padding: 4px 8px; }
+.alba-remove-member { border: 0; background: transparent; color: inherit; cursor: pointer; padding: 2px; }
+.alba-card-collaboration p, .alba-mention-hint { font-size: 12px; }
+.alba-card-collaboration p, .alba-mention-hint { color: var(--alba-text-main, inherit) !important; }
+.alba-card-collaboration input { max-width: 100%; box-sizing: border-box; }
+.alba-member-results, .alba-mention-results { display: flex; flex-wrap: wrap; gap: 4px; max-height: 150px; overflow-y: auto; margin-block: 6px; }
+.alba-member-results button, .alba-mention-results button { background: var(--alba-btn-bg, transparent); color: inherit; border: 1px solid currentColor; border-radius: 4px; padding: 6px; cursor: pointer; }
+/* Override the site's generic button/input styles using the active Alba theme. */
+#alba-card-modal .alba-card-collaboration .alba-save-members,
+#alba-card-modal-admin .alba-card-collaboration .alba-save-members,
+#alba-card-modal .alba-member-results button,
+#alba-card-modal .alba-mention-results button {
+    background: var(--alba-btn-bg, transparent) !important;
+    color: var(--alba-text-main, inherit) !important;
+    border: 1px solid var(--alba-border-color, currentColor) !important;
+    border-radius: var(--alba-radius, 8px);
+    padding: 8px 14px;
+    font-family: inherit;
+    cursor: pointer;
+}
+#alba-card-modal #alba-card-members, #alba-card-modal-admin #alba-card-members {
+    background: var(--alba-input-bg, var(--alba-btn-bg, transparent)) !important;
+    color: var(--alba-text-main, inherit) !important;
+    border: 1px solid var(--alba-border-color, currentColor) !important;
+    width: 100%;
+    padding: 10px;
+    border-radius: 8px;
+}
+.alba-save-members:disabled { opacity: .6; cursor: wait; }
+/* Suggestions float outside the scrolling form and above the sticky footer. */
+#alba-card-modal .alba-mention-results,
+#alba-card-modal-admin .alba-mention-results {
+    position: fixed;
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    box-sizing: border-box;
+    margin: 0;
+    padding: 6px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    background: var(--alba-card-bg, var(--alba-bg));
+    color: var(--alba-text-main, inherit);
+    border: 1px solid var(--alba-text-muted, currentColor);
+    border-radius: 8px;
+    backdrop-filter: blur(12px);
+}
+#alba-card-modal .alba-mention-results button,
+#alba-card-modal-admin .alba-mention-results button {
+    flex: 0 0 auto;
+    width: 100%;
+    max-width: 100%;
+    white-space: normal !important;
+    overflow-wrap: anywhere;
+    text-overflow: clip;
+    text-align: left;
+    font-family: inherit;
+    background: var(--alba-btn-bg, transparent) !important;
+    color: var(--alba-text-main, inherit) !important;
+    padding: 8px 12px;
+}
+.alba-comment-text { white-space: pre-wrap; overflow-wrap: anywhere; }
+.alba-comment-mention { font-weight: 700; }
+#alba-card-modal .alba-suggestion-active,
+#alba-card-modal-admin .alba-suggestion-active {
+    outline: 2px solid var(--alba-text-main, currentColor);
+    outline-offset: -2px;
+    font-weight: 700;
+}

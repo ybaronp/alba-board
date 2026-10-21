@@ -39,11 +39,13 @@ function alba_board_enqueue_assets() {
     if ( ! $should_enqueue ) {
         return;
     }
+    alba_board_enqueue_session_script();
 
     $plugin_url = plugin_dir_url(dirname(__FILE__));
     $plugin_path = plugin_dir_path(dirname(__FILE__));
     $frontend_script_path = $plugin_path . 'assets/js/alba-board-frontend.js';
-    $plugin_version = '2.2.5';
+    $frontend_style_path = $plugin_path . 'assets/css/alba-board-style.css';
+    $plugin_version = '2.3.0';
 
     wp_enqueue_script(
         'sortablejs',
@@ -53,10 +55,11 @@ function alba_board_enqueue_assets() {
         true
     );
 
+    wp_enqueue_script('alba-card-autosize', $plugin_url . 'assets/js/alba-card-autosize.js', [], (string) filemtime($plugin_path . 'assets/js/alba-card-autosize.js'), true);
     wp_enqueue_script(
         'alba-kanban',
         $plugin_url . 'assets/js/alba-board-frontend.js',
-        ['sortablejs', 'jquery'],
+        ['sortablejs', 'jquery', 'alba-board-session', 'alba-card-autosize'],
         file_exists($frontend_script_path) ? filemtime($frontend_script_path) : $plugin_version,
         true
     );
@@ -65,7 +68,7 @@ function alba_board_enqueue_assets() {
         'alba-board-style',
         $plugin_url . 'assets/css/alba-board-style.css',
         [],
-        $plugin_version
+        file_exists( $frontend_style_path ) ? filemtime( $frontend_style_path ) : $plugin_version
     );
 
     $localize_data = [
