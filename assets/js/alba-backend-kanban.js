@@ -86,7 +86,7 @@ document.addEventListener('DOMContentLoaded', () => {
       savingCardMove = true;
       const move = cardMoves[0];
       try {
-        const result = await fetch(albaBoard.ajaxurl, {
+        const result = await window.albaBoardRequest.fetch(albaBoard.ajaxurl, {
           method: 'POST',
           headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
           body: move.params
@@ -203,7 +203,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 params.append('action', 'alba_move_list_action');
                 params.append('nonce', albaBoard.move_list_nonce);
                 orderedListIds.forEach((id, index) => { params.append(`order[${index}]`, id); });
-                fetch(albaBoard.ajaxurl, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: params })
+                window.albaBoardRequest.fetch(albaBoard.ajaxurl, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: params })
                     .then(res => res.json())
                     .then(response => {
                         if (!response.success) {
@@ -401,7 +401,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 formData.append('list_id', listId); 
                 formData.append('nonce', albaBoard.delete_list_nonce);
                 
-                fetch(albaBoard.ajaxurl, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: formData })
+                window.albaBoardRequest.fetch(albaBoard.ajaxurl, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: formData })
                 .then(res => res.json())
                 .then(response => {
                     if (response.success) {
@@ -422,6 +422,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const modalBody = document.getElementById('alba-modal-body-admin');
     const modalThemeWrapper = modalAdmin && modalAdmin.closest('.alba-master-theme-wrapper');
     let currentOpenedCard = null;
+    const modalHeading = document.createElement('div');
+    modalHeading.className = 'alba-card-modal-heading';
+    if (modalAdmin) modalAdmin.querySelector('.alba-modal-content').prepend(modalHeading);
+    function placeCardTitle() {
+        const field = modalBody.querySelector('.alba-card-title-field');
+        modalHeading.replaceChildren();
+        if (field) {
+            // Keep the editable header associated with the form used by Save Changes.
+            field.querySelector('input').setAttribute('form', 'alba-card-details-form');
+            modalHeading.append(field);
+        }
+    }
 
     document.querySelectorAll('.alba-card').forEach(card => {
         card.addEventListener('click', function(e) {
@@ -430,12 +442,12 @@ document.addEventListener('DOMContentLoaded', () => {
             if (modalThemeWrapper) modalThemeWrapper.classList.add('alba-admin-modal-open');
             
             if(modalAdmin) { modalAdmin.classList.remove('alba-is-hidden'); modalAdmin.classList.add('active'); }
-            if(modalBody) { modalBody.removeAttribute('role'); modalBody.innerHTML = albaBoard.loading || 'Loading...'; }
+            if(modalBody) { modalHeading.replaceChildren(); modalBody.removeAttribute('role'); modalBody.innerHTML = albaBoard.loading || 'Loading...'; }
 
             // ZERO FRICTION UX: Update URL immediately 
             updateUrlWithCard(cardId);
 
-            fetch(albaBoard.rest_url + 'alba-board/v1/card/' + cardId + '?context=admin', {
+            window.albaBoardRequest.fetch(albaBoard.rest_url + 'alba-board/v1/card/' + cardId + '?context=admin', {
                 method: 'GET',
                 headers: { 'X-WP-Nonce': albaBoard.rest_nonce }
             })
@@ -443,6 +455,7 @@ document.addEventListener('DOMContentLoaded', () => {
             .then(response => {
                 if(modalBody && response.html && currentOpenedCard === card) {
                     modalBody.innerHTML = response.html;
+                    placeCardTitle();
                     bindSaveButtonHandler(); 
                     bindAttachmentHandlers(); 
                     jQuery(document).trigger('alba_modal_loaded');
@@ -528,7 +541,7 @@ document.addEventListener('DOMContentLoaded', () => {
             saveBtn.textContent = 'Saving...'; saveBtn.style.opacity = '0.7';
             saveBtn.disabled = true;
             
-            fetch(albaBoard.ajaxurl, { method: 'POST', body: formData })
+            window.albaBoardRequest.fetch(albaBoard.ajaxurl, { method: 'POST', body: formData })
             .then(res => res.json())
             .then(response => {
                 if (response && response.success && response.data && response.data.html) {
@@ -541,15 +554,19 @@ document.addEventListener('DOMContentLoaded', () => {
                     // A late response must not replace a different card or reopen a closed modal.
                     if (currentOpenedCard === savedCardElement && modalAdmin.classList.contains('active')) {
                         modalBody.innerHTML = data.html;
+                        placeCardTitle();
                         bindSaveButtonHandler();
                         bindAttachmentHandlers();
                         jQuery(document).trigger('alba_modal_loaded');
                     }
                     jQuery(document).trigger('alba_card_updated', [savedCardId, data]);
                 } 
-                else { saveBtn.textContent = 'Save Changes'; saveBtn.style.opacity = '1'; saveBtn.disabled = false; }
+                else { throw new Error(response?.data?.message || albaBoard.fetch_error); }
             })
-            .catch(() => { saveBtn.textContent = 'Save Changes'; saveBtn.style.opacity = '1'; saveBtn.disabled = false; });
+            .catch(error => {
+                saveBtn.textContent = 'Save Changes'; saveBtn.style.opacity = '1'; saveBtn.disabled = false;
+                if (currentOpenedCard === savedCardElement) alert(error.message || albaBoard.fetch_error);
+            });
         }
     }
 
@@ -575,7 +592,7 @@ document.addEventListener('DOMContentLoaded', () => {
         body.append('card_id', cardId);
         body.append('nonce', albaBoard.manage_card_archive_nonce);
 
-        fetch(albaBoard.ajaxurl, {
+        window.albaBoardRequest.fetch(albaBoard.ajaxurl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
             body
@@ -614,7 +631,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (feedback) feedback.textContent = '';
         button.disabled = true;
         const body = new URLSearchParams({ action: 'alba_trash_card', card_id: cardId, nonce: albaBoard.trash_card_nonce });
-        fetch(albaBoard.ajaxurl, {
+        window.albaBoardRequest.fetch(albaBoard.ajaxurl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
             body
@@ -635,6 +652,17 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // --- 8. ATTACHMENT HANDLERS ---
+    async function requestAttachment(options) {
+        try {
+            const response = await window.albaBoardRequest.fetch(options.url, { method: 'POST', body: options.data });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data?.data?.message || albaBoard.fetch_error);
+            options.success(data);
+        } catch (error) {
+            options.error(null, 'error', error.message);
+        }
+    }
+
     function bindAttachmentHandlers() {
         const feedbackDiv = document.getElementById('alba-upload-feedback');
         
@@ -660,7 +688,7 @@ document.addEventListener('DOMContentLoaded', () => {
             formData.append('card_id', cardId);
             formData.append('file', file);
             
-            jQuery.ajax({
+            requestAttachment({
                 url: albaBoard.ajaxurl,
                 type: 'POST',
                 data: formData,
@@ -690,7 +718,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 },
                 error: function(jqXHR, textStatus, errorThrown) {
                     if (feedbackDiv) {
-                        feedbackDiv.textContent = 'Server Error: ' + textStatus;
+                        feedbackDiv.textContent = errorThrown || albaBoard.fetch_error;
                         feedbackDiv.style.color = 'var(--alba-danger)';
                     }
                     console.error('Alba Board Upload Error:', errorThrown);
@@ -721,7 +749,7 @@ document.addEventListener('DOMContentLoaded', () => {
             formData.append('attachment_id', attachmentId);
             formData.append('nonce', albaBoard.delete_attachment_nonce);
             
-            jQuery.ajax({
+            requestAttachment({
                 url: albaBoard.ajaxurl,
                 type: 'POST',
                 data: formData,
@@ -735,8 +763,9 @@ document.addEventListener('DOMContentLoaded', () => {
                         btn.text('✖').prop('disabled', false);
                     }
                 },
-                error: function(err) {
-                    console.error('Alba Board Delete Error:', err);
+                error: function(err, status, message) {
+                    console.error('Alba Board Delete Error:', message);
+                    alert(message || albaBoard.fetch_error);
                     btn.text('✖').prop('disabled', false);
                 }
             });

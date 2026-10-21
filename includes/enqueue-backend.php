@@ -9,9 +9,10 @@ function alba_board_enqueue_admin_assets($hook) {
     if ($hook !== 'toplevel_page_alba-board-visual') {
         return;
     }
+    alba_board_enqueue_session_script();
 
     $plugin_url = plugin_dir_url(dirname(__FILE__)) . 'assets/';
-    $plugin_version = '2.2.5'; 
+    $plugin_version = '2.3.0'; 
     $backend_script_path = plugin_dir_path(dirname(__FILE__)) . 'assets/js/alba-backend-kanban.js';
     $admin_style_path = plugin_dir_path(dirname(__FILE__)) . 'assets/css/admin-alba-board-style.css';
     $admin_style_version = file_exists($admin_style_path) ? filemtime($admin_style_path) : $plugin_version;
@@ -25,7 +26,8 @@ function alba_board_enqueue_admin_assets($hook) {
     wp_enqueue_script('flatpickr-js', $plugin_url . 'vendor/flatpickr/flatpickr.min.js', [], '4.6.13', true);
 
     $backend_script_version = file_exists($backend_script_path) ? filemtime($backend_script_path) : $plugin_version;
-    wp_enqueue_script('alba-backend-kanban', $plugin_url . 'js/alba-backend-kanban.js', ['sortablejs', 'jquery', 'select2', 'flatpickr-js'], $backend_script_version, true);
+    wp_enqueue_script('alba-card-autosize', $plugin_url . 'js/alba-card-autosize.js', [], (string) filemtime(plugin_dir_path(dirname(__FILE__)) . 'assets/js/alba-card-autosize.js'), true);
+    wp_enqueue_script('alba-backend-kanban', $plugin_url . 'js/alba-backend-kanban.js', ['sortablejs', 'jquery', 'select2', 'flatpickr-js', 'alba-board-session', 'alba-card-autosize'], $backend_script_version, true);
     wp_enqueue_script('alba-core-interactions', $plugin_url . 'js/alba-frontend-interactions.js', ['alba-backend-kanban'], (string) filemtime(plugin_dir_path(dirname(__FILE__)) . 'assets/js/alba-frontend-interactions.js'), true);
     wp_localize_script('alba-core-interactions', 'albaBoardFrontend', alba_board_interaction_config());
     wp_enqueue_style('alba-board-admin-neomorphism', $plugin_url . 'css/admin-alba-board-style.css', [], $admin_style_version);
@@ -55,3 +57,11 @@ function alba_board_enqueue_admin_assets($hook) {
     ]);
 }
 add_action('admin_enqueue_scripts', 'alba_board_enqueue_admin_assets');
+
+/** The sidebar icon is present throughout wp-admin, including Settings. */
+function alba_board_enqueue_sidebar_style() {
+    if ( ! current_user_can( 'edit_cards' ) ) return;
+    $path = plugin_dir_path( dirname( __FILE__ ) ) . 'assets/css/alba-admin-sidebar.css';
+    wp_enqueue_style( 'alba-admin-sidebar', plugin_dir_url( dirname( __FILE__ ) ) . 'assets/css/alba-admin-sidebar.css', [], (string) filemtime( $path ) );
+}
+add_action( 'admin_enqueue_scripts', 'alba_board_enqueue_sidebar_style' );

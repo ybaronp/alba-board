@@ -1,0 +1,85 @@
+/* Move two dividers, then open one matching gap in the right column. */
+@property --alba-left-divider {
+    syntax: '<length>';
+    inherits: false;
+    initial-value: 8px;
+}
+@property --alba-middle-divider {
+    syntax: '<length>';
+    inherits: false;
+    initial-value: 5px;
+}
+@property --alba-right-card-height {
+    syntax: '<length>';
+    inherits: false;
+    initial-value: 7.5px;
+}
+#toplevel_page_alba-board-visual .wp-menu-image {
+    transform: scale(1);
+    transition: transform 180ms ease-out;
+}
+#toplevel_page_alba-board-visual > a:hover .wp-menu-image,
+#toplevel_page_alba-board-visual > a:focus-visible .wp-menu-image {
+    transform: scale(.92);
+}
+#toplevel_page_alba-board-visual .wp-menu-image::before {
+    content: "";
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    margin-top: 7px;
+    --alba-left-divider: 8px;
+    --alba-middle-divider: 5px;
+    --alba-right-card-height: 7.5px;
+    background-image:
+        linear-gradient(currentColor, currentColor),
+        linear-gradient(currentColor, currentColor),
+        linear-gradient(currentColor, currentColor),
+        linear-gradient(currentColor, currentColor),
+        linear-gradient(currentColor, currentColor),
+        linear-gradient(currentColor, currentColor);
+    background-repeat: no-repeat;
+    background-size:
+        5px var(--alba-left-divider),
+        5px calc(13px - var(--alba-left-divider)),
+        5px var(--alba-middle-divider),
+        5px calc(13px - var(--alba-middle-divider)),
+        5px var(--alba-right-card-height),
+        5px var(--alba-right-card-height);
+    background-position:
+        .5px 2px,
+        .5px calc(4px + var(--alba-left-divider)),
+        7.5px 2px,
+        7.5px calc(4px + var(--alba-middle-divider)),
+        14.5px 2px,
+        14.5px calc(17px - var(--alba-right-card-height));
+    transition:
+        --alba-left-divider 180ms ease-out,
+        --alba-middle-divider 180ms ease-out,
+        --alba-right-card-height 180ms ease-out;
+}
+#toplevel_page_alba-board-visual > a:hover .wp-menu-image::before,
+#toplevel_page_alba-board-visual > a:focus-visible .wp-menu-image::before {
+    --alba-left-divider: 5px;
+    --alba-middle-divider: 8px;
+    --alba-right-card-height: 6.5px;
+    transition:
+        --alba-left-divider 280ms cubic-bezier(.22, .8, .25, 1) 90ms,
+        --alba-middle-divider 280ms cubic-bezier(.22, .8, .25, 1) 180ms,
+        --alba-right-card-height 280ms cubic-bezier(.22, .8, .25, 1) 270ms;
+}
+@media (prefers-reduced-motion: reduce) {
+    #toplevel_page_alba-board-visual .wp-menu-image,
+    #toplevel_page_alba-board-visual .wp-menu-image::before,
+    #toplevel_page_alba-board-visual > a:hover .wp-menu-image::before,
+    #toplevel_page_alba-board-visual > a:focus-visible .wp-menu-image::before { transition: none; }
+    #toplevel_page_alba-board-visual > a:hover .wp-menu-image,
+    #toplevel_page_alba-board-visual > a:focus-visible .wp-menu-image { transform: none; }
+    #toplevel_page_alba-board-visual > a:hover .wp-menu-image::before,
+    #toplevel_page_alba-board-visual > a:focus-visible .wp-menu-image::before {
+        --alba-left-divider: 8px;
+        --alba-middle-divider: 5px;
+        --alba-right-card-height: 7.5px;
+    }
+}

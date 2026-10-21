@@ -7,6 +7,7 @@ if ( ! defined( 'ABSPATH' ) ) exit; // Prevent direct access
  * Usage: [alba_board id="123" fullwidth="1"]
  */
 function alba_board_render_shortcode($atts) {
+    alba_board_usage_count( 'frontend' );
     // 1. Setup attributes and validate board ID
     $atts = shortcode_atts([
         'id' => 0,
@@ -47,7 +48,7 @@ function alba_board_render_shortcode($atts) {
     $current_user_id = get_current_user_id();
     if ($current_user_id) {
         echo '<div class="alba-frontend-filters" style="margin-bottom: 25px; display: flex; justify-content: flex-end; padding-right: 15px;">';
-        echo '<label style="cursor: pointer; display: inline-flex; align-items: center; gap: 10px; font-weight: 600; color: var(--alba-text-main); background: var(--alba-card-bg); padding: 10px 20px; border-radius: 30px; box-shadow: 4px 4px 8px var(--alba-shadow-dark), -4px -4px 8px var(--alba-shadow-light); transition: all 0.3s ease; user-select: none;">';
+        echo '<label style="cursor: pointer; display: inline-flex; align-items: center; gap: 10px; font-weight: 600; color: var(--alba-text-main); background: var(--alba-card-bg); padding: 10px 20px; border-radius: 30px; box-shadow: 4px 4px 8px var(--alba-shadow-dark), -1px -1px 3px -1px var(--alba-shadow-light); transition: all 0.3s ease; user-select: none;">';
         echo '<input type="checkbox" id="alba-filter-my-tasks" data-user-id="' . esc_attr($current_user_id) . '" style="cursor: pointer; width: 16px; height: 16px; accent-color: #3b82f6;">';
         echo esc_html__('My Tasks Only', 'alba-board');
         echo '</label>';
@@ -120,7 +121,7 @@ function alba_board_render_shortcode($atts) {
     ?>
     <div id="alba-card-modal" class="alba-card-modal">
         <div class="alba-modal-content">
-            <button id="alba-modal-close" class="alba-modal-close-btn">&times;</button>
+            <button id="alba-modal-close" class="alba-modal-close-btn" type="button" aria-label="<?php esc_attr_e( 'Close card', 'alba-board' ); ?>">&times;</button>
             <div id="alba-modal-body"><?php esc_html_e('Loading...', 'alba-board'); ?></div>
         </div>
     </div>

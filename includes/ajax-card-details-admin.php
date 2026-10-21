@@ -43,23 +43,14 @@ function alba_output_card_details_admin_modal( $card_id, $force_author = null ) 
     echo '<form id="alba-card-details-form" class="alba-card-details-form" data-alba-ui="compact-actions-upload">';
     echo '<input type="hidden" id="alba-current-card-id" name="card_id" value="' . esc_attr( $card_id ) . '">';
 
-    // Cleaned Title Field (No copy link button)
-    echo '<div class="alba-form-group">';
-    echo '<label>' . esc_html__( 'Title:', 'alba-board' ) . '</label>';
-    echo '<input type="text" name="card_title" class="alba-form-input-text" value="' . esc_attr( $card->post_title ) . '" required>';
+    echo '<div class="alba-form-group alba-card-title-field">';
+    echo '<input type="text" name="card_title" aria-label="' . esc_attr__( 'Card title', 'alba-board' ) . '" class="alba-form-input-text" value="' . esc_attr( $card->post_title ) . '" required>';
     echo '</div>';
 
-    echo '<div class="alba-card-assignees-row">';
-    echo '<div class="alba-form-group" style="flex:1; margin-bottom:0;">';
-    echo '<label>' . esc_html__( 'WP Assignee:', 'alba-board' ) . '</label>';
-    echo '<select name="card_author" class="alba-select2">';
-    echo '<option value="">' . esc_html__('Unassigned', 'alba-board') . '</option>';
-    $users = get_users( [ 'fields' => [ 'ID', 'display_name' ] ] );
-    foreach ( $users as $user ) {
-        echo '<option value="' . esc_attr( $user->ID ) . '" ' . selected($user->ID, $author_id, false) . '>' . esc_html( $user->display_name ) . '</option>';
-    }
-    echo '</select>';
-    echo '</div>';
+    echo '<div class="alba-card-assignees-row" data-alba-members-layout="paired">';
+    alba_board_render_card_members( $card_id );
+    // Preserve legacy ownership without a second member/assignee selector.
+    echo '<input type="hidden" name="card_author" value="' . esc_attr( $author_id ) . '">';
 
     $list_id = get_post_meta($card_id, 'alba_list_parent', true);
     $board_id = get_post_meta($list_id, 'alba_board_parent', true);
@@ -142,7 +133,7 @@ function alba_output_card_details_admin_modal( $card_id, $force_author = null ) 
             echo '<div class="alba-board-comment" style="margin-bottom: 10px; border-bottom: 1px solid var(--alba-shadow-dark); padding-bottom: 8px;">';
             echo '<strong style="color: var(--alba-text-title);">' . esc_html( $c['author'] ) . '</strong> ';
             echo '<span class="alba-comment-date" style="font-size: 0.8em; color: var(--alba-text-muted);">' . esc_html( alba_board_time_ago_or_date($c['date']) ) . '</span>';
-            echo '<div class="alba-comment-text" style="margin-top: 4px; color: var(--alba-text-main);">' . esc_html( $c['text'] ) . '</div>';
+            echo '<div class="alba-comment-text" style="margin-top: 4px; color: var(--alba-text-main);">' . alba_board_format_card_comment( $c['text'], $card_id ) . '</div>';
             echo '</div>';
         }
     } else {

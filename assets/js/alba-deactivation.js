@@ -90,12 +90,18 @@ document.addEventListener('DOMContentLoaded', function() {
         var timeout;
         try {
             await Promise.race([
-                fetch('https://albaboard.com/wp-json/alba/v1/feedback', {
+                fetch(config.feedbackUrl, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                    redirect: 'error',
                     body: JSON.stringify({reason: selected.value, details: detailsBox.value.trim()}),
                     signal: controller.signal
-                }).then(function(response) { if (!response.ok) throw new Error('Feedback request failed'); }),
+                }).then(function(response) {
+                    if (!response.ok) throw new Error('Feedback request failed');
+                    return response.json();
+                }).then(function(result) {
+                    if (!result || result.success !== true) throw new Error('Feedback was not acknowledged');
+                }),
                 new Promise(function(resolve, reject) {
                     timeout = window.setTimeout(function() {
                         controller.abort();
