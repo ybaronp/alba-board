@@ -63,10 +63,16 @@
     try { return await fetch(target, args); }
     catch (_) { throw new Error(window.albaSession.network_error); }
   }
-  window.albaBoardRequest = {fetch:request, url};
+  function cardDetailsUrl(cardId, context) {
+    // WordPress supplies the complete route, including ?rest_route= on plain permalinks.
+    const target = new URL(url(window.albaBoard.card_details_url.replace('__ALBA_CARD_ID__', encodeURIComponent(cardId))));
+    target.searchParams.set('context', context);
+    return target.href;
+  }
+  window.albaBoardRequest = {fetch:request, url, cardDetailsUrl};
   document.addEventListener('DOMContentLoaded', () => {
     // jQuery upload controls and integrations also use these localized URLs.
-    for (const [config, keys] of [[window.albaBoard, ['ajaxurl','rest_url']], [window.albaBoardFrontend, ['ajaxurl']], [window.albaCollaboration, ['url']]]) {
+    for (const [config, keys] of [[window.albaBoard, ['ajaxurl','rest_url','card_details_url']], [window.albaBoardFrontend, ['ajaxurl']], [window.albaCollaboration, ['url']]]) {
       if (!config) continue;
       for (const key of keys) if (config[key]) {
         try { config[key] = url(config[key]); } catch (_) { /* Requests report an origin error when used. */ }
