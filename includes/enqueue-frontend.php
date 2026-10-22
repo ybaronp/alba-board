@@ -74,6 +74,7 @@ function alba_board_enqueue_assets() {
     $localize_data = [
         'ajaxurl'                 => admin_url('admin-ajax.php'),
         'rest_url'                => esc_url_raw( rest_url() ), 
+        'card_details_url'        => esc_url_raw( rest_url( 'alba-board/v1/card/__ALBA_CARD_ID__' ) ),
         'rest_nonce'              => wp_create_nonce( 'wp_rest' ), 
         'nonce'                   => wp_create_nonce('alba_move_card_nonce'),
         'move_error'              => __('Could not move the card.', 'alba-board'),
