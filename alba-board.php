@@ -79,6 +79,8 @@ require_once plugin_dir_path(__FILE__) . 'includes/ajax-save-card-details-admin.
 require_once plugin_dir_path(__FILE__) . 'includes/dashboard-widget.php';
 require_once plugin_dir_path(__FILE__) . 'includes/export.php';
 require_once plugin_dir_path(__FILE__) . 'includes/rest-api.php';
+require_once plugin_dir_path(__FILE__) . 'includes/mcp-settings.php';
+require_once plugin_dir_path(__FILE__) . 'includes/mcp-abilities.php';
 
 add_filter( 'plugin_action_links_' . plugin_basename( __FILE__ ), 'alba_board_action_links' );
 function alba_board_action_links( $links ) {
