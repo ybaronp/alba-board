@@ -38,6 +38,7 @@ if ( ! is_wp_error( $alba_board_terms ) ) {
 }
 
 delete_option('alba_board_limits');
+delete_option('alba_board_mcp');
 delete_option('alba_board_notifications');
 delete_option('alba_board_uploads'); // Remember to delete the new settings as well.
 delete_option('alba_delete_on_uninstall');

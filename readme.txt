@@ -1,6 +1,6 @@
 === Task & Project Management – Alba Board ===
 Contributors: alejo30  
-Tags: task management, project management, task manager, kanban board, to do list
+Tags: task management, project management, task manager, kanban board, mcp
 Requires at least: 5.8  
 Tested up to: 7.1
 Requires PHP: 7.4
@@ -31,6 +31,7 @@ Work from the WordPress dashboard or display a board on a website page with the 
 * **Export your data:** Administrators can export boards to CSV or JSON.
 * **Choose your appearance:** Select a built-in visual theme and scroll long lists independently.
 * **Work in your language:** Translation-ready strings support community translations.
+* **Connect an AI assistant (optional):** Use MCP to read selected boards, create boards/lists/cards, edit or move cards, and add comments with existing WordPress permissions. Requires WordPress 6.9+ and the official MCP Adapter.
 * **Extend your workflow:** Developers can use WordPress hooks and add-ons without modifying the core plugin.
 
 == Add-ons & Extensions ==
@@ -61,6 +62,25 @@ What were you trying to organize, and what would make that easier? Your feedback
 If you have used Alba Board, you are welcome to [share an honest review](https://wordpress.org/support/plugin/alba-board/reviews/).
 
 == Frequently Asked Questions ==
+
+= Can an AI assistant manage my boards through MCP? =
+Yes, when you enable the optional integration. It uses the WordPress Abilities API and the official [MCP Adapter](https://wordpress.org/plugins/mcp-adapter/). Regular boards still work on older supported WordPress versions without either dependency.
+
+1. On WordPress 6.9 or newer, install and activate MCP Adapter 0.7.1 or newer.
+2. Open **Alba Board > AI connections** as an administrator. Enable access and select a test board. New-board creation has a separate opt-in; boards created through it become AI-accessible automatically.
+3. Use a dedicated Board Member or Board Manager account with only the permissions needed. On an HTTPS site, create an Application Password in that user's profile. Board Members can read/comment on shared published cards and edit their own cards; they cannot create boards.
+4. Connect a compatible MCP client using the endpoint displayed on the AI connections page and that account's Application Password. Follow the official [MCP Adapter connection guide](https://github.com/WordPress/mcp-adapter/blob/trunk/docs/getting-started/site-owners.md). The adapter exposes discovery, ability information and execution tools; Alba Board actions use the `alba-board/` namespace.
+5. Start with “Read my test board.” Then ask for a proposed card and approve it in your client before creating it. Set your client's tool-approval controls as appropriate; Alba Board checks permissions but cannot verify a human approval in an external client.
+
+Access is disabled by default and restricted to selected published boards plus the connected user's existing permissions. It does not grant new access to ordinary subscribers or anonymous visitors. Card moves stay within the same selected board and preserve other cards' relative order. Card creation and incoming moves respect the configured cards-per-list limit. Deletion, attachments, assignments and site administration are not exposed by these tools.
+
+MCP does not include an AI model, subscription, OAuth sign-in or daily scheduling. Some web AI clients require an additional OAuth solution and cannot connect directly with Application Passwords. Do not assume compatibility with a particular client until its authentication method has been checked.
+
+= How do I stop AI access or avoid duplicate actions? =
+Disable access under **Alba Board > AI connections**, deselect a board, or revoke the client's Application Password. Every write requires a unique `request_id` (8–64 letters, numbers, underscores or hyphens). The client must reuse that ID and the same arguments when retrying the same action within 24 hours; successful retries return the saved result instead of repeating the write. After 24 hours, check the board before retrying. Do not retry with a new ID after an uncertain result. This protects normal retries; a server crash between saving a change and recording its receipt can still require checking the board.
+
+Alba Board stores up to 20 recent MCP action records per changed object (WordPress user ID, action and UTC time), plus temporary retry receipts. These are local records, not an immutable audit system. Concurrent MCP changes to the same object are serialized; simultaneous changes through other interfaces still require care.
+
 
 = Can I use Alba Board as a Kanban board? =
 Yes. A Kanban board organizes tasks into lists that represent stages of work. Create lists such as To Do, In Progress, and Done, then drag task cards between them as work progresses. You can use this board in the WordPress dashboard or display it on a page with the board shortcode.
@@ -118,6 +138,9 @@ Frontend card creation, comments, and deletion require a logged-in user with the
 
 == Privacy & Optional Feedback ==
 
+**Optional MCP connections:** Alba Board does not send board content to an AI provider on its own. A connected AI client can retrieve selected board/card content and recent comments according to its WordPress user's permissions. That client may send content to an external provider under its own privacy and retention terms. Credentials are configured in the client and WordPress Application Passwords, not stored in Alba Board settings. Retry receipts expire after 24 hours; recent local action records remain with their objects.
+
+
 Usage reporting is off by default. Site administrators can opt in under Alba Board > Feedback & Privacy. Once enabled, a weekly HTTPS request sends a random installation ID and reporting/deletion credential, ISO week, Alba Board/WordPress/PHP versions, selected Alba theme, and approximate board/list/card/Board-user counts and feature activity ranges to https://albaboard.com/wp-json/alba/v2/insights. Activity ranges reflect use since opting in, not exact weekly action counts. No pre-consent activity is backfilled.
 
 The summary excludes site URLs, names, emails, card contents, comments, uploaded files, filenames, and unrelated plugin inventories. The ID makes reports pseudonymous, not anonymous. Administrators can preview the summary fields, stop future reporting, or request deletion of linked usage reports. The receiver keeps usage reports for 90 days, subject to its scheduled cleanup. Hosting logs and backups may have separate retention.
@@ -135,6 +158,12 @@ With explicit usage-sharing consent, future plugin activations/deactivations and
 For controlled development/staging tests, a site administrator can set ALBA_BOARD_REPORTING_ENVIRONMENT to staging in wp-config.php. This selects the fixed test receiver only when WordPress identifies the environment as local, development, or staging; production environments retain the production destination. Test mode is clearly labeled in Feedback & Privacy and does not grant sharing consent. Browser feedback and server reports request JSON and require a successful JSON acknowledgement. Optional server reports allow up to 20 seconds for a response. Network failures or hosting restrictions can still prevent delivery; failed requests are not counted as successful reports or deletions.
 
 == Changelog ==
+
+= Unreleased =
+* New: Optional MCP integration using WordPress Abilities API and the official MCP Adapter, with 10 structured board, list, card and comment actions.
+* Security: Administrator-selected boards, existing object permissions, no deletion tools, and immediate access revocation.
+* Reliability: Retry receipts prevent normal duplicate writes; MCP writes to the same object are serialized and card limits are checked.
+
 
 = 2.3.0 =
 * Improved Feedback & Privacy button placement and added a one-time administrator announcement for existing installations about optional usage insights. Sharing preferences are never enabled automatically.
