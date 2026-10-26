@@ -50,7 +50,12 @@ function alba_board_mcp_settings_page() {
             <?php settings_fields( 'alba_board_mcp_group' ); ?>
             <p><label><input type="checkbox" name="alba_board_mcp[enabled]" value="1" <?php checked( ! empty( $settings['enabled'] ) ); ?>> <?php esc_html_e( 'Enable AI access to the boards selected below', 'alba-board' ); ?></label></p>
             <p><label><input type="checkbox" name="alba_board_mcp[oauth_enabled]" value="1" <?php checked( ! empty( $settings['oauth_enabled'] ) ); ?>> <?php esc_html_e( 'Enable browser sign-in (OAuth) for compatible AI apps — requires HTTPS', 'alba-board' ); ?></label></p>
-            <fieldset><legend><strong><?php esc_html_e( 'Boards available to AI assistants', 'alba-board' ); ?></strong></legend>
+            <fieldset id="alba-mcp-boards"><legend><strong><?php esc_html_e( 'Boards available to AI assistants', 'alba-board' ); ?></strong></legend>
+            <p>
+                <button type="button" class="button" data-alba-board-selection="all"><?php esc_html_e( 'Select all boards', 'alba-board' ); ?></button>
+                <button type="button" class="button" data-alba-board-selection="none"><?php esc_html_e( 'Clear selection', 'alba-board' ); ?></button>
+            </p>
+            <p class="description"><?php esc_html_e( 'Select all chooses the boards currently listed. New boards are not automatically included. Save changes to apply your selection. Users must still have permission to access each board.', 'alba-board' ); ?></p>
             <input type="hidden" name="alba_board_mcp[boards][]" value="0">
             <?php foreach ( get_posts( [ 'post_type' => 'alba_board', 'post_status' => 'publish', 'numberposts' => -1, 'orderby' => 'title', 'order' => 'ASC' ] ) as $board ) : ?>
                 <p><label><input type="checkbox" name="alba_board_mcp[boards][]" value="<?php echo esc_attr( $board->ID ); ?>" <?php checked( in_array( $board->ID, $settings['boards'] ?? [], true ) ); ?>> <?php echo esc_html( $board->post_title . ' (#' . $board->ID . ')' ); ?></label></p>
@@ -59,6 +64,18 @@ function alba_board_mcp_settings_page() {
             <p><label><input type="checkbox" name="alba_board_mcp[create_boards]" value="1" <?php checked( ! empty( $settings['create_boards'] ) ); ?>> <?php esc_html_e( 'Also allow users who can publish boards to create new AI-accessible boards', 'alba-board' ); ?></label></p>
             <?php submit_button(); ?>
         </form>
+        <script>
+        (function () {
+            var boards = document.getElementById('alba-mcp-boards');
+            boards.querySelectorAll('[data-alba-board-selection]').forEach(function (button) {
+                button.addEventListener('click', function () {
+                    boards.querySelectorAll('input[type="checkbox"]').forEach(function (checkbox) {
+                        checkbox.checked = button.dataset.albaBoardSelection === 'all';
+                    });
+                });
+            });
+        }());
+        </script>
         <h2><?php esc_html_e( 'Connect your AI app', 'alba-board' ); ?></h2>
         <ol>
             <li><?php esc_html_e( 'Enable AI access and browser sign-in above, select a test board, and save.', 'alba-board' ); ?></li>
