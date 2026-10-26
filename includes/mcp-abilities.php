@@ -60,12 +60,12 @@ function alba_board_mcp_board_id( $post ) {
 
 function alba_board_mcp_can_read_board( $id ) {
     $settings = alba_board_mcp_settings();
-    return ! empty( $settings['enabled'] ) && in_array( (int) $id, $settings['boards'] ?? [], true )
+    return alba_board_oauth_context_allows( 'get-board', $id ) && ! empty( $settings['enabled'] ) && in_array( (int) $id, $settings['boards'] ?? [], true )
         && alba_board_mcp_post( $id, 'alba_board' ) && current_user_can( 'edit_cards' ) && current_user_can( 'read_board', $id );
 }
 
 function alba_board_mcp_permission( $action, $input ) {
-    if ( ! is_array( $input ) || ! is_user_logged_in() || ! current_user_can( 'edit_cards' ) || empty( alba_board_mcp_settings()['enabled'] ) ) return false;
+    if ( ! alba_board_oauth_context_allows( $action ) || ! is_array( $input ) || ! is_user_logged_in() || ! current_user_can( 'edit_cards' ) || empty( alba_board_mcp_settings()['enabled'] ) ) return false;
     if ( 'list-boards' === $action ) return true;
     if ( 'create-board' === $action ) return ! empty( alba_board_mcp_settings()['create_boards'] ) && current_user_can( 'edit_boards' ) && current_user_can( 'publish_boards' );
     $type = isset( $input['card_id'] ) ? 'card' : ( isset( $input['list_id'] ) ? 'list' : 'board' );
@@ -113,23 +113,35 @@ function alba_board_mcp_error( $code, $message, $status = 400 ) {
     return new WP_Error( $code, $message, [ 'status' => $status ] );
 }
 
+/** A retry must not reveal a saved object after its board or card access was revoked. */
+function alba_board_mcp_cached_result( $cached, $fingerprint ) {
+    if ( $cached['fingerprint'] !== $fingerprint ) return alba_board_mcp_error( 'alba_mcp_request_conflict', __( 'This request ID was already used for another action.', 'alba-board' ), 409 );
+    $result = $cached['result'];
+    $post = get_post( $result['id'] ?? 0 );
+    if ( ! $post || 'publish' !== $post->post_status || ! alba_board_mcp_can_read_board( $result['board_id'] ?? 0 ) || ! alba_board_mcp_can_read_board( alba_board_mcp_board_id( $post ) )
+        || ( 'alba_card' === $post->post_type && ! alba_board_can_view_shared_card( $post->ID ) ) ) return alba_board_mcp_error( 'alba_mcp_forbidden', __( 'The previous result is no longer accessible. Check the board before retrying.', 'alba-board' ), 403 );
+    return $result;
+}
+
 /** Reject replay with changed arguments; serialize retries so concurrent delivery cannot duplicate writes. */
 function alba_board_mcp_execute( $action, $input ) {
     if ( ! alba_board_mcp_permission( $action, $input ) ) return alba_board_mcp_error( 'alba_mcp_forbidden', __( 'AI access to this action is not allowed.', 'alba-board' ), 403 );
     $definitions = alba_board_mcp_definitions();
     if ( $definitions[ $action ][4] ) return alba_board_mcp_run( $action, $input );
     if ( empty( $input['request_id'] ) || ! is_string( $input['request_id'] ) || ! preg_match( '/^[A-Za-z0-9_-]{8,64}$/', $input['request_id'] ) ) return alba_board_mcp_error( 'alba_mcp_request_id', __( 'Supply a unique request ID for this action.', 'alba-board' ) );
-    $key = 'alba_mcp_' . hash( 'sha256', get_current_user_id() . ':' . $input['request_id'] );
+    $actor = (string) get_current_user_id();
+    if ( ! empty( $GLOBALS['alba_board_oauth_context']['id'] ) ) $actor .= ':' . $GLOBALS['alba_board_oauth_context']['id'];
+    $key = 'alba_mcp_' . hash( 'sha256', $actor . ':' . $input['request_id'] );
     ksort( $input );
     $fingerprint = hash( 'sha256', $action . ':' . wp_json_encode( $input ) );
     $cached = get_transient( $key );
-    if ( $cached ) return $cached['fingerprint'] === $fingerprint ? $cached['result'] : alba_board_mcp_error( 'alba_mcp_request_conflict', __( 'This request ID was already used for another action.', 'alba-board' ), 409 );
+    if ( $cached ) return alba_board_mcp_cached_result( $cached, $fingerprint );
     $lock_key = $key . '_lock';
     if ( ! alba_board_mcp_lock( $lock_key ) ) return alba_board_mcp_error( 'alba_mcp_busy', __( 'This request is being processed. Retry with the same request ID later.', 'alba-board' ), 409 );
     $object_locks = [];
     try {
         $cached = get_transient( $key );
-        if ( $cached ) return $cached['fingerprint'] === $fingerprint ? $cached['result'] : alba_board_mcp_error( 'alba_mcp_request_conflict', __( 'This request ID was already used for another action.', 'alba-board' ), 409 );
+        if ( $cached ) return alba_board_mcp_cached_result( $cached, $fingerprint );
         // Serialize MCP writes to the same card/list (including different request IDs).
         $resources = [ 'card_id', 'list_id', 'board_id' ];
         $keys = 'create-board' === $action ? [ 'alba_mcp_boards_lock' ] : [];
@@ -209,6 +221,7 @@ function alba_board_mcp_run( $action, $input ) {
             $settings = alba_board_mcp_settings();
             $settings['boards'][] = $id;
             update_option( 'alba_board_mcp', $settings, false );
+            alba_board_oauth_share_created_board( $id );
         }
     } else {
         $id = $input['card_id'];

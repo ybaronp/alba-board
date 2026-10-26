@@ -6,6 +6,17 @@ if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
 }
 
 wp_clear_scheduled_hook( 'alba_board_usage_send' );
+wp_clear_scheduled_hook( 'alba_board_oauth_cleanup' );
+// Always revoke AI credentials on uninstall, even when the owner keeps their boards.
+global $wpdb;
+$alba_oauth_options = $wpdb->get_col( $wpdb->prepare( "SELECT option_name FROM $wpdb->options WHERE option_name LIKE %s", $wpdb->esc_like( 'alba_oauth_' ) . '%' ) );
+foreach ( $alba_oauth_options as $alba_oauth_option ) delete_option( $alba_oauth_option );
+$alba_oauth_settings = get_option( 'alba_board_mcp', [] );
+if ( is_array( $alba_oauth_settings ) ) {
+    $alba_oauth_settings['oauth_enabled'] = false;
+    $alba_oauth_settings['oauth_epoch'] = wp_generate_uuid4();
+    update_option( 'alba_board_mcp', $alba_oauth_settings, false );
+}
 foreach ( [ 'alba_board_usage_consent', 'alba_board_usage_consent_schema', 'alba_board_usage_identity', 'alba_board_usage_activity', 'alba_board_usage_last_sent', 'alba_board_feedback_started', 'alba_board_feedback_used', 'alba_board_feedback_state' ] as $alba_feedback_option ) {
     delete_option( $alba_feedback_option );
 }
@@ -39,6 +50,7 @@ if ( ! is_wp_error( $alba_board_terms ) ) {
 
 delete_option('alba_board_limits');
 delete_option('alba_board_mcp');
+
 delete_option('alba_board_notifications');
 delete_option('alba_board_uploads'); // Remember to delete the new settings as well.
 delete_option('alba_delete_on_uninstall');

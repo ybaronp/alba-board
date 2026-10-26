@@ -1,5 +1,5 @@
 <?php
-/** Optional AI access. Credentials remain in WordPress/Application Passwords. */
+/** Optional AI access and browser sign-in. */
 if ( ! defined( 'ABSPATH' ) ) exit;
 
 function alba_board_mcp_settings() {
@@ -13,8 +13,22 @@ function alba_board_mcp_sanitize_settings( $input ) {
     $boards = array_values( array_unique( array_filter( array_map( 'absint', array_filter( $boards, 'is_scalar' ) ), function( $id ) {
         return 'alba_board' === get_post_type( $id ) && 'publish' === get_post_status( $id );
     } ) ) );
-    return [ 'enabled' => ! empty( $input['enabled'] ), 'create_boards' => ! empty( $input['create_boards'] ), 'boards' => $boards ];
+    $previous = alba_board_mcp_settings();
+    $enabled = ! empty( $input['enabled'] ); $oauth = ! empty( $input['oauth_enabled'] );
+    $epoch = $previous['oauth_epoch'] ?? wp_generate_uuid4();
+    if ( ( ! $enabled && ! empty( $previous['enabled'] ) ) || ( ! $oauth && ! empty( $previous['oauth_enabled'] ) ) ) $epoch = wp_generate_uuid4();
+    return [ 'enabled' => $enabled, 'oauth_enabled' => $oauth, 'oauth_epoch' => $epoch, 'create_boards' => ! empty( $input['create_boards'] ), 'boards' => $boards ];
 }
+
+// Apply revocation on every settings update, including WP-CLI and integrations that bypass the form.
+add_filter( 'pre_update_option_alba_board_mcp', function( $value, $old ) {
+    if ( ! is_array( $value ) ) return $value;
+    $old = is_array( $old ) ? $old : [];
+    $epoch = $old['oauth_epoch'] ?? wp_generate_uuid4();
+    if ( ( ! empty( $old['enabled'] ) && empty( $value['enabled'] ) ) || ( ! empty( $old['oauth_enabled'] ) && empty( $value['oauth_enabled'] ) ) ) $epoch = wp_generate_uuid4();
+    $value['oauth_epoch'] = $epoch;
+    return $value;
+}, 10, 2 );
 
 add_action( 'admin_init', function() {
     register_setting( 'alba_board_mcp_group', 'alba_board_mcp', [ 'type' => 'array', 'sanitize_callback' => 'alba_board_mcp_sanitize_settings' ] );
@@ -35,6 +49,7 @@ function alba_board_mcp_settings_page() {
         <form method="post" action="options.php">
             <?php settings_fields( 'alba_board_mcp_group' ); ?>
             <p><label><input type="checkbox" name="alba_board_mcp[enabled]" value="1" <?php checked( ! empty( $settings['enabled'] ) ); ?>> <?php esc_html_e( 'Enable AI access to the boards selected below', 'alba-board' ); ?></label></p>
+            <p><label><input type="checkbox" name="alba_board_mcp[oauth_enabled]" value="1" <?php checked( ! empty( $settings['oauth_enabled'] ) ); ?>> <?php esc_html_e( 'Enable browser sign-in (OAuth) for compatible AI apps — requires HTTPS', 'alba-board' ); ?></label></p>
             <fieldset><legend><strong><?php esc_html_e( 'Boards available to AI assistants', 'alba-board' ); ?></strong></legend>
             <input type="hidden" name="alba_board_mcp[boards][]" value="0">
             <?php foreach ( get_posts( [ 'post_type' => 'alba_board', 'post_status' => 'publish', 'numberposts' => -1, 'orderby' => 'title', 'order' => 'ASC' ] ) as $board ) : ?>
@@ -44,15 +59,24 @@ function alba_board_mcp_settings_page() {
             <p><label><input type="checkbox" name="alba_board_mcp[create_boards]" value="1" <?php checked( ! empty( $settings['create_boards'] ) ); ?>> <?php esc_html_e( 'Also allow users who can publish boards to create new AI-accessible boards', 'alba-board' ); ?></label></p>
             <?php submit_button(); ?>
         </form>
-        <h2><?php esc_html_e( 'Connect and stay in control', 'alba-board' ); ?></h2>
+        <h2><?php esc_html_e( 'Connect your AI app', 'alba-board' ); ?></h2>
         <ol>
-            <li><?php esc_html_e( 'Use a dedicated Board user with the minimum permissions needed. Create an Application Password in that user’s WordPress profile on your HTTPS site.', 'alba-board' ); ?></li>
-            <li><?php esc_html_e( 'Use a client that supports authenticated MCP HTTP connections, or the WordPress remote helper. Configure its credentials in the client, never in a card.', 'alba-board' ); ?></li>
-            <li><?php esc_html_e( 'Ask the assistant to list Alba Board abilities, then read a test board. Review proposed changes before allowing write tools in your AI client.', 'alba-board' ); ?></li>
+            <li><?php esc_html_e( 'Enable AI access and browser sign-in above, select a test board, and save.', 'alba-board' ); ?></li>
+            <li><?php esc_html_e( 'In an AI app that supports remote MCP with OAuth, add a server using Streamable HTTP and the URL below. Select OAuth authentication; automatic app registration needs no client secret or Application Password.', 'alba-board' ); ?></li>
+            <li><?php esc_html_e( 'Sign in on this WordPress site, check the app’s return address, choose boards and permissions, then select Allow connection.', 'alba-board' ); ?></li>
+            <li><?php esc_html_e( 'Ask the assistant to read your test board, then propose a card. Use your AI app’s approval controls for changes.', 'alba-board' ); ?></li>
         </ol>
-        <p><strong><?php esc_html_e( 'MCP endpoint:', 'alba-board' ); ?></strong> <code><?php echo esc_html( rest_url( 'mcp/mcp-adapter-default-server' ) ); ?></code></p>
-        <p><?php esc_html_e( 'This integration provides no OAuth sign-in, AI subscription, or automatic scheduling. Some web AI clients require an additional OAuth solution. Board content sent to an external AI is subject to that provider’s privacy terms. Disable access here or revoke the Application Password to disconnect.', 'alba-board' ); ?></p>
-        <p><a href="https://github.com/WordPress/mcp-adapter/blob/trunk/docs/getting-started/site-owners.md" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Official MCP Adapter connection guide', 'alba-board' ); ?></a></p>
+        <p><label for="alba-mcp-url"><strong><?php esc_html_e( 'MCP server URL', 'alba-board' ); ?></strong></label></p>
+        <input id="alba-mcp-url" class="large-text code" readonly value="<?php echo esc_attr( alba_board_mcp_url() ); ?>" onclick="this.select()">
+        <p><?php esc_html_e( 'No Node.js, terminal commands, or local helper is needed for this connection. You sign in on your own WordPress site. Connection options depend on your AI app and its plan.', 'alba-board' ); ?></p>
+        <p><?php esc_html_e( 'Access and refresh tokens expire. Disconnect an individual app from your WordPress profile, or disable browser sign-in here to invalidate all its connections. Existing WordPress permissions and the board selections above always apply.', 'alba-board' ); ?> <a href="<?php echo esc_url( admin_url( 'profile.php#alba-ai-connections' ) ); ?>"><?php esc_html_e( 'Manage my connections', 'alba-board' ); ?></a></p>
+        <p><?php esc_html_e( 'Alba Board does not provide an AI subscription or automatic scheduling. Content read by an external AI is subject to that provider’s privacy terms. The site must let WordPress serve OAuth discovery under /.well-known/.', 'alba-board' ); ?></p>
+        <details><summary><?php esc_html_e( 'Advanced connection requirements and existing integrations', 'alba-board' ); ?></summary>
+            <p><?php esc_html_e( 'Remote clients must support OAuth authorization code with S256 PKCE, resource indicators and dynamic client registration. Automatic registration supplies app credentials without manual copying. Client ID Metadata Documents are not fetched. Not every AI product or account supports custom MCP connections.', 'alba-board' ); ?></p>
+            <p><?php esc_html_e( 'Existing clients can continue using their dedicated Board user’s Application Password over HTTPS. Configure secrets only in the client. The official adapter’s original endpoint remains available for existing integrations; Alba Board OAuth tokens work only at the Alba Board URL above.', 'alba-board' ); ?></p>
+            <p><a href="https://github.com/WordPress/mcp-adapter/blob/trunk/docs/getting-started/site-owners.md" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Official adapter documentation', 'alba-board' ); ?></a></p>
+        </details>
+        <?php alba_board_oauth_registered_apps(); ?>
     </div>
     <?php
 }
