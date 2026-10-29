@@ -44,8 +44,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!button) return;
         const control = button.closest('.alba-rich-controls');
         event.preventDefault();
-        if (button.classList.contains('alba-rich-upload')) control.querySelector('.alba-rich-file').click();
-        else if (button.classList.contains('alba-rich-preview')) run(control, async (status, field) => {
+        if (button.classList.contains('alba-rich-preview')) run(control, async (status, field) => {
             if (!field) return;
             const current = control.querySelector('.alba-rich-result');
             if (!current.hidden) {
@@ -57,17 +56,9 @@ document.addEventListener('DOMContentLoaded', () => {
             // HTML is produced only by the server's safe Markdown renderer and strict allowlist.
             preview.innerHTML = result.html; preview.hidden = false; field.hidden = true; button.textContent = config.edit; button.setAttribute('aria-pressed', 'true'); status.textContent = '';
         });
-        else if (button.classList.contains('alba-rich-cleanup') && window.confirm(config.cleanup)) run(control, async status => {
-            const result = await request('alba_cleanup_card_images', control);
-            status.textContent = result.message;
-        });
     });
-    document.addEventListener('change', event => {
-        if (!event.target.matches('.alba-rich-file')) return;
-        const input = event.target, file = input.files[0];
-        const control = input.closest('.alba-rich-controls');
-        if (!file) return;
-        run(control, async (status, field) => {
+    function uploadImage(control, file) {
+        return run(control, async (status, field) => {
             if (!field) return;
             field.hidden = false;
             control.querySelector('.alba-rich-result').hidden = true;
@@ -78,18 +69,17 @@ document.addEventListener('DOMContentLoaded', () => {
             field.setRangeText('\n' + result.markdown + '\n', start, end, 'end');
             field.dispatchEvent(new Event('input', {bubbles: true}));
             field.focus(); status.textContent = config.inserted;
-        }).finally(() => input.value = '');
-    });
-    // Pasted screenshots use the same upload path and permissions as the file picker.
+        });
+    }
+    // Ctrl+V / Cmd+V and native Paste use the card-scoped upload endpoint directly.
     document.addEventListener('paste', event => {
         if (!event.target.matches('textarea')) return;
         const scope = event.target.closest('form, .alba-add-comment-section');
         const control = scope && [...scope.querySelectorAll('.alba-rich-controls')].find(el => textarea(el) === event.target);
-        const file = [...(event.clipboardData?.items || [])].find(item => item.kind === 'file' && item.type.startsWith('image/'))?.getAsFile();
-        if (!control || !file || control.dataset.busy === '1' || typeof DataTransfer !== 'function') return;
+        const file = [...(event.clipboardData?.items || [])].find(item => item.kind === 'file' && item.type.startsWith('image/'))?.getAsFile()
+            || [...(event.clipboardData?.files || [])].find(item => item.type.startsWith('image/'));
+        if (!control || !file) return;
         event.preventDefault();
-        const transfer = new DataTransfer(); transfer.items.add(file);
-        const input = control.querySelector('.alba-rich-file'); input.files = transfer.files;
-        input.dispatchEvent(new Event('change', {bubbles: true}));
+        if (control.dataset.busy !== '1') uploadImage(control, file);
     });
 });
