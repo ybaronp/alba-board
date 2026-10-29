@@ -16,6 +16,7 @@ function alba_board_refresh_session() {
         'alba_delete_list_action' => 'alba_delete_list_nonce', 'alba_save_card_details_admin' => 'alba_save_card_details_admin',
         'alba_upload_attachment' => 'alba_upload_attachment_nonce', 'alba_delete_attachment' => 'alba_delete_attachment_nonce',
         'alba_manage_archived_card' => 'alba_manage_card_archive', 'alba_trash_card' => 'alba_trash_card',
+        'alba_upload_card_image' => 'alba_card_rich_text', 'alba_preview_card_markdown' => 'alba_card_rich_text', 'alba_cleanup_card_images' => 'alba_card_rich_text',
         'alba_create_card' => 'alba_frontend_nonce', 'alba_add_card_comment' => 'alba_frontend_nonce', 'alba_delete_card' => 'alba_frontend_nonce',
     ];
     $tokens = [];
@@ -138,7 +139,7 @@ function alba_board_card_modal_cache_key( $context, $card_id ) {
         $revision = wp_generate_uuid4();
         set_transient( $revision_key, $revision, 2 * DAY_IN_SECONDS );
     }
-    return 'alba_modal_collaboration3_' . sanitize_key( $context ) . '_' . absint( $card_id ) . '_'
+    return 'alba_modal_richtext1_' . sanitize_key( $context ) . '_' . absint( $card_id ) . '_'
         . get_current_user_id() . '_' . (int) current_user_can( 'edit_card', $card_id ) . '_'
         . (int) current_user_can( 'delete_card', $card_id ) . '_' . $revision . '_'
         . get_option( 'alba_board_people_revision', '1' );
