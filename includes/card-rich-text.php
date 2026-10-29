@@ -134,7 +134,7 @@ function alba_board_upload_card_image() {
     try {
         if ( 'publish' !== get_post_status( $card_id ) || ! alba_board_can_view_shared_card( $card_id ) || ( 'description' === $target ? ! current_user_can( 'edit_card', $card_id ) : ! alba_board_can_comment_card( $card_id ) ) ) throw new RuntimeException( 'Card access changed during upload.' );
         $ids = get_posts( [ 'post_type' => 'alba_card_image', 'post_parent' => $card_id, 'post_status' => 'private', 'fields' => 'ids', 'numberposts' => 20 ] );
-        if ( count( $ids ) >= 20 ) $result = new WP_Error( 'limit', __( 'This card has reached its 20-image limit. Remove unused images first.', 'alba-board' ) );
+        if ( count( $ids ) >= 20 ) $result = new WP_Error( 'limit', __( 'This card has reached its 20-image limit.', 'alba-board' ) );
         else $result = wp_insert_post( [ 'post_type' => 'alba_card_image', 'post_status' => 'private', 'post_parent' => $card_id,
             'post_author' => get_current_user_id(), 'post_title' => sanitize_file_name( isset( $file['name'] ) && is_string( $file['name'] ) ? $file['name'] : 'image' ),
             'post_mime_type' => $saved['mime-type'], 'post_content' => base64_encode( $bytes ),
@@ -153,12 +153,8 @@ add_action( 'before_delete_post', function( $id, $post ) {
 
 function alba_board_rich_text_controls( $card_id, $target, $selector ) {
     echo '<div class="alba-rich-controls" data-card-id="' . esc_attr( $card_id ) . '" data-target="' . esc_attr( $target ) . '" data-selector="' . esc_attr( $selector ) . '">';
-    echo '<button type="button" class="alba-rich-upload" aria-label="' . esc_attr( 'description' === $target ? __( 'Add image to description', 'alba-board' ) : __( 'Add image to comment', 'alba-board' ) ) . '">' . esc_html__( 'Add image', 'alba-board' ) . '</button> ';
     echo '<button type="button" class="alba-rich-preview" aria-pressed="false">' . esc_html__( 'Preview', 'alba-board' ) . '</button> ';
-    echo '<button type="button" class="alba-rich-cleanup">' . esc_html__( 'Remove unused images', 'alba-board' ) . '</button>';
-    echo '<input class="alba-rich-file" type="file" accept="image/png,image/jpeg,image/webp" hidden>';
     echo '<span class="alba-rich-feedback" role="status" aria-live="polite"></span>';
-    echo '<p class="alba-rich-help">' . esc_html__( 'Markdown: **bold**, *italic*, lists, links and code. Images: PNG, JPEG or WebP, up to 2 MB; 20 per card. Save or post to keep your text. Raw HTML is not supported.', 'alba-board' ) . '</p>';
     echo '<div class="alba-rich-result" role="region" aria-label="' . esc_attr__( 'Markdown preview', 'alba-board' ) . '" hidden></div></div>';
 }
 
@@ -196,8 +192,7 @@ function alba_board_enqueue_rich_text() {
     wp_localize_script( 'alba-rich-text', 'albaRichText', [ 'url' => admin_url( 'admin-ajax.php' ), 'nonce' => wp_create_nonce( 'alba_card_rich_text' ),
         'preview' => __( 'Preview', 'alba-board' ), 'edit' => __( 'Edit text', 'alba-board' ),
         'working' => __( 'Working…', 'alba-board' ), 'error' => __( 'Could not complete the request. Please retry.', 'alba-board' ),
-        'inserted' => __( 'Image inserted. Save the description or post the comment to keep it.', 'alba-board' ),
-        'cleanup' => __( 'Remove images not used in saved descriptions or comments? Save your current work first.', 'alba-board' ),
+        'inserted' => __( 'Image pasted.', 'alba-board' ),
     ] );
 }
 add_action( 'admin_enqueue_scripts', function( $hook ) { if ( 'alba-board_page_alba-board-visual' === $hook || 'toplevel_page_alba-board-visual' === $hook ) alba_board_enqueue_rich_text(); } );

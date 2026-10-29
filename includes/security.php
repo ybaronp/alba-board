@@ -139,7 +139,7 @@ function alba_board_card_modal_cache_key( $context, $card_id ) {
         $revision = wp_generate_uuid4();
         set_transient( $revision_key, $revision, 2 * DAY_IN_SECONDS );
     }
-    return 'alba_modal_richtext1_' . sanitize_key( $context ) . '_' . absint( $card_id ) . '_'
+    return 'alba_modal_richtext2_' . sanitize_key( $context ) . '_' . absint( $card_id ) . '_'
         . get_current_user_id() . '_' . (int) current_user_can( 'edit_card', $card_id ) . '_'
         . (int) current_user_can( 'delete_card', $card_id ) . '_' . $revision . '_'
         . get_option( 'alba_board_people_revision', '1' );
