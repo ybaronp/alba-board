@@ -25,7 +25,9 @@ add_action( 'admin_enqueue_scripts', function( $hook ) {
 
 add_action( 'admin_footer-toplevel_page_alba-board-visual', function() {
     if ( ! alba_board_role_guide_pending() ) return;
-    echo '<dialog id="alba-role-guide" aria-labelledby="alba-role-guide-title" data-url="' . esc_url( admin_url( 'admin-ajax.php' ) ) . '" data-nonce="' . esc_attr( wp_create_nonce( 'alba_dismiss_role_guide' ) ) . '">';
+    $display = get_option( 'alba_board_display', [] );
+    $theme = isset( $display['theme'] ) && is_string( $display['theme'] ) ? sanitize_html_class( $display['theme'] ) : 'default';
+    echo '<dialog class="alba-theme-' . esc_attr( $theme ) . '" id="alba-role-guide" aria-labelledby="alba-role-guide-title" data-url="' . esc_url( admin_url( 'admin-ajax.php' ) ) . '" data-nonce="' . esc_attr( wp_create_nonce( 'alba_dismiss_role_guide' ) ) . '">';
     echo '<button type="button" class="alba-role-guide-close" aria-label="' . esc_attr__( 'Close', 'alba-board' ) . '">×</button>';
     echo '<p class="alba-role-guide-kicker">' . esc_html__( 'Your first board', 'alba-board' ) . '</p><h2 id="alba-role-guide-title">' . esc_html__( 'Choose the right role for your team', 'alba-board' ) . '</h2>';
     echo '<div class="alba-role-guide-options"><section><h3>' . esc_html__( 'Board Member', 'alba-board' ) . '</h3><p>' . esc_html__( 'For helpers: create cards, update their own cards and join the conversation.', 'alba-board' ) . '</p></section>';
