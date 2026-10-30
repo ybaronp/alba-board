@@ -343,3 +343,5 @@ For controlled development/staging tests, a site administrator can set ALBA_BOAR
 
 = 1.0.0 =
 * First stable release — backend Kanban, modal editing, AJAX, comments, add-ons.
+
+Free template MCP tools: list-templates discovers the built-in catalog; get-template returns the versioned preview; create-board-from-template requires the previewed version, an approved board name, confirmed=true and a request ID. Creation requires administrator opt-in, WordPress board/list/card creation permissions and OAuth read/write plus explicit new-board consent. It uses the same transactional template service as the UI. A UI-created board is not automatically shared with MCP; an approved MCP-created board is added to that connection's access. The tools are available only when the free catalog and creation service are installed.

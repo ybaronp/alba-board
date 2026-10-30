@@ -370,7 +370,7 @@ function alba_board_oauth_context_allows( $action, $board_id = null ) {
     if ( ! $context ) return true; // Existing cookie/Application Password integrations retain their permissions.
     if ( ! in_array( 'alba:read', $context['scopes'], true ) ) return false;
     if ( null !== $board_id && ! in_array( (int) $board_id, $context['boards'], true ) ) return false;
-    if ( 'create-board' === $action && empty( $context['create_boards'] ) ) return false;
+    if ( in_array( $action, [ 'create-board', 'create-board-from-template' ], true ) && empty( $context['create_boards'] ) ) return false;
     $definitions = alba_board_mcp_definitions();
     return ! isset( $definitions[ $action ] ) || $definitions[ $action ][4] || in_array( 'alba:write', $context['scopes'], true );
 }
