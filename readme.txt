@@ -69,7 +69,9 @@ Yes. A Kanban board organizes tasks into lists that represent stages of work. Cr
 We love suggestions! Since Alba Board is actively being developed, your input is highly valued. Please drop us a quick message via our website: https://albaboard.com/
 
 = 🌍 Is Alba Board available in my language? =
-Yes! The plugin is completely translation-ready. If it hasn't been translated into your language yet, you can easily translate it using plugins like Loco Translate, or contribute to the community translations.
+Bundled translations cover Arabic, Danish, German, Spanish, Finnish, French, Italian, Japanese, Brazilian Portuguese, Swedish, and Simplified Chinese. Choose your language in WordPress Settings > General, or your profile language for wp-admin. Board names, cards, comments, and saved custom email templates remain in the language you wrote them.
+
+The languages directory includes editable PO catalogs, compiled MO catalogs, and the source POT. Update the catalogs when adding interface text, preserve placeholders and plural forms, and compile the MO files before distributing. Some shared labels reuse exact matches from the GPL WordPress translation catalogs. You can also contribute translations or use a translation editor such as Loco Translate.
 
 = 🌐 How do I enable frontend card creation? =  
 Add the `[alba_board id="123"]` shortcode to a page. Frontend creation, comments, and deletion are included in the free plugin. Log in with the appropriate card and list permissions to use them. The older Frontend Interactions add-on is no longer required; the core prevents its client and handlers from duplicating these actions.
