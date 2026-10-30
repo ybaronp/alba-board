@@ -55,6 +55,7 @@ add_action('init', 'alba_board_add_caps_to_roles');
 
 require_once plugin_dir_path(__FILE__) . 'includes/capabilities.php';
 require_once plugin_dir_path(__FILE__) . 'includes/roles.php';
+require_once plugin_dir_path(__FILE__) . 'includes/role-guide.php';
 require_once plugin_dir_path(__FILE__) . 'includes/boards.php';
 require_once plugin_dir_path(__FILE__) . 'includes/lists.php';
 require_once plugin_dir_path(__FILE__) . 'includes/cards.php';
