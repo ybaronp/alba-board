@@ -76,6 +76,7 @@ function alba_board_enqueue_assets() {
         'rest_url'                => esc_url_raw( rest_url() ), 
         'card_details_url'        => esc_url_raw( rest_url( 'alba-board/v1/card/__ALBA_CARD_ID__' ) ),
         'rest_nonce'              => wp_create_nonce( 'wp_rest' ), 
+        'move_connection_lost' => __( 'Connection lost. Reload.', 'alba-board' ),
         'nonce'                   => wp_create_nonce('alba_move_card_nonce'),
         'move_error'              => __('Could not move the card.', 'alba-board'),
         'loading'                 => __('Loading...', 'alba-board'),
