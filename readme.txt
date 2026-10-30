@@ -121,6 +121,10 @@ In a card, enter one or more guest email addresses in **Guest Assignee**, separa
 = 🗑️ How do I delete or restore a card? =
 Board Managers, Editors, and Administrators can delete cards. Board Members cannot delete cards on either the public board or the WordPress admin, including cards they created. In the admin board, open the card and click the trash icon; on the public board, use **Delete card**. Confirm to move the card to WordPress Trash. To recover it, open **Alba Board > Cards > Trash** and click **Restore**. If WordPress Trash is disabled, the control will not permanently delete the card.
 
+= Can my AI app summarize a board? =
+
+The free get-board-summary MCP tool returns live published list/card totals, including empty lists, valid due-date counts and bounded examples with native IDs. Dates use the site's timezone and include a generation timestamp. Missing and invalid dates are explicit. A list named Done does not imply completion; no percentage or blockers are invented. The tool is read-only, on-demand, and subject to the same board allowlist, OAuth scope and WordPress access checks as other reads. It is not scheduled or advanced reporting.
+
 = Which Board roles are available? =
 **Board Member:** Create cards and edit, comment on, move, or archive their own cards. Members can create and edit lists, but cannot delete cards, lists, or boards. They cannot change plugin settings.
 
@@ -345,5 +349,3 @@ For controlled development/staging tests, a site administrator can set ALBA_BOAR
 * First stable release — backend Kanban, modal editing, AJAX, comments, add-ons.
 
 Free template MCP tools: list-templates discovers the built-in catalog; get-template returns the versioned preview; create-board-from-template requires the previewed version, an approved board name, confirmed=true and a request ID. Creation requires administrator opt-in, WordPress board/list/card creation permissions and OAuth read/write plus explicit new-board consent. It uses the same transactional template service as the UI. A UI-created board is not automatically shared with MCP; an approved MCP-created board is added to that connection's access. The tools are available only when the free catalog and creation service are installed.
-
-The free get-board-summary MCP tool returns live published list/card totals, including empty lists, valid due-date counts and bounded examples with native IDs. Dates use the site's timezone and include a generation timestamp. Missing and invalid dates are explicit. A list named Done does not imply completion; no percentage or blockers are invented. The tool is read-only, on-demand, and subject to the same board allowlist, OAuth scope and WordPress access checks as other reads. It is not scheduled or advanced reporting.
