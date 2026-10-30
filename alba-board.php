@@ -76,6 +76,7 @@ require_once plugin_dir_path(__FILE__) . 'includes/ajax-card-details-admin.php';
 require_once plugin_dir_path(__FILE__) . 'includes/ajax-card-details.php';
 require_once plugin_dir_path(__FILE__) . 'includes/enqueue-frontend.php';
 require_once plugin_dir_path(__FILE__) . 'includes/enqueue-backend.php';
+require_once plugin_dir_path(__FILE__) . 'includes/unsaved-drafts.php';
 require_once plugin_dir_path(__FILE__) . 'includes/ajax-save-card-details-admin.php';
 require_once plugin_dir_path(__FILE__) . 'includes/dashboard-widget.php';
 require_once plugin_dir_path(__FILE__) . 'includes/export.php';

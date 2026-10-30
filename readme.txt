@@ -311,3 +311,5 @@ For controlled development/staging tests, a site administrator can set ALBA_BOAR
 
 = 1.0.0 =
 * First stable release — backend Kanban, modal editing, AJAX, comments, add-ons.
+
+Card text drafts are protected while the dialog is open: closing, Escape or switching cards offers Keep editing or Discard changes. Successful saves reset the warning; failed saves keep the draft. Text is temporarily read-only during saves, and closing is blocked during an active save or image upload. Leaving the page with an unsaved card also uses the browser’s standard unsaved-changes warning. No autosave, browser storage or offline synchronization is added.
