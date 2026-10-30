@@ -1,0 +1,11 @@
+.alba-templates { max-width: 1200px; }
+.alba-template-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)); gap: 20px; margin: 24px 0; }
+.alba-template-tile, .alba-template-preview { border: 1px solid #dcdcde; border-radius: 12px; background: #fff; padding: 22px; }
+.alba-template-tile h2 { margin-top: 16px; }
+.alba-template-badge { color: #065f46; background: #d1fae5; padding: 5px 9px; border-radius: 12px; font-weight: 600; }
+.alba-template-list { background: #f4f5fa; border-radius: 8px; padding: 14px; min-width: 0; }
+.alba-template-list article { background: white; padding: 12px; border-radius: 8px; margin: 12px 0; border-left: 3px solid #6366f1; }
+.alba-template-list h4 { margin: 0; }
+.alba-template-preview { overflow-wrap: anywhere; }
+.alba-template-preview input[type=text] { width: 100%; max-width: 500px; }
+.alba-template-preview form { border-top: 1px solid #dcdcde; padding-top: 16px; }
