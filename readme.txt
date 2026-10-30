@@ -94,6 +94,18 @@ Board Managers, Editors, and Administrators can delete cards. Board Members cann
 
 Other WordPress roles do not receive protected card access automatically. A published board or a guest assignment does not grant these permissions. If a user has multiple roles, WordPress combines their permissions; a Member who is also an Editor, Manager, or Administrator retains that higher role's deletion access. Legacy duplicate Board roles are consolidated automatically while retaining users' additional roles.
 
+= Can I use Markdown and screenshots in cards? =
+
+Descriptions and comments support Markdown headings, bold, italic, lists, links, quotes, tables and fenced code. Use Preview to check formatting and Edit text to return to writing. Raw HTML, scripts, iframes and embedded apps are not supported. An interactive MCP app is separate from stored card content.
+
+Paste a screenshot into the description or comment field with Ctrl+V, Cmd+V or your device’s Paste command, then save the description or post the comment. Multiple clipboard images upload in order. If an image fails, uploaded images and typed text are kept, remaining uploads stop, and an error explains the result. Upload limits are displayed in the card only when an upload fails. PNG, JPEG and WebP images are accepted up to 2 MB, 6000 pixels per side and 12 megapixels. Images are re-encoded, metadata is stripped and large images are resized to fit 2000 × 2000 pixels. There is a 20-image limit per card, including uploads not yet saved in text. Give images useful alternative text by editing “Screenshot” inside `![Screenshot](alba-image:123)`.
+
+Inline images are separate from extension-provided file attachments. They are stored in the WordPress database rather than public Media Library URLs and require a logged-in user with access to the card on every request. External Markdown images do not load automatically. This uses database space (up to approximately 54 MiB of encoded image data per full card), so include the database in backups. These image records are excluded from ordinary WordPress content exports; a content export alone is not an image backup. Removing a user’s card access also removes image access; WordPress administrators and database backup operators retain their normal administrative access.
+
+Trashing a card hides its images, restoring it restores access, and permanently deleting the card deletes its images. Uninstall keeps images with board data unless Delete data on uninstall is enabled. Images are not encrypted at rest by this plugin. Existing plain-text content remains editable; Markdown punctuation in older content may now be formatted.
+
+Markdown rendering uses a namespaced copy of Parsedown 1.8.0 (MIT), bundled in includes/vendor/parsedown with its license. No external rendering service is used.
+
 = 🔗 How do I share a direct link to a card? =
 Open the card on an admin or public board and copy the page URL, which includes `?alba_card=ID`. Opening that link selects the card on the corresponding board. For guest assignees, use the public board page URL.
 
@@ -299,3 +311,5 @@ For controlled development/staging tests, a site administrator can set ALBA_BOAR
 
 = 1.0.0 =
 * First stable release — backend Kanban, modal editing, AJAX, comments, add-ons.
+
+Card text drafts are protected while the dialog is open: closing, Escape or switching cards offers Keep editing or Discard changes. Successful saves reset the warning; failed saves keep the draft. Text is temporarily read-only during saves, and closing is blocked during an active save or image upload. Leaving the page with an unsaved card also uses the browser’s standard unsaved-changes warning. No autosave, browser storage or offline synchronization is added.

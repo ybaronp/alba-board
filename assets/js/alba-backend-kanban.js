@@ -540,6 +540,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const savedCardId = String(formData.get('card_id'));
             saveBtn.textContent = 'Saving...'; saveBtn.style.opacity = '0.7';
             saveBtn.disabled = true;
+            window.albaDraftGuard?.begin(modalAdmin);
             
             window.albaBoardRequest.fetch(albaBoard.ajaxurl, { method: 'POST', body: formData })
             .then(res => res.json())
@@ -558,12 +559,14 @@ document.addEventListener('DOMContentLoaded', () => {
                         bindSaveButtonHandler();
                         bindAttachmentHandlers();
                         jQuery(document).trigger('alba_modal_loaded');
+                        window.albaDraftGuard?.end(modalAdmin, true);
                     }
                     jQuery(document).trigger('alba_card_updated', [savedCardId, data]);
                 } 
                 else { throw new Error(response?.data?.message || albaBoard.fetch_error); }
             })
             .catch(error => {
+                window.albaDraftGuard?.end(modalAdmin, false);
                 saveBtn.textContent = 'Save Changes'; saveBtn.style.opacity = '1'; saveBtn.disabled = false;
                 if (currentOpenedCard === savedCardElement) alert(error.message || albaBoard.fetch_error);
             });
