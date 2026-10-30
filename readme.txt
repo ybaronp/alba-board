@@ -106,6 +106,10 @@ Trashing a card hides its images, restoring it restores access, and permanently 
 
 Markdown rendering uses a namespaced copy of Parsedown 1.8.0 (MIT), bundled in includes/vendor/parsedown with its license. No external rendering service is used.
 
+= What happens to unsaved card text? =
+
+Card text drafts are protected while the dialog is open: closing, Escape or switching cards offers Keep editing or Discard changes. Successful saves reset the warning; failed saves keep the draft. Text is temporarily read-only during saves, and closing is blocked during an active save or image upload. Leaving the page with an unsaved card also uses the browser’s standard unsaved-changes warning. No autosave, browser storage or offline synchronization is added.
+
 = 🔗 How do I share a direct link to a card? =
 Open the card on an admin or public board and copy the page URL, which includes `?alba_card=ID`. Opening that link selects the card on the corresponding board. For guest assignees, use the public board page URL.
 
@@ -311,5 +315,3 @@ For controlled development/staging tests, a site administrator can set ALBA_BOAR
 
 = 1.0.0 =
 * First stable release — backend Kanban, modal editing, AJAX, comments, add-ons.
-
-Card text drafts are protected while the dialog is open: closing, Escape or switching cards offers Keep editing or Discard changes. Successful saves reset the warning; failed saves keep the draft. Text is temporarily read-only during saves, and closing is blocked during an active save or image upload. Leaving the page with an unsaved card also uses the browser’s standard unsaved-changes warning. No autosave, browser storage or offline synchronization is added.
