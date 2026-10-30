@@ -47,6 +47,64 @@ function alba_board_builtin_templates() {
                 [ 'title' => __( 'Settling in', 'alba-board' ), 'cards' => [ $card( __( 'Check essential services', 'alba-board' ), __( 'Check electricity, water and other essential services after arrival.', 'alba-board' ) ) ] ],
             ],
         ],
+        'freelance-project' => [
+            'id' => 'freelance-project', 'version' => 1, 'name' => __( 'Freelance Client Project', 'alba-board' ),
+            'description' => __( 'Deliver a client project from a clear brief to an agreed handover.', 'alba-board' ),
+            'lists' => [
+                [ 'title' => __( 'Brief and scope', 'alba-board' ), 'cards' => [
+                    $card( __( 'Confirm the client brief', 'alba-board' ), __( 'Write the goal, audience, deliverables, budget and target date. Ask the client to confirm what is included and excluded.', 'alba-board' ) ),
+                    $card( __( 'Collect content and access requirements', 'alba-board' ), __( 'List the files, brand material and permissions you need. Share credentials through a secure channel, never inside a card.', 'alba-board' ) ),
+                ] ],
+                [ 'title' => __( 'In Progress', 'alba-board' ), 'cards' => [
+                    $card( __( 'Prepare the first deliverable', 'alba-board' ), __( 'Break the agreed work into a small reviewable delivery. Add acceptance criteria so both sides know what finished means.', 'alba-board' ) ),
+                ] ],
+                [ 'title' => __( 'Client Review', 'alba-board' ), 'cards' => [
+                    $card( __( 'Collect feedback in one place', 'alba-board' ), __( 'Ask for one consolidated feedback list. Confirm changes against the agreed scope before starting extra work.', 'alba-board' ) ),
+                ] ],
+                [ 'title' => __( 'Handover', 'alba-board' ), 'cards' => [
+                    $card( __( 'Prepare handover and invoice checklist', 'alba-board' ), __( 'Confirm approval, provide agreed files and instructions, and check invoicing. Replace these starter tasks with your own work.', 'alba-board' ) ),
+                ] ],
+            ],
+        ],
+        'wordpress-maintenance' => [
+            'id' => 'wordpress-maintenance', 'version' => 1, 'name' => __( 'WordPress Maintenance', 'alba-board' ),
+            'description' => __( 'A manual checklist for safer site checks, updates and verification; nothing runs automatically.', 'alba-board' ),
+            'lists' => [
+                [ 'title' => __( 'Prepare', 'alba-board' ), 'cards' => [
+                    $card( __( 'Confirm scope and a recoverable backup', 'alba-board' ), __( 'Agree the sites and maintenance window. Verify a recent files-and-database backup and a recovery method before changing anything.', 'alba-board' ) ),
+                    $card( __( 'Review updates on a test copy', 'alba-board' ), __( 'Check core, plugin and theme changes on a separate test copy. Review compatibility notes and identify a rollback plan.', 'alba-board' ) ),
+                ] ],
+                [ 'title' => __( 'Maintain', 'alba-board' ), 'cards' => [
+                    $card( __( 'Apply the approved changes', 'alba-board' ), __( 'After approval, apply the tested changes during the agreed window. Record what changed; do not place passwords or private backup links in this card.', 'alba-board' ) ),
+                ] ],
+                [ 'title' => __( 'Verify', 'alba-board' ), 'cards' => [
+                    $card( __( 'Check visitor and administrator journeys', 'alba-board' ), __( 'Check key pages, forms and wp-admin. If relevant, verify login and checkout with appropriate test accounts. Record errors and screenshots.', 'alba-board' ) ),
+                    $card( __( 'Review security and performance signals', 'alba-board' ), __( 'Review available error logs, security alerts and page performance. Record findings before deciding further changes.', 'alba-board' ) ),
+                ] ],
+                [ 'title' => __( 'Report', 'alba-board' ), 'cards' => [
+                    $card( __( 'Send a clear maintenance report', 'alba-board' ), __( 'Summarize completed checks, versions changed, issues and follow-up actions. Set future maintenance dates yourself; this board does not schedule or perform updates.', 'alba-board' ) ),
+                ] ],
+            ],
+        ],
+        'project-management' => [
+            'id' => 'project-management', 'version' => 1, 'name' => __( 'Project Delivery', 'alba-board' ),
+            'description' => __( 'Move a shared project from scope and ownership to review and handover.', 'alba-board' ),
+            'lists' => [
+                [ 'title' => __( 'Plan', 'alba-board' ), 'cards' => [
+                    $card( __( 'Define the outcome and acceptance criteria', 'alba-board' ), __( 'Describe who benefits, the problem being solved and how the team will check success.', 'alba-board' ) ),
+                    $card( __( 'Break the work into owned tasks', 'alba-board' ), __( 'Create small tasks with a clear expected result. Agree owners and dates before adding them to the real project.', 'alba-board' ) ),
+                ] ],
+                [ 'title' => __( 'In Progress', 'alba-board' ), 'cards' => [
+                    $card( __( 'Deliver the next reviewable step', 'alba-board' ), __( 'Work on one agreed task and record decisions. If work is blocked, explain what is needed and who can help.', 'alba-board' ) ),
+                ] ],
+                [ 'title' => __( 'Review', 'alba-board' ), 'cards' => [
+                    $card( __( 'Check the result with the intended users', 'alba-board' ), __( 'Compare the delivery with the acceptance criteria. Record test evidence and request approval before calling it complete.', 'alba-board' ) ),
+                ] ],
+                [ 'title' => __( 'Done', 'alba-board' ), 'cards' => [
+                    $card( __( 'Record handover and follow-up work', 'alba-board' ), __( 'Confirm the result is accepted, share usage instructions and move unfinished follow-ups to separate tasks. List names alone do not mark tasks complete for AI summaries.', 'alba-board' ) ),
+                ] ],
+            ],
+        ],
     ];
 }
 

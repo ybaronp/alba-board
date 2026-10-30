@@ -22,7 +22,7 @@ Work from the WordPress dashboard or display a board on a website page with the 
 
 == Features ==
 
-* Free Board templates: preview Personal Tasks, Community Event and Moving Home, including their lists and generic starter tasks. Previewing does not create a board or read existing project content.
+* Free Board templates: preview Freelance Client Project, WordPress Maintenance, Project Delivery, Personal Tasks, Community Event and Moving Home, including their lists and generic starter tasks. Previewing does not create a board or read existing project content. Maintenance templates are manual checklists; they do not run updates, backups or scheduled jobs.
 
 * **Organize work visually:** Create boards, lists, and task cards for your projects and to-do lists.
 * **Track progress:** Drag and drop cards between lists and rearrange lists to match your workflow.
