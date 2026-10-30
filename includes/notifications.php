@@ -109,6 +109,7 @@ function alba_board_send_notification($to_email, $subject, $user_name, $card_tit
   </div>
 </div>';
 
+    $defaults = array_map( 'alba_board_translate_default_email', $defaults );
     $html_template = !empty($options['template_' . $template_type]) ? $options['template_' . $template_type] : $defaults[$template_type];
 
     $search = ['{user_name}', '{card_title}', '{card_content}', '{card_link}', '{comment_text}'];

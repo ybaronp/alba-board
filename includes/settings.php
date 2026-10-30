@@ -210,7 +210,7 @@ function alba_board_notify_comment_callback() {
 
 function alba_board_render_template_editor($field_name, $default_template) {
     $options = get_option('alba_board_notifications');
-    $value = !empty($options[$field_name]) ? $options[$field_name] : $default_template;
+    $value = !empty($options[$field_name]) ? $options[$field_name] : alba_board_translate_default_email( $default_template );
     $preview_id = 'preview_' . $field_name;
     $textarea_id = 'textarea_' . $field_name;
     
@@ -219,12 +219,12 @@ function alba_board_render_template_editor($field_name, $default_template) {
     // Editor Side
     echo '<div style="flex: 1;">';
     echo '<textarea id="' . esc_attr($textarea_id) . '" name="alba_board_notifications[' . esc_attr($field_name) . ']" rows="14" style="width: 100%; font-family: monospace; padding: 10px; background: #f8fafc; font-size: 13px;">' . esc_textarea($value) . '</textarea>';
-    echo '<p class="description">Edit the HTML. The preview will update automatically.</p>';
+    echo '<p class="description">' . esc_html__( 'Edit the HTML. The preview will update automatically.', 'alba-board' ) . '</p>';
     echo '</div>';
     
     // Preview Side
     echo '<div style="flex: 1; padding: 0; background: #fff; border: 1px solid #cbd5e1; border-radius: 4px; box-shadow: inset 0 2px 4px 0 rgb(0 0 0 / 0.05); overflow: hidden;">';
-    echo '<h4 style="margin: 0; padding: 10px 15px; background: #f1f5f9; border-bottom: 1px solid #e2e8f0; color: #64748b; font-size: 12px; text-transform: uppercase;">Live Preview</h4>';
+    echo '<h4 style="margin: 0; padding: 10px 15px; background: #f1f5f9; border-bottom: 1px solid #e2e8f0; color: #64748b; font-size: 12px; text-transform: uppercase;">' . esc_html__( 'Live Preview', 'alba-board' ) . '</h4>';
     echo '<div id="' . esc_attr($preview_id) . '" style="all: initial; font-family: sans-serif; color: #334155; display: block; overflow: auto; max-height: 500px;"></div>';
     echo '</div>';
     

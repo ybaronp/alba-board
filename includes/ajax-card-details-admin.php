@@ -59,7 +59,7 @@ function alba_output_card_details_admin_modal( $card_id, $force_author = null ) 
     $guest_assignee = get_post_meta($card_id, 'alba_guest_assignee', true);
     echo '<div class="alba-form-group alba-guest-assignee-group" style="flex:1; margin-bottom:0;">';
     echo '<label for="alba-guest-assignee">' . esc_html__( 'Guest Assignee:', 'alba-board' ) . '</label>';
-    echo '<input type="text" id="alba-guest-assignee" name="guest_assignee" class="alba-form-input-text" placeholder="Name or Email" value="' . esc_attr( $guest_assignee ) . '"' . ( empty( $public_url ) ? ' aria-describedby="alba-guest-assignee-help"' : '' ) . '>';
+    echo '<input type="text" id="alba-guest-assignee" name="guest_assignee" class="alba-form-input-text" placeholder="' . esc_attr__( 'Name or Email', 'alba-board' ) . '" value="' . esc_attr( $guest_assignee ) . '"' . ( empty( $public_url ) ? ' aria-describedby="alba-guest-assignee-help"' : '' ) . '>';
     
     // UI Warning: Alert admin if the board is strictly private
     if (empty($public_url)) {

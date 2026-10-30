@@ -79,7 +79,7 @@ document.addEventListener('DOMContentLoaded', () => {
         body: move.params
       });
       const response = await result.json();
-      if (!response.success) throw new Error(response.data && response.data.message || albaBoard.move_error || 'Could not move the card.');
+      if (!response.success) throw new Error(response.data && response.data.message || albaBoard.move_error || window.albaBoardText.moveError);
       cardMoves.shift();
     } catch (error) {
         // A lost response may have committed, and a conflict means local positions are stale.
@@ -176,7 +176,7 @@ document.addEventListener('DOMContentLoaded', () => {
     modal.classList.add("active");
     document.body.classList.add("alba-body-no-scroll");
     
-    modalBody.innerHTML = albaBoard.loading || 'Loading...';
+    modalBody.innerHTML = albaBoard.loading || window.albaBoardText.loading;
     let heading = modal.querySelector('.alba-card-modal-heading');
     if (!heading) {
         heading = document.createElement('div');
