@@ -73,6 +73,5 @@ function alba_board_render_page_action( $board_id ) {
     echo '<form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '">';
     echo '<input type="hidden" name="action" value="alba_create_board_page"><input type="hidden" name="board_id" value="' . absint( $board_id ) . '">';
     wp_nonce_field( 'alba_create_board_page_' . $board_id );
-    echo '<button type="submit" class="alba-menu-action">' . esc_html( alba_board_page_contains_board( $page, $board_id ) ? __( 'Edit board page', 'alba-board' ) : __( 'Create board page', 'alba-board' ) ) . '</button>';
-    echo '<p class="description" style="padding:0 12px;max-width:240px">' . esc_html__( 'Review the draft before publishing. Existing board access rules apply.', 'alba-board' ) . '</p></form>';
+    echo '<button type="submit" class="alba-menu-action">' . esc_html( alba_board_page_contains_board( $page, $board_id ) ? __( 'Edit board page', 'alba-board' ) : __( 'Create Public Board', 'alba-board' ) ) . '</button></form>';
 }
