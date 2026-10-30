@@ -305,3 +305,5 @@ For controlled development/staging tests, a site administrator can set ALBA_BOAR
 
 = 1.0.0 =
 * First stable release — backend Kanban, modal editing, AJAX, comments, add-ons.
+
+Duplicate board makes a one-off clean copy of published list/card structure, titles and cleaned descriptions after a preview and confirmation. It excludes archived/draft content, comments, people, due dates, files/images, tags and sharing metadata. Lines with Markdown image syntax, private image tokens or local upload links are replaced by a removal marker. Review remaining text and links in the preview. Empty lists and order are preserved; every item receives a new ID. Source changes require a fresh preview, and successful retries reuse the created copy. Limits are 50 lists, 500 tasks and 2 MiB of source text per request. The shared transactional creation service enforces capabilities, card limits and rollback. A duplicate is not automatically shared with MCP.
