@@ -1,0 +1,38 @@
+.alba-ai { max-width: 1240px; }
+.alba-ai .alba-ai-intro { font-size: 15px; color: #50575e; max-width: 760px; }
+.alba-ai-status { display: inline-block; background: #fff3d6; color: #674800; border-radius: 20px; padding: 7px 14px; margin: 6px 0 22px; font-weight: 600; }
+.alba-ai-status.is-ready { background: #dcfce7; color: #14532d; }
+.alba-ai-layout { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 24px; align-items: start; }
+.alba-ai .alba-ai-panel { background: #fff; border: 1px solid #dcdcde; border-radius: 12px; padding: 24px; box-shadow: 0 3px 12px #00000006; min-width: 0; }
+.alba-ai .alba-ai-panel h2 { margin: 0 0 20px; font-size: 20px; }
+.alba-ai-panel > p label { line-height: 1.8; }
+.alba-ai #alba-mcp-boards { margin: 24px 0; min-width: 0; }
+.alba-ai #alba-mcp-boards legend { font-size: 15px; margin-bottom: 12px; }
+.alba-ai-tools { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+.alba-ai-tools input[type=search] { flex: 1 1 210px; min-width: 0; min-height: 38px; }
+.alba-ai-bulk { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.alba-ai-count { color: #50575e; font-size: 12px; }
+.alba-ai-board-list { max-height: 360px; overflow-y: auto; border: 1px solid #dcdcde; border-radius: 8px; padding: 4px; }
+.alba-ai .alba-ai-board { display: flex; align-items: center; gap: 10px; margin: 0; padding: 12px 10px; cursor: pointer; border-bottom: 1px solid #f0f0f1; border-radius: 4px; }
+.alba-ai .alba-ai-board[hidden] { display: none; }
+.alba-ai-board:hover { background: #f6f7ff; }
+.alba-ai-board:focus-within { outline: 2px solid #2271b1; outline-offset: -2px; }
+.alba-ai-board:has(input:checked) { background: #eef2ff; }
+.alba-ai-board input { flex-shrink: 0; margin: 0; }
+.alba-ai-board span { flex: 1; overflow-wrap: anywhere; min-width: 0; }
+.alba-ai-board small { color: #646970; flex-shrink: 0; }
+.alba-ai #alba-board-no-results { padding: 12px; margin: 0; }
+.alba-ai .description { margin-top: 12px; }
+.alba-ai .submit { margin: 20px 0 0; padding: 0; }
+.alba-ai-steps { margin: 0 0 24px 22px; }
+.alba-ai-steps li { padding: 0 0 12px 4px; line-height: 1.6; }
+.alba-ai-url { display: flex; gap: 8px; }
+.alba-ai-url input { flex: 1; min-width: 0; font-size: 12px; border: 1px solid #8c8f94; border-radius: 6px; background: #f6f7f7; color: #1d2327; padding: 8px; }
+.alba-ai-url button { flex-shrink: 0; }
+.alba-ai #alba-copy-status:empty { display: none; }
+.alba-ai .alba-ai-advanced { margin-top: 24px; }
+.alba-ai-advanced details + details { border-top: 1px solid #dcdcde; padding-top: 16px; margin-top: 16px; }
+.alba-ai-advanced summary { cursor: pointer; font-weight: 600; padding: 4px 0; }
+.alba-ai-advanced p { max-width: 900px; overflow-wrap: anywhere; }
+@media (max-width: 1000px) { .alba-ai-layout { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 600px) { .alba-ai .alba-ai-panel { padding: 16px; } .alba-ai-url { flex-wrap: wrap; } .alba-ai-url input { flex-basis: 100%; } }
