@@ -20,13 +20,19 @@ function alba_board_template_creation_form( $template ) {
 
 function alba_board_create_from_builtin_template( $template_id, $version, $title, $request_id, $context = 'ui' ) {
     if ( ! function_exists( 'alba_board_get_builtin_template' ) ) return new WP_Error( 'alba_template_catalog_unavailable', __( 'Board templates are not available yet.', 'alba-board' ) );
+    if ( ! is_scalar( $version ) || is_bool( $version ) || (string) (int) $version !== (string) $version ) return new WP_Error( 'alba_template_invalid', __( 'Review the template version.', 'alba-board' ) );
+    return alba_board_create_clean_structure( $title, $request_id, $context, [ $template_id, (int) $version ], function() use ( $template_id, $version ) { $template = alba_board_get_builtin_template( $template_id, $version ); if ( ! is_wp_error( $template ) ) $template['_source'] = 'builtin'; return $template; } );
+}
+
+/** Internal shared service; the structure is prepared server-side, never accepted from a request body. */
+function alba_board_create_clean_structure( $title, $request_id, $context, $identity, $prepare ) {
     if ( ! alba_board_can_create_from_template() ) return new WP_Error( 'alba_template_forbidden', __( 'You do not have permission to create this board and its tasks.', 'alba-board' ) );
-    if ( ! is_string( $title ) || ! is_string( $request_id ) || ! is_scalar( $version ) || is_bool( $version ) || (string) (int) $version !== (string) $version ) return new WP_Error( 'alba_template_invalid', __( 'Review the template and board name, then try again.', 'alba-board' ) );
+    if ( ! is_string( $title ) || ! is_string( $request_id ) || ! is_callable( $prepare ) ) return new WP_Error( 'alba_template_invalid', __( 'Review the board name and try again.', 'alba-board' ) );
     $title = trim( sanitize_text_field( $title ) );
     if ( ! preg_match( '/^.{1,200}$/us', $title ) || ! preg_match( '/^[A-Za-z0-9_-]{8,64}$/D', $request_id ) ) return new WP_Error( 'alba_template_invalid', __( 'Use a board name of 1–200 characters and a valid request ID.', 'alba-board' ) );
 
     $key = 'alba_template_request_' . hash( 'sha256', get_current_user_id() . ':' . $context . ':' . $request_id );
-    $fingerprint = hash( 'sha256', wp_json_encode( [ $template_id, (int) $version, $title ] ) );
+    $fingerprint = hash( 'sha256', wp_json_encode( array_merge( $identity, [ $title ] ) ) );
     $lock = $key . '_lock';
     global $wpdb;
     $lease = get_option( $lock );
@@ -46,8 +52,19 @@ function alba_board_create_from_builtin_template( $template_id, $version, $title
             $result = $previous['result']; $result['reused'] = true; return $result;
         }
         if ( $previous ) delete_option( $key );
-        $template = alba_board_get_builtin_template( $template_id, $version );
+        $template = call_user_func( $prepare );
         if ( is_wp_error( $template ) ) return $template;
+        $total_cards = 0; $total_bytes = 0;
+        if ( ! is_array( $template ) || ! isset( $template['id'], $template['version'], $template['lists'] ) || ! is_array( $template['lists'] ) || count( $template['lists'] ) > 50 ) return new WP_Error( 'alba_template_structure', __( 'This structure cannot be created in one request.', 'alba-board' ) );
+        foreach ( $template['lists'] as $list ) {
+            if ( ! isset( $list['title'], $list['cards'] ) || ! is_string( $list['title'] ) || ! is_array( $list['cards'] ) ) return new WP_Error( 'alba_template_structure', __( 'Invalid list structure.', 'alba-board' ) );
+            $total_cards += count( $list['cards'] ); $total_bytes += strlen( $list['title'] );
+            foreach ( $list['cards'] as $card ) {
+                if ( ! isset( $card['title'], $card['description'] ) || ! is_string( $card['title'] ) || ! is_string( $card['description'] ) ) return new WP_Error( 'alba_template_structure', __( 'Invalid task structure.', 'alba-board' ) );
+                $total_bytes += strlen( $card['title'] ) + strlen( $card['description'] );
+            }
+        }
+        if ( $total_cards > 500 || $total_bytes > 2 * MB_IN_BYTES ) return new WP_Error( 'alba_template_structure_limit', __( 'This board is too large to copy safely in one request.', 'alba-board' ) );
         $limit = absint( get_option( 'alba_board_limits', [] )['limit_cards'] ?? 0 );
         foreach ( $template['lists'] as $list ) if ( $limit && count( $list['cards'] ) > $limit ) return new WP_Error( 'alba_template_card_limit', __( 'This template has more starter tasks in one list than your current card limit allows. Choose another template or ask your administrator to review the limit.', 'alba-board' ) );
         // A complete board and its retry record commit together; never publish a half-created project.
@@ -67,14 +84,14 @@ function alba_board_create_from_builtin_template( $template_id, $version, $title
             $created[] = $id; return $id;
         };
         $board_id = $insert( 'alba_board', $title );
-        $result = [ 'board_id' => $board_id, 'title' => $title, 'template_id' => $template_id, 'template_version' => (int) $version, 'lists' => [], 'reused' => false, 'url' => admin_url( 'admin.php?page=alba-board-visual&board_id=' . $board_id ) ];
+        $result = [ 'board_id' => $board_id, 'title' => $title, 'template_id' => $template['id'], 'template_version' => (int) $template['version'], 'lists' => [], 'reused' => false, 'url' => admin_url( 'admin.php?page=alba-board-visual&board_id=' . $board_id ) ];
         foreach ( $template['lists'] as $position => $list ) {
             $list_id = $insert( 'alba_list', $list['title'], '', 'alba_board_parent', $board_id, $position );
             $row = [ 'id' => $list_id, 'title' => $list['title'], 'cards' => [] ];
             foreach ( $list['cards'] as $index => $card ) $row['cards'][] = [ 'id' => $insert( 'alba_card', $card['title'], $card['description'], 'alba_list_parent', $list_id, $index ), 'title' => $card['title'] ];
             $result['lists'][] = $row;
         }
-        if ( ! add_post_meta( $board_id, 'alba_builtin_template', [ 'id' => $template_id, 'version' => (int) $version ], true ) ) throw new RuntimeException( 'metadata' );
+        if ( ! add_post_meta( $board_id, ( $template['_source'] ?? '' ) === 'builtin' ? 'alba_builtin_template' : 'alba_clean_duplicate', ( $template['_source'] ?? '' ) === 'builtin' ? [ 'id' => $template['id'], 'version' => (int) $template['version'] ] : true, true ) ) throw new RuntimeException( 'metadata' );
         if ( ! add_option( $key, [ 'expires' => time() + DAY_IN_SECONDS, 'fingerprint' => $fingerprint, 'result' => $result ], '', false ) ) throw new RuntimeException( 'record' );
         if ( false === $wpdb->query( 'COMMIT' ) ) throw new RuntimeException( 'commit' );
         $transaction = false;
