@@ -18,6 +18,8 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
+require_once plugin_dir_path( __FILE__ ) . 'includes/i18n.php';
+
 register_activation_hook(__FILE__, 'alba_board_on_activation');
 
 function alba_board_on_activation() {

@@ -78,19 +78,19 @@ document.addEventListener('DOMContentLoaded', () => {
         body: move.params
       });
       const response = await result.json();
-      if (!response.success) throw new Error(response.data && response.data.message || albaBoard.move_error || 'Could not move the card.');
+      if (!response.success) throw new Error(response.data && response.data.message || albaBoard.move_error || window.albaBoardText.moveError);
       cardMoves.shift();
     } catch (error) {
       // Later drops may depend on this move. Refresh confirmed positions if any are pending.
       if (cardMoves.length > 1 || draggingCard) {
-        failedMoveMessage = error.message || albaBoard.move_error || 'Could not move the card.';
+        failedMoveMessage = error.message || albaBoard.move_error || window.albaBoardText.moveError;
       } else {
         const location = move.originalLocation;
         if (location && location.parent) {
           location.parent.insertBefore(move.card, location.nextSibling && location.nextSibling.parentNode === location.parent ? location.nextSibling : null);
         }
 
-        alert(error.message || albaBoard.move_error || 'Could not move the card.');
+        alert(error.message || albaBoard.move_error || window.albaBoardText.moveError);
       }
       cardMoves.forEach(pending => pending.card.removeAttribute('aria-busy'));
       cardMoves.length = 0;
@@ -181,7 +181,7 @@ document.addEventListener('DOMContentLoaded', () => {
     modal.classList.add("active");
     document.body.classList.add("alba-body-no-scroll");
     
-    modalBody.innerHTML = albaBoard.loading || 'Loading...';
+    modalBody.innerHTML = albaBoard.loading || window.albaBoardText.loading;
     let heading = modal.querySelector('.alba-card-modal-heading');
     if (!heading) {
         heading = document.createElement('div');

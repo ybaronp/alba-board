@@ -27,7 +27,7 @@ function alba_board_enqueue_admin_assets($hook) {
 
     $backend_script_version = file_exists($backend_script_path) ? filemtime($backend_script_path) : $plugin_version;
     wp_enqueue_script('alba-card-autosize', $plugin_url . 'js/alba-card-autosize.js', [], (string) filemtime(plugin_dir_path(dirname(__FILE__)) . 'assets/js/alba-card-autosize.js'), true);
-    wp_enqueue_script('alba-backend-kanban', $plugin_url . 'js/alba-backend-kanban.js', ['sortablejs', 'jquery', 'select2', 'flatpickr-js', 'alba-board-session', 'alba-card-autosize'], $backend_script_version, true);
+    wp_enqueue_script('alba-backend-kanban', $plugin_url . 'js/alba-backend-kanban.js', ['alba-board-i18n', 'sortablejs', 'jquery', 'select2', 'flatpickr-js', 'alba-board-session', 'alba-card-autosize'], $backend_script_version, true);
     wp_enqueue_script('alba-core-interactions', $plugin_url . 'js/alba-frontend-interactions.js', ['alba-backend-kanban'], (string) filemtime(plugin_dir_path(dirname(__FILE__)) . 'assets/js/alba-frontend-interactions.js'), true);
     wp_localize_script('alba-core-interactions', 'albaBoardFrontend', alba_board_interaction_config());
     wp_enqueue_style('alba-board-admin-neomorphism', $plugin_url . 'css/admin-alba-board-style.css', [], $admin_style_version);
