@@ -106,6 +106,10 @@ Trashing a card hides its images, restoring it restores access, and permanently 
 
 Markdown rendering uses a namespaced copy of Parsedown 1.8.0 (MIT), bundled in includes/vendor/parsedown with its license. No external rendering service is used.
 
+= How do I know my card edit was saved? =
+
+The admin card dialog announces Saving, then Saved only after confirmation. A lost connection shows Connection lost with Reload; other errors show the reported problem with Retry save. Text remains in the open dialog. Saved clears when another edit starts. Retrying the same comment attempt does not append a second copy if its first response was lost. Changed comment text starts a new attempt. This feedback complements the unsaved-text warning; drafts are not stored offline or automatically saved.
+
 = What happens to unsaved card text? =
 
 Card text drafts are protected while the dialog is open: closing, Escape or switching cards offers Keep editing or Discard changes. Successful saves reset the warning; failed saves keep the draft. Text is temporarily read-only during saves, and closing is blocked during an active save or image upload. Leaving the page with an unsaved card also uses the browser’s standard unsaved-changes warning. No autosave, browser storage or offline synchronization is added.

@@ -19,6 +19,9 @@ function alba_ajax_save_card_details_admin() {
         wp_send_json_error(['message' => esc_html__('Permission denied.', 'alba-board')], 403);
     }
 
+    $comment_request = isset( $_POST['comment_request_id'] ) && is_string( $_POST['comment_request_id'] ) ? wp_unslash( $_POST['comment_request_id'] ) : '';
+    if ( '' !== $comment_request && ! preg_match( '/^[A-Za-z0-9_-]{8,64}$/D', $comment_request ) ) wp_send_json_error( [ 'message' => __( 'Refresh the card before saving this comment.', 'alba-board' ) ], 400 );
+
     $members = null;
     if ( isset( $_POST['card_members_present'] ) ) {
         $members = alba_board_validate_members( $card_id, isset( $_POST['card_members'] ) ? wp_unslash( $_POST['card_members'] ) : [] );
@@ -85,18 +88,8 @@ function alba_ajax_save_card_details_admin() {
     do_action('alba_save_card_details_admin', $card_id, wp_unslash($_POST));
 
     if (isset($_POST['new_comment']) && '' !== trim(sanitize_textarea_field(wp_unslash($_POST['new_comment'])))) {
-        $current_user = wp_get_current_user();
-        $comments = get_post_meta($card_id, 'alba_comments', true);
-        if (!is_array($comments)) { 
-            $comments = @unserialize($comments); 
-            if (!is_array($comments)) $comments = []; 
-        }
-        $comments[] = [ 
-            'author' => $current_user->display_name, 
-            'date' => current_time('mysql'), 
-            'text' => sanitize_textarea_field(wp_unslash($_POST['new_comment'])) 
-        ];
-        update_post_meta($card_id, 'alba_comments', $comments);
+        $comment_result = alba_board_append_retry_safe_comment( $card_id, trim( sanitize_textarea_field( wp_unslash( $_POST['new_comment'] ) ) ), $comment_request );
+        if ( is_wp_error( $comment_result ) ) wp_send_json_error( [ 'message' => $comment_result->get_error_message() ], 409 );
     }
 
     delete_transient('alba_card_live_admin_' . $card_id);
@@ -116,6 +109,29 @@ function alba_ajax_save_card_details_admin() {
         'card_id' => $card_id,
         'author_id' => (int) $card->post_author,
     ]);
+}
+
+
+/** A response can be lost after a comment saved. Replaying the same attempt must not append it twice. */
+function alba_board_append_retry_safe_comment( $card_id, $text, $request ) {
+    global $wpdb;
+    $lock = 'alba_comment_' . md5( $wpdb->postmeta . ':' . $card_id );
+    if ( '1' !== (string) $wpdb->get_var( $wpdb->prepare( 'SELECT GET_LOCK(%s,5)', $lock ) ) ) return new WP_Error( 'alba_comment_busy', __( 'Another comment is saving. Please retry.', 'alba-board' ) );
+    try {
+        wp_cache_delete( $card_id, 'post_meta' );
+        $comments = get_post_meta( $card_id, 'alba_comments', true );
+        if ( ! is_array( $comments ) ) { $comments = maybe_unserialize( $comments ); if ( ! is_array( $comments ) ) $comments = []; }
+        $user = wp_get_current_user();
+        foreach ( $comments as $comment ) if ( '' !== $request && ( $comment['request_id'] ?? '' ) === $request && (int) ( $comment['user_id'] ?? 0 ) === (int) $user->ID ) {
+            if ( $comment['text'] !== $text ) return new WP_Error( 'alba_comment_changed', __( 'This comment attempt already saved different text. Reopen the card before posting again.', 'alba-board' ) );
+            return true;
+        }
+        $comment = [ 'author' => $user->display_name, 'date' => current_time( 'mysql' ), 'text' => $text ];
+        if ( '' !== $request ) { $comment['request_id'] = $request; $comment['user_id'] = (int) $user->ID; }
+        $comments[] = $comment;
+        if ( ! update_post_meta( $card_id, 'alba_comments', $comments ) ) return new WP_Error( 'alba_comment_failed', __( 'The comment could not be confirmed. Please retry.', 'alba-board' ) );
+        return true;
+    } finally { $wpdb->get_var( $wpdb->prepare( 'SELECT RELEASE_LOCK(%s)', $lock ) ); }
 }
 
 // ==========================================
