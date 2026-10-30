@@ -57,17 +57,27 @@ document.addEventListener('DOMContentLoaded', () => {
             preview.innerHTML = result.html; preview.hidden = false; field.hidden = true; button.textContent = config.edit; button.setAttribute('aria-pressed', 'true'); status.textContent = '';
         });
     });
-    function uploadImage(control, file) {
+    function uploadImages(control, files) {
         return run(control, async (status, field) => {
             if (!field) return;
             field.hidden = false;
             control.querySelector('.alba-rich-result').hidden = true;
             control.querySelector('.alba-rich-preview').textContent = config.preview;
             control.querySelector('.alba-rich-preview').setAttribute('aria-pressed', 'false');
-            const start = field.selectionStart, end = field.selectionEnd;
-            const result = await request('alba_upload_card_image', control, {image: file, target: control.dataset.target});
-            field.setRangeText('\n' + result.markdown + '\n', start, end, 'end');
-            field.dispatchEvent(new Event('input', {bubbles: true}));
+            let start = field.selectionStart, end = field.selectionEnd;
+            let completed = 0;
+            for (const file of files) {
+                try {
+                    const result = await request('alba_upload_card_image', control, {image: file, target: control.dataset.target});
+                    field.setRangeText('\n' + result.markdown + '\n', start, end, 'end');
+                    start = end = field.selectionEnd;
+                    field.dispatchEvent(new Event('input', {bubbles: true}));
+                    completed++;
+                } catch (error) {
+                    field.focus();
+                    throw new Error(config.partial.replace('%1$d', completed).replace('%2$d', files.length - completed).replace('%3$s', error.message || config.error));
+                }
+            }
             field.focus(); status.textContent = config.inserted;
         });
     }
@@ -76,10 +86,13 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!event.target.matches('textarea')) return;
         const scope = event.target.closest('form, .alba-add-comment-section');
         const control = scope && [...scope.querySelectorAll('.alba-rich-controls')].find(el => textarea(el) === event.target);
-        const file = [...(event.clipboardData?.items || [])].find(item => item.kind === 'file' && item.type.startsWith('image/'))?.getAsFile()
-            || [...(event.clipboardData?.files || [])].find(item => item.type.startsWith('image/'));
-        if (!control || !file) return;
+        let files = [...(event.clipboardData?.items || [])]
+            .filter(item => item.kind === 'file' && item.type.startsWith('image/'))
+            .map(item => item.getAsFile()).filter(Boolean);
+        // Some browsers expose files without clipboard items; do not process both collections twice.
+        if (!files.length) files = [...(event.clipboardData?.files || [])].filter(file => file.type.startsWith('image/'));
+        if (!control || !files.length) return;
         event.preventDefault();
-        if (control.dataset.busy !== '1') uploadImage(control, file);
+        if (control.dataset.busy !== '1') uploadImages(control, files);
     });
 });

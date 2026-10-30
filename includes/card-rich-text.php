@@ -192,6 +192,7 @@ function alba_board_enqueue_rich_text() {
     wp_localize_script( 'alba-rich-text', 'albaRichText', [ 'url' => admin_url( 'admin-ajax.php' ), 'nonce' => wp_create_nonce( 'alba_card_rich_text' ),
         'preview' => __( 'Preview', 'alba-board' ), 'edit' => __( 'Edit text', 'alba-board' ),
         'working' => __( 'Working…', 'alba-board' ), 'error' => __( 'Could not complete the request. Please retry.', 'alba-board' ),
+        'partial' => __( '%1$d image(s) pasted; %2$d not uploaded. %3$s', 'alba-board' ),
         'inserted' => __( 'Image pasted.', 'alba-board' ),
     ] );
 }
