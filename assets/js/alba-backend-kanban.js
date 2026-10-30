@@ -55,6 +55,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- 1. SORTABLE CARDS ---
     const originalCardLocations = new WeakMap();
+    let moveSnapshot = new Map();
     const cardMoves = [];
     let savingCardMove = false;
     let draggingCard = false;
@@ -95,17 +96,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!response.success) throw new Error(response.data && response.data.message || albaBoard.move_error || 'Could not move the card.');
         cardMoves.shift();
       } catch (error) {
-        // Later drops may depend on this move. Refresh confirmed positions if any are pending.
-        if (cardMoves.length > 1 || draggingCard) {
-          failedMoveMessage = error.message || albaBoard.move_error || 'Could not move the card.';
-        } else {
-          const location = move.originalLocation;
-          if (location && location.parent) {
-            location.parent.insertBefore(move.card, location.nextSibling && location.nextSibling.parentNode === location.parent ? location.nextSibling : null);
-          }
-          checkEmptyStates();
-          alert(error.message || albaBoard.move_error || 'Could not move the card.');
-        }
+        // A lost response may have committed, and a conflict means local positions are stale.
+        // Reload confirmed server state rather than displaying an assumed rollback.
+        failedMoveMessage = error.message === window.albaSession?.network_error ? albaBoard.move_connection_lost : error.message || albaBoard.move_error || 'Move failed. Reload.';
         cardMoves.forEach(pending => pending.card.removeAttribute('aria-busy'));
         cardMoves.length = 0;
       } finally {
@@ -133,6 +126,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 preventOnFilter: false,
                 onStart: function (evt) {
                     draggingCard = true;
+                    moveSnapshot = new Map([...document.querySelectorAll('.alba-cards-container')].map(list => [list.dataset.listId, [...list.querySelectorAll('.alba-card')].map(card => card.dataset.cardId)]));
                     // The floating copy lives outside the theme wrapper; preserve its appearance.
                     const preview = document.querySelector('body > .alba-card-drag-preview');
                     if (preview) {
@@ -165,6 +159,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         card.setAttribute('aria-busy', 'true');
                         const params = new URLSearchParams();
                         params.append('action', 'alba_move_card');
+                        params.append('move_snapshot', JSON.stringify({source_list:evt.from.dataset.listId, source:moveSnapshot.get(evt.from.dataset.listId), destination:moveSnapshot.get(newListId)}));
                         params.append('card_id', cardId);
                         params.append('new_list_id', newListId);
                         params.append('nonce', albaBoard.nonce);

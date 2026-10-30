@@ -233,11 +233,12 @@ function alba_board_mcp_run( $action, $input ) {
             $updated = wp_update_post( wp_slash( $post ), true );
             if ( is_wp_error( $updated ) ) return $updated;
         } elseif ( 'move-card' === $action ) {
-            if ( (int) get_post_meta( $id, 'alba_list_parent', true ) !== $input['list_id'] ) {
-                if ( ! alba_board_mcp_check_limit( $input['list_id'], $id ) ) return alba_board_mcp_error( 'alba_mcp_card_limit', __( 'The card limit for this list has been reached.', 'alba-board' ) );
-                $updated = wp_update_post( [ 'ID' => $id, 'menu_order' => alba_board_mcp_next_order( 'alba_card', 'alba_list_parent', $input['list_id'] ) ], true );
-                if ( is_wp_error( $updated ) ) return $updated;
-                update_post_meta( $id, 'alba_list_parent', $input['list_id'] );
+            $source = (int) get_post_meta( $id, 'alba_list_parent', true );
+            if ( $source !== $input['list_id'] ) {
+                $destination = alba_board_move_ids( $input['list_id'] );
+                $snapshot = [ 'source_list' => $source, 'source' => alba_board_move_ids( $source ), 'destination' => $destination ];
+                $moved = alba_board_move_card_atomic( $id, $input['list_id'], array_merge( $destination, [ $id ] ), $snapshot );
+                if ( is_wp_error( $moved ) ) return $moved;
             }
         } elseif ( 'add-comment' === $action ) {
             $text = trim( sanitize_textarea_field( $input['comment'] ) );

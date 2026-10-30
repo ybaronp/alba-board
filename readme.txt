@@ -96,6 +96,10 @@ Existing Application Password clients continue to work. The adapter's original d
 
 MCP does not supply an AI subscription or daily scheduler. Using a remote OAuth connection does not make the app publishable in any provider's store automatically.
 
+= How are competing card moves handled? =
+
+Card moves save list membership and numeric positions in one database transaction. A changed source or destination snapshot is rejected with a refresh instruction instead of overwriting newer ordering. Admin, frontend and MCP moves use the same service; MCP moves still require their existing board permissions. A failed or unconfirmed browser move refreshes confirmed server state. This requires InnoDB for the WordPress posts and postmeta tables and MySQL/MariaDB advisory locks. Refresh cached pages and scripts after installing the update; older clients without snapshots are asked to refresh.
+
 = Can I use Alba Board as a Kanban board? =
 Yes. A Kanban board organizes tasks into lists that represent stages of work. Create lists such as To Do, In Progress, and Done, then drag task cards between them as work progresses. You can use this board in the WordPress dashboard or display it on a page with the board shortcode.
 
