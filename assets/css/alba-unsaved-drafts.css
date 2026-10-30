@@ -1,0 +1,8 @@
+.alba-discard-dialog { border: 1px solid #9ca3af; border-radius: 12px; padding: 24px; max-width: min(420px, calc(100vw - 48px)); color: #172033; background: #fff; box-shadow: 0 12px 48px #0004; z-index: 1000000; }
+.alba-discard-dialog::backdrop { background: #0008; }
+.alba-discard-dialog h2 { font: 600 20px/1.3 system-ui; margin: 0 0 12px; }
+.alba-discard-dialog p { font: 14px/1.6 system-ui; }
+.alba-discard-dialog button { border: 1px solid #6b7280; padding: 9px 12px; border-radius: 6px; background: #fff; color: #172033; margin: 8px 8px 0 0; cursor: pointer; }
+.alba-discard-dialog .alba-keep-draft { background: #1d4ed8; border-color: #1d4ed8; color: #fff; }
+.alba-discard-dialog .alba-discard-draft { color: #9f1239; }
+.alba-discard-dialog button:focus-visible { outline: 2px solid #172033; outline-offset: 3px; }

@@ -70,6 +70,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     if (deleteButton && !window.confirm(labels.confirmDelete)) return;
     control.dataset.loading = 'true'; control.disabled = true;
+    if (commentButton) window.albaDraftGuard?.begin(modal);
+    let commentSaved = false;
     try {
       const data = await request(deleteButton ? 'alba_delete_card' : 'alba_add_card_comment', {
         card_id: id, ...(commentButton ? {comment: textarea.value.trim()} : {})
@@ -84,15 +86,13 @@ document.addEventListener('DOMContentLoaded', () => {
             const authorLabel = document.createElement('span'); authorLabel.className = 'alba-comment-author'; authorLabel.appendChild(author);
             const date = document.createElement('span'); date.className = 'alba-comment-date'; date.textContent = comment.date;
             const text = document.createElement('div'); text.className = 'alba-comment-text';
-            (comment.segments || [{text:comment.text,mention:false}]).forEach(part=>{
-              if(part.mention){const name=document.createElement('strong');name.className='alba-comment-mention';name.textContent=part.text;text.appendChild(name);}
-              else text.appendChild(document.createTextNode(part.text));
-            });
+            if (typeof comment.html === 'string') text.innerHTML = comment.html; // Server-rendered, sanitized Markdown.
+            else text.textContent = comment.text;
             row.append(authorLabel, date, text); list.appendChild(row);
           });
           list.scrollTop = list.scrollHeight;
         }
-        textarea.value = ''; if (feedback) feedback.textContent = '';
+        textarea.value = ''; commentSaved = true; if (feedback) feedback.textContent = '';
       } else {
         document.querySelectorAll('.alba-card').forEach(card => {if (card.dataset.cardId === String(id)) card.remove();});
         document.getElementById('alba-modal-close')?.click();
@@ -100,6 +100,6 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch (error) {
       if (feedback) feedback.textContent = error.message || labels.error;
       else window.alert(error.message || labels.error);
-    } finally { control.dataset.loading = 'false'; control.disabled = false; }
+    } finally { if (commentButton) window.albaDraftGuard?.end(modal, commentSaved); control.dataset.loading = 'false'; control.disabled = false; }
   });
 });

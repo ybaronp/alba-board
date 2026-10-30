@@ -26,6 +26,7 @@
         if (!response.ok || !result.success) throw new Error(window.albaSession.error);
         if (window.albaBoard) Object.assign(window.albaBoard, result.data.board);
         if (window.albaBoardFrontend) window.albaBoardFrontend.nonce = result.data.frontend;
+        if (window.albaRichText) window.albaRichText.nonce = result.data.actions.alba_upload_card_image;
         if (window.albaCollaboration) window.albaCollaboration.nonce = result.data.board.rest_nonce;
         return result.data;
       })().finally(() => { refreshing = null; });
@@ -66,7 +67,7 @@
   window.albaBoardRequest = {fetch:request, url};
   document.addEventListener('DOMContentLoaded', () => {
     // jQuery upload controls and integrations also use these localized URLs.
-    for (const [config, keys] of [[window.albaBoard, ['ajaxurl','rest_url']], [window.albaBoardFrontend, ['ajaxurl']], [window.albaCollaboration, ['url']]]) {
+    for (const [config, keys] of [[window.albaBoard, ['ajaxurl','rest_url']], [window.albaBoardFrontend, ['ajaxurl']], [window.albaCollaboration, ['url']], [window.albaRichText, ['url']]]) {
       if (!config) continue;
       for (const key of keys) if (config[key]) {
         try { config[key] = url(config[key]); } catch (_) { /* Requests report an origin error when used. */ }

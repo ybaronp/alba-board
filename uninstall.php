@@ -15,7 +15,7 @@ if ( ! $alba_board_delete_data ) {
     return;
 }
 
-$alba_board_post_types = [ 'alba_board', 'alba_list', 'alba_card' ];
+$alba_board_post_types = [ 'alba_board', 'alba_list', 'alba_card', 'alba_card_image' ];
 foreach ( $alba_board_post_types as $alba_board_pt ) {
     $alba_board_posts = get_posts([
         'post_type'   => $alba_board_pt,

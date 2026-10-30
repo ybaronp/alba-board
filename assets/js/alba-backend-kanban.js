@@ -520,6 +520,28 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // --- 7. SAVE HANDLER ---
+    function showCardSaveStatus(kind, message, reload = false) {
+        let status = document.getElementById('alba-card-save-status');
+        if (!status) {
+            status = document.createElement('p');status.id = 'alba-card-save-status';
+            status.className = 'alba-card-save-status';modalBody.appendChild(status);
+        }
+        status.dataset.state = kind;
+        status.setAttribute('role', kind === 'error' ? 'alert' : 'status');
+        status.setAttribute('aria-live', kind === 'error' ? 'assertive' : 'polite');
+        status.replaceChildren(document.createTextNode(message));
+        if (kind === 'error') {
+            const retry = document.createElement('button');retry.type = 'button';
+            retry.className = 'button';retry.textContent = reload ? albaBoard.save_reload : albaBoard.save_retry;
+            retry.addEventListener('click', () => reload ? window.location.reload() : document.getElementById('alba-card-save-btn')?.click());
+            status.append(' ', retry);
+        }
+    }
+    ['input', 'change'].forEach(type => document.addEventListener(type, event => {
+        const status = document.getElementById('alba-card-save-status');
+        if (modalAdmin?.contains(event.target) && status?.dataset.state === 'success') status.remove();
+    }));
+    let commentAttempt = null;
     function bindSaveButtonHandler() {
         const saveBtn = document.getElementById('alba-card-save-btn');
         if (!saveBtn) return;
@@ -534,12 +556,20 @@ document.addEventListener('DOMContentLoaded', () => {
             formData.append('nonce', albaBoard.save_card_details_nonce);
             
             const newCommentField = document.getElementById('alba-new-comment');
-            if (newCommentField) formData.set('new_comment', newCommentField.value);
+            if (newCommentField) {
+                formData.set('new_comment', newCommentField.value);
+                if (!commentAttempt || commentAttempt.card !== String(formData.get('card_id')) || commentAttempt.text !== newCommentField.value) {
+                    commentAttempt = {card:String(formData.get('card_id')),text:newCommentField.value,id:window.crypto?.randomUUID?.() || Date.now().toString(36) + '-' + Math.random().toString(36).slice(2)};
+                }
+                formData.set('comment_request_id', commentAttempt.id);
+            }
             
             const savedCardElement = currentOpenedCard;
             const savedCardId = String(formData.get('card_id'));
-            saveBtn.textContent = 'Saving...'; saveBtn.style.opacity = '0.7';
+            showCardSaveStatus('saving', albaBoard.save_saving);
+            saveBtn.textContent = albaBoard.save_saving; saveBtn.style.opacity = '0.7';
             saveBtn.disabled = true;
+            window.albaDraftGuard?.begin(modalAdmin);
             
             window.albaBoardRequest.fetch(albaBoard.ajaxurl, { method: 'POST', body: formData })
             .then(res => res.json())
@@ -558,14 +588,21 @@ document.addEventListener('DOMContentLoaded', () => {
                         bindSaveButtonHandler();
                         bindAttachmentHandlers();
                         jQuery(document).trigger('alba_modal_loaded');
+                        window.albaDraftGuard?.end(modalAdmin, true);
+                        commentAttempt = null;
+                        showCardSaveStatus('success', albaBoard.save_saved);
                     }
                     jQuery(document).trigger('alba_card_updated', [savedCardId, data]);
                 } 
-                else { throw new Error(response?.data?.message || albaBoard.fetch_error); }
+                else { throw new Error(response?.data?.message || albaBoard.save_unconfirmed); }
             })
             .catch(error => {
-                saveBtn.textContent = 'Save Changes'; saveBtn.style.opacity = '1'; saveBtn.disabled = false;
-                if (currentOpenedCard === savedCardElement) alert(error.message || albaBoard.fetch_error);
+                window.albaDraftGuard?.end(modalAdmin, false);
+                saveBtn.textContent = albaBoard.save_label; saveBtn.style.opacity = '1'; saveBtn.disabled = false;
+                if (currentOpenedCard === savedCardElement) {
+                    const lost = error.message === window.albaSession?.network_error || error instanceof TypeError;
+                    showCardSaveStatus('error', lost ? albaBoard.save_connection_lost : error.message || albaBoard.save_unconfirmed, lost);
+                }
             });
         }
     }
