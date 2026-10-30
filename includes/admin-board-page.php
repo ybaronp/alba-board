@@ -235,6 +235,7 @@ function alba_render_admin_board_page() {
         echo '<summary class="alba-control-trigger">' . esc_html__('More', 'alba-board') . '</summary>';
         echo '<div class="alba-control-menu-panel alba-tools-menu-panel">';
         if ( $selected_board_id ) {
+            alba_board_render_page_action( $selected_board_id );
             $shortcode_str = '[alba_board id="' . absint($selected_board_id) . '"]';
             echo '<button type="button" class="alba-menu-action alba-board-copy-shortcode" data-shortcode="' . esc_attr($shortcode_str) . '">' . esc_html__( 'Copy shortcode', 'alba-board' ) . '</button>';
         }
