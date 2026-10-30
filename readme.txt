@@ -74,12 +74,22 @@ Yes! The plugin is completely translation-ready. If it hasn't been translated in
 = 🌐 How do I enable frontend card creation? =  
 Add the `[alba_board id="123"]` shortcode to a page. Frontend creation, comments, and deletion are included in the free plugin. Log in with the appropriate card and list permissions to use them. The older Frontend Interactions add-on is no longer required; the core prevents its client and handlers from duplicating these actions.
 
+= How do I create a board from a template? =
+
+Open Alba Board > Board templates, preview an available built-in template, enter a board name and confirm Create this board. Creation requires permission to create boards, lists and cards, and respects the card limit per list. Every item receives a new native ID. Generic starter tasks do not send Alba Board assignment emails. No real members, comments, dates or uploads are copied. UI-created boards are not automatically enabled for MCP.
+
+The same request ID returns the same successful board for 24 hours; a conflicting request is rejected. Durable retry records are stored without autoload and cleaned up daily. Transactional InnoDB tables are required so the board, lists, cards and retry record can commit together. A failed creation rolls back the entire project. This feature depends on the built-in template catalog; existing manual board creation is unchanged.
+
 = 📦 How do I restore an archived card? =
 In **Alba Board > Boards**, open **More > Archived Cards** and click **Restore** beside the card. It returns to the list it came from and its previous status.
 
 If the card says **Restore the original list first**, that list is in the WordPress Trash. Open **Alba Board > Lists**, choose the **Trash** view, and restore the original list. Then return to **More > Archived Cards** and restore the card. The archive view also has an **Open Lists Trash** link for this case. If the original list was permanently deleted, restore it from a site backup before restoring the card.
 
 Deleting a list from a board moves the list to Trash and archives its cards. The cards remain recoverable from **Archived Cards** after the original list is restored.
+
+= Can I duplicate an existing board? =
+
+Duplicate board makes a one-off clean copy of published list/card structure, titles and cleaned descriptions after a preview and confirmation. It excludes archived/draft content, comments, people, due dates, files/images, tags and sharing metadata. Lines with Markdown image syntax, private image tokens or local upload links are replaced by a removal marker. Review remaining text and links in the preview. Empty lists and order are preserved; every item receives a new ID. Source changes require a fresh preview, and successful retries reuse the created copy. Limits are 50 lists, 500 tasks and 2 MiB of source text per request. The shared transactional creation service enforces capabilities, card limits and rollback. A duplicate is not automatically shared with MCP.
 
 = 👥 How do guest assignees work? =
 In a card, enter one or more guest email addresses in **Guest Assignee**, separated by commas. When assignment notifications are enabled, Alba Board sends an email to each newly added valid address. To include a public card link, create a published page containing that board’s `[alba_board id="123"]` shortcode. Without a public board page, guest links fall back to the site homepage. Guests cannot use the WordPress admin. Click the **Guest Assignee** field to see missing-page guidance; you can click and copy its shortcode without the message disappearing. An assignment email does not grant permission to view card details or edit cards; access still requires the appropriate WordPress permissions.
