@@ -65,6 +65,7 @@ require_once plugin_dir_path(__FILE__) . 'includes/product-feedback.php';
 require_once plugin_dir_path(__FILE__) . 'includes/notifications.php';
 require_once plugin_dir_path(__FILE__) . 'includes/card-collaboration.php';
 require_once plugin_dir_path(__FILE__) . 'includes/security.php';
+require_once plugin_dir_path(__FILE__) . 'includes/card-rich-text.php';
 require_once plugin_dir_path(__FILE__) . 'includes/ajax-create-card.php';
 require_once plugin_dir_path(__FILE__) . 'includes/frontend-interactions.php';
 require_once plugin_dir_path(__FILE__) . 'includes/shortcodes.php';
