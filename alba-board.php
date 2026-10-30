@@ -61,6 +61,7 @@ require_once plugin_dir_path(__FILE__) . 'includes/cards.php';
 require_once plugin_dir_path(__FILE__) . 'includes/archive-cards.php';
 require_once plugin_dir_path(__FILE__) . 'includes/ajax-trash-card.php';
 require_once plugin_dir_path(__FILE__) . 'includes/settings.php';
+require_once plugin_dir_path(__FILE__) . 'includes/support-details.php';
 require_once plugin_dir_path(__FILE__) . 'includes/product-feedback.php';
 require_once plugin_dir_path(__FILE__) . 'includes/notifications.php';
 require_once plugin_dir_path(__FILE__) . 'includes/card-collaboration.php';
