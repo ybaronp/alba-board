@@ -1,6 +1,6 @@
 === Task & Project Management – Alba Board ===
 Contributors: alejo30  
-Tags: task management, project management, task manager, kanban board, to do list
+Tags: task management, project management, task manager, kanban board, mcp
 Requires at least: 5.8  
 Tested up to: 7.1
 Requires PHP: 7.4
@@ -31,6 +31,7 @@ Work from the WordPress dashboard or display a board on a website page with the 
 * **Export your data:** Administrators can export boards to CSV or JSON.
 * **Choose your appearance:** Select a built-in visual theme and scroll long lists independently.
 * **Work in your language:** Translation-ready strings support community translations.
+* **Connect an AI assistant (optional):** Use MCP to read selected boards, create boards/lists/cards, edit or move cards, and add comments with existing WordPress permissions. Requires WordPress 6.9+ and the official MCP Adapter.
 * **Extend your workflow:** Developers can use WordPress hooks and add-ons without modifying the core plugin.
 
 == Add-ons & Extensions ==
@@ -62,6 +63,39 @@ If you have used Alba Board, you are welcome to [share an honest review](https:/
 
 == Frequently Asked Questions ==
 
+= How do I connect an AI app without installing Node.js? =
+The optional AI connection runs on your WordPress site. Users do not need Node.js, a terminal, or a local helper.
+
+Site owner setup:
+1. Use HTTPS and WordPress 6.9 or newer. Install and activate the official [MCP Adapter](https://wordpress.org/plugins/mcp-adapter/) version 0.7.1 or newer.
+2. Open **Alba Board > AI connections**, enable AI access and **browser sign-in (OAuth)**, select a test board, and save. New-board creation is a separate opt-in.
+3. Copy the **MCP server URL** displayed there. It points to the Alba-only server at `alba-board/v1/mcp`; use the displayed URL so Plain permalinks and WordPress subdirectories work too.
+
+Connecting a user:
+1. In a compatible AI app, add a remote MCP server with **Streamable HTTP** and the copied URL. Choose **OAuth** authentication. Apps supporting automatic registration do not need a manually copied client ID, secret, or WordPress Application Password.
+2. Sign in on your own WordPress site. Check the app name and return hostname; the app supplies its name, which is not independently verified. Approve only a connection you started.
+3. Select the boards to share and choose read-only or permission to manage their contents. Only boards enabled by the administrator are available. Use a dedicated Board Member or Board Manager rather than an Administrator for routine AI work.
+4. Ask the assistant to read the test board, then propose a card. Approve intended changes using the AI app's tool controls.
+
+The AI app must support OAuth authorization code with S256 PKCE and dynamic client registration (public clients or client-secret authentication). Availability depends on the client's version, plan and policies; this is not a guarantee that every ChatGPT/Claude product or every AI client can connect. Local/STDIO-only clients are not remote OAuth clients. OAuth Client ID Metadata Document fetching is not implemented; use a client with dynamic registration support. Public callback URLs must use HTTPS; loopback callbacks are supported for desktop apps.
+
+Your hosting must route OAuth `/.well-known/` discovery to WordPress and preserve the Authorization header. The standard WordPress rewrite rules forward that header. If discovery returns a hosting error, ask the host to allow these routes. Disabling browser sign-in invalidates all issued connections; re-enabling it does not revive old tokens.
+
+= What access does a connected AI app receive? =
+AI access is disabled by default. Each OAuth connection is restricted to the consenting user's selected published boards, requested read/write scopes, and existing WordPress permissions. Board Members can read/comment on shared published cards and edit their own cards; they cannot create boards or edit another user's card. Ordinary subscribers and anonymous visitors receive no protected card access. OAuth credentials are accepted only by the Alba Board MCP endpoint, not generic WordPress REST routes or the adapter's default server.
+
+The ten tools read boards/lists/cards, create boards/lists/cards when allowed, edit or move cards, and add comments. No deletion, attachment, assignment or site-administration tools are exposed. Moves stay within one selected board and preserve other cards' order. Card creation and incoming moves respect the configured cards-per-list limit. The WordPress plugin cannot verify human approval in an external AI app; configure the client's approval controls.
+
+= How do I disconnect an app? =
+Open your **WordPress Profile > Connected AI apps — Alba Board** and choose **Disconnect**. Access tokens last up to one hour; refresh tokens rotate after use and connections expire after 30 days. Expired or revoked connections require sign-in again. Password or role changes also invalidate existing connections. Administrators can disconnect a user's apps from their user profile. Turning off AI access or browser sign-in invalidates all OAuth connections. Uninstalling Alba Board removes its OAuth credentials even when you retain board data.
+
+= How are retries and existing integrations handled? =
+Every write requires a unique `request_id` (8–64 letters, numbers, underscores or hyphens). Reuse it with the same arguments and OAuth connection when retrying the same approved action within 24 hours; successful retries return the saved result. After reconnecting, an expired receipt or a server crash, check the board before retrying. Retry receipts are isolated per OAuth connection, and inaccessible prior results are not returned. A crash between saving the change and recording its receipt can still require manual checking. Concurrent MCP changes to the same object are serialized; simultaneous edits through other interfaces still require care.
+
+Existing Application Password clients continue to work. The adapter's original default endpoint remains available for those integrations. OAuth tokens from Alba Board are specific to the new Alba-only server. Advanced Application Password setup is documented by the [official adapter](https://github.com/WordPress/mcp-adapter/blob/trunk/docs/getting-started/site-owners.md).
+
+MCP does not supply an AI subscription or daily scheduler. Using a remote OAuth connection does not make the app publishable in any provider's store automatically.
+
 = Can I use Alba Board as a Kanban board? =
 Yes. A Kanban board organizes tasks into lists that represent stages of work. Create lists such as To Do, In Progress, and Done, then drag task cards between them as work progresses. You can use this board in the WordPress dashboard or display it on a page with the board shortcode.
 
@@ -86,6 +120,10 @@ In a card, enter one or more guest email addresses in **Guest Assignee**, separa
 
 = 🗑️ How do I delete or restore a card? =
 Board Managers, Editors, and Administrators can delete cards. Board Members cannot delete cards on either the public board or the WordPress admin, including cards they created. In the admin board, open the card and click the trash icon; on the public board, use **Delete card**. Confirm to move the card to WordPress Trash. To recover it, open **Alba Board > Cards > Trash** and click **Restore**. If WordPress Trash is disabled, the control will not permanently delete the card.
+
+= Can my AI app summarize a board? =
+
+The free get-board-summary MCP tool returns live published list/card totals, including empty lists, valid due-date counts and bounded examples with native IDs. Dates use the site's timezone and include a generation timestamp. Missing and invalid dates are explicit. A list named Done does not imply completion; no percentage or blockers are invented. The tool is read-only, on-demand, and subject to the same board allowlist, OAuth scope and WordPress access checks as other reads. It is not scheduled or advanced reporting.
 
 = Which Board roles are available? =
 **Board Member:** Create cards and edit, comment on, move, or archive their own cards. Members can create and edit lists, but cannot delete cards, lists, or boards. They cannot change plugin settings.
@@ -118,6 +156,9 @@ Frontend card creation, comments, and deletion require a logged-in user with the
 
 == Privacy & Optional Feedback ==
 
+**Optional MCP connections:** Alba Board does not send board content to an AI provider on its own. A connected AI client can retrieve the boards/cards and recent comments its user authorized, and may send this content to an external provider under that provider's privacy and retention terms. Browser sign-in happens on your WordPress site. App registrations contain callback URLs and app names (expire after 90 days); grant records contain user ID, approved board IDs, scopes, timestamps, and credential hashes (expire after 30 days). Access tokens expire within one hour; refresh credentials rotate. Authorization codes are single-use and expire after two minutes. Expired registrations, codes and grants are removed by WordPress's hourly cleanup schedule; traffic/cron availability affects physical deletion time. Profile disconnect and disabling access revoke credentials immediately. Temporary rate-limit records and 24-hour retry receipts remain local. Each changed object keeps up to 20 recent local MCP records containing actor ID, action and UTC time; these are not an immutable audit log.
+
+
 Usage reporting is off by default. Site administrators can opt in under Alba Board > Feedback & Privacy. Once enabled, a weekly HTTPS request sends a random installation ID and reporting/deletion credential, ISO week, Alba Board/WordPress/PHP versions, selected Alba theme, and approximate board/list/card/Board-user counts and feature activity ranges to https://albaboard.com/wp-json/alba/v2/insights. Activity ranges reflect use since opting in, not exact weekly action counts. No pre-consent activity is backfilled.
 
 The summary excludes site URLs, names, emails, card contents, comments, uploaded files, filenames, and unrelated plugin inventories. The ID makes reports pseudonymous, not anonymous. Administrators can preview the summary fields, stop future reporting, or request deletion of linked usage reports. The receiver keeps usage reports for 90 days, subject to its scheduled cleanup. Hosting logs and backups may have separate retention.
@@ -135,6 +176,13 @@ With explicit usage-sharing consent, future plugin activations/deactivations and
 For controlled development/staging tests, a site administrator can set ALBA_BOARD_REPORTING_ENVIRONMENT to staging in wp-config.php. This selects the fixed test receiver only when WordPress identifies the environment as local, development, or staging; production environments retain the production destination. Test mode is clearly labeled in Feedback & Privacy and does not grant sharing consent. Browser feedback and server reports request JSON and require a successful JSON acknowledgement. Optional server reports allow up to 20 seconds for a response. Network failures or hosting restrictions can still prevent delivery; failed requests are not counted as successful reports or deletions.
 
 == Changelog ==
+
+= Unreleased =
+* New: Optional MCP integration using WordPress Abilities API and the official MCP Adapter, with 10 structured board, list, card and comment actions.
+* New: Remote HTTP connection with WordPress browser sign-in, OAuth discovery and app registration, S256 PKCE, per-app board/read/write consent, expiring tokens, refresh rotation and profile disconnect controls. No local Node.js/helper is required for compatible OAuth clients.
+* Security: Administrator-selected boards, existing object permissions, no deletion tools, and immediate access revocation.
+* Reliability: Retry receipts prevent normal duplicate writes; MCP writes to the same object are serialized and card limits are checked.
+
 
 = 2.3.0 =
 * Improved Feedback & Privacy button placement and added a one-time administrator announcement for existing installations about optional usage insights. Sharing preferences are never enabled automatically.
@@ -299,3 +347,5 @@ For controlled development/staging tests, a site administrator can set ALBA_BOAR
 
 = 1.0.0 =
 * First stable release — backend Kanban, modal editing, AJAX, comments, add-ons.
+
+Free template MCP tools: list-templates discovers the built-in catalog; get-template returns the versioned preview; create-board-from-template requires the previewed version, an approved board name, confirmed=true and a request ID. Creation requires administrator opt-in, WordPress board/list/card creation permissions and OAuth read/write plus explicit new-board consent. It uses the same transactional template service as the UI. A UI-created board is not automatically shared with MCP; an approved MCP-created board is added to that connection's access. The tools are available only when the free catalog and creation service are installed.
