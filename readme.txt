@@ -74,6 +74,12 @@ Yes! The plugin is completely translation-ready. If it hasn't been translated in
 = 🌐 How do I enable frontend card creation? =  
 Add the `[alba_board id="123"]` shortcode to a page. Frontend creation, comments, and deletion are included in the free plugin. Log in with the appropriate card and list permissions to use them. The older Frontend Interactions add-on is no longer required; the core prevents its client and handlers from duplicating these actions.
 
+= How do I create a board from a template? =
+
+Open Alba Board > Board templates, preview an available built-in template, enter a board name and confirm Create this board. Creation requires permission to create boards, lists and cards, and respects the card limit per list. Every item receives a new native ID. Generic starter tasks do not send Alba Board assignment emails. No real members, comments, dates or uploads are copied. UI-created boards are not automatically enabled for MCP.
+
+The same request ID returns the same successful board for 24 hours; a conflicting request is rejected. Durable retry records are stored without autoload and cleaned up daily. Transactional InnoDB tables are required so the board, lists, cards and retry record can commit together. A failed creation rolls back the entire project. This feature depends on the built-in template catalog; existing manual board creation is unchanged.
+
 = 📦 How do I restore an archived card? =
 In **Alba Board > Boards**, open **More > Archived Cards** and click **Restore** beside the card. It returns to the list it came from and its previous status.
 

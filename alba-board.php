@@ -58,6 +58,7 @@ require_once plugin_dir_path(__FILE__) . 'includes/roles.php';
 require_once plugin_dir_path(__FILE__) . 'includes/boards.php';
 require_once plugin_dir_path(__FILE__) . 'includes/lists.php';
 require_once plugin_dir_path(__FILE__) . 'includes/cards.php';
+require_once plugin_dir_path(__FILE__) . 'includes/template-create.php';
 require_once plugin_dir_path(__FILE__) . 'includes/archive-cards.php';
 require_once plugin_dir_path(__FILE__) . 'includes/ajax-trash-card.php';
 require_once plugin_dir_path(__FILE__) . 'includes/settings.php';
