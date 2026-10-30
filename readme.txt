@@ -87,6 +87,10 @@ If the card says **Restore the original list first**, that list is in the WordPr
 
 Deleting a list from a board moves the list to Trash and archives its cards. The cards remain recoverable from **Archived Cards** after the original list is restored.
 
+= Can I duplicate an existing board? =
+
+Duplicate board makes a one-off clean copy of published list/card structure, titles and cleaned descriptions after a preview and confirmation. It excludes archived/draft content, comments, people, due dates, files/images, tags and sharing metadata. Lines with Markdown image syntax, private image tokens or local upload links are replaced by a removal marker. Review remaining text and links in the preview. Empty lists and order are preserved; every item receives a new ID. Source changes require a fresh preview, and successful retries reuse the created copy. Limits are 50 lists, 500 tasks and 2 MiB of source text per request. The shared transactional creation service enforces capabilities, card limits and rollback. A duplicate is not automatically shared with MCP.
+
 = 👥 How do guest assignees work? =
 In a card, enter one or more guest email addresses in **Guest Assignee**, separated by commas. When assignment notifications are enabled, Alba Board sends an email to each newly added valid address. To include a public card link, create a published page containing that board’s `[alba_board id="123"]` shortcode. Without a public board page, guest links fall back to the site homepage. Guests cannot use the WordPress admin. Click the **Guest Assignee** field to see missing-page guidance; you can click and copy its shortcode without the message disappearing. An assignment email does not grant permission to view card details or edit cards; access still requires the appropriate WordPress permissions.
 
@@ -305,5 +309,3 @@ For controlled development/staging tests, a site administrator can set ALBA_BOAR
 
 = 1.0.0 =
 * First stable release — backend Kanban, modal editing, AJAX, comments, add-ons.
-
-Duplicate board makes a one-off clean copy of published list/card structure, titles and cleaned descriptions after a preview and confirmation. It excludes archived/draft content, comments, people, due dates, files/images, tags and sharing metadata. Lines with Markdown image syntax, private image tokens or local upload links are replaced by a removal marker. Review remaining text and links in the preview. Empty lists and order are preserved; every item receives a new ID. Source changes require a fresh preview, and successful retries reuse the created copy. Limits are 50 lists, 500 tasks and 2 MiB of source text per request. The shared transactional creation service enforces capabilities, card limits and rollback. A duplicate is not automatically shared with MCP.
