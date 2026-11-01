@@ -204,7 +204,7 @@ function alba_board_mcp_check_limit( $list_id, $exclude = 0 ) {
     return count( $cards ) < $limit;
 }
 
-function alba_board_mcp_run( $action, $input ) {
+function alba_board_mcp_run( $action, $input, $move_transaction = null ) {
     if ( 'get-board-summary' === $action ) return alba_board_mcp_summary( $input['board_id'], $input['max_items'] ?? 10 );
     if ( 'list-templates' === $action ) {
         $items = [];
@@ -280,7 +280,7 @@ function alba_board_mcp_run( $action, $input ) {
             if ( $source !== $input['list_id'] ) {
                 $destination = alba_board_move_ids( $input['list_id'] );
                 $snapshot = [ 'source_list' => $source, 'source' => alba_board_move_ids( $source ), 'destination' => $destination ];
-                $moved = alba_board_move_card_atomic( $id, $input['list_id'], array_merge( $destination, [ $id ] ), $snapshot );
+                $moved = alba_board_move_card_atomic( $id, $input['list_id'], array_merge( $destination, [ $id ] ), $snapshot, $move_transaction );
                 if ( is_wp_error( $moved ) ) return $moved;
             }
         } elseif ( 'add-comment' === $action ) {
