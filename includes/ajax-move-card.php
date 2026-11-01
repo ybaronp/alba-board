@@ -6,6 +6,8 @@ function alba_board_move_error( $code, $message, $status = 400 ) {
     return new WP_Error( $code, $message, [ 'status' => $status ] );
 }
 
+require_once __DIR__ . '/move-transaction.php';
+
 /** Read complete native ordering; no titles, descriptions or private fields are returned. */
 function alba_board_move_ids( $list_id ) {
     global $wpdb;
@@ -23,23 +25,22 @@ function alba_board_move_id_array( $raw ) {
 }
 
 /** All move entry points share the same lock, validation, transaction and conflict policy. */
-function alba_board_move_card_atomic( $card_id, $destination, $order, $snapshot ) {
+function alba_board_move_card_atomic( $card_id, $destination, $order, $snapshot, $transaction = null ) {
     global $wpdb;
     $order = alba_board_move_id_array( $order );
     $source_order = alba_board_move_id_array( $snapshot['source'] ?? null );
     $destination_order = alba_board_move_id_array( $snapshot['destination'] ?? null );
     $source = absint( $snapshot['source_list'] ?? 0 );
-    if ( false === $order || false === $source_order || false === $destination_order || ! $source || ! in_array( (int) $card_id, $source_order, true ) ) return alba_board_move_error( 'alba_move_snapshot', __( 'Reload the board.', 'alba-board' ), 409 );
-    $lock = 'alba_move_' . md5( $wpdb->posts );
-    if ( '1' !== (string) $wpdb->get_var( $wpdb->prepare( 'SELECT GET_LOCK(%s,5)', $lock ) ) ) return alba_board_move_error( 'alba_move_busy', __( 'Move in progress. Try again.', 'alba-board' ), 409 );
-    $transaction = false; $changed = [];
+    if ( false === $order || false === $source_order || false === $destination_order || ! $source || ! in_array( (int) $card_id, $source_order, true ) ) {
+        if ( $transaction instanceof Alba_Board_Move_Transaction ) $transaction->mark_failed();
+        return alba_board_move_error( 'alba_move_snapshot', __( 'Reload the board.', 'alba-board' ), 409 );
+    }
+    $owns_transaction = null === $transaction;
+    if ( $owns_transaction ) $transaction = Alba_Board_Move_Transaction::begin();
+    if ( is_wp_error( $transaction ) ) return $transaction;
+    if ( ! $transaction instanceof Alba_Board_Move_Transaction || ! $transaction->is_active() ) return alba_board_move_error( 'alba_move_transaction', __( 'Card operation is no longer active.', 'alba-board' ), 409 );
+    $success = false;
     try {
-        foreach ( [ $wpdb->posts, $wpdb->postmeta ] as $table ) {
-            $engine = $wpdb->get_var( $wpdb->prepare( 'SELECT ENGINE FROM information_schema.TABLES WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME=%s', $table ) );
-            if ( 'innodb' !== strtolower( (string) $engine ) ) return alba_board_move_error( 'alba_move_storage', __( 'Move unavailable. Contact your administrator.', 'alba-board' ), 503 );
-        }
-        if ( false === $wpdb->query( 'START TRANSACTION' ) ) throw new RuntimeException( 'transaction' );
-        $transaction = true;
         // Lock list/card rows against cooperating and ordinary row updates while validating fresh state.
         $rows = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM $wpdb->posts WHERE ID IN (%d,%d,%d) ORDER BY ID FOR UPDATE", $card_id, $source, $destination ), OBJECT_K );
         $card = $rows[ $card_id ] ?? null; $from = $rows[ $source ] ?? null; $to = $rows[ $destination ] ?? null;
@@ -58,23 +59,32 @@ function alba_board_move_card_atomic( $card_id, $destination, $order, $snapshot 
         if ( $fixed( $actual_destination ) !== $fixed( $order ) ) return alba_board_move_error( 'alba_move_forbidden', __( 'You cannot reorder other users\' cards.', 'alba-board' ), 403 );
         $limit = absint( get_option( 'alba_board_limits', [] )['limit_cards'] ?? 0 );
         if ( $source !== (int) $destination && $limit && count( $order ) > $limit ) return alba_board_move_error( 'alba_move_limit', __( 'This list is full.', 'alba-board' ) );
-        $changed = array_values( array_unique( array_merge( $actual_source, $order ) ) );
+        $candidates = array_values( array_unique( array_merge( $actual_source, $order ) ) );
+        $positions_before = $wpdb->get_results( $wpdb->prepare( "SELECT ID,menu_order FROM $wpdb->posts WHERE ID IN (" . implode( ',', array_fill( 0, count( $candidates ), '%d' ) ) . ') ORDER BY ID FOR UPDATE', $candidates ), OBJECT_K );
+        if ( ! is_array( $positions_before ) || count( $positions_before ) !== count( $candidates ) ) throw new RuntimeException( 'read' );
+        $transaction->track( [ $card_id ] );
         if ( false === $wpdb->update( $wpdb->postmeta, [ 'meta_value' => (string) $destination ], [ 'meta_id' => $parent[0]->meta_id ], [ '%s' ], [ '%d' ] ) ) throw new RuntimeException( 'parent' );
         $positions = [ $order ];
         if ( $source !== (int) $destination ) $positions[] = array_values( array_diff( $actual_source, [ (int) $card_id ] ) );
         foreach ( $positions as $ids ) foreach ( $ids as $position => $id ) {
-            // Only bookkeeping changes: no save hooks, assignment emails or partial public side effects.
+            if ( (int) $positions_before[ $id ]->menu_order === $position ) continue;
+            $transaction->track( [ $id ] );
+            // Bookkeeping only; unchanged positions need neither a write nor cache invalidation.
             if ( false === $wpdb->update( $wpdb->posts, [ 'menu_order' => $position ], [ 'ID' => $id ], [ '%d' ], [ '%d' ] ) ) throw new RuntimeException( 'position' );
         }
-        if ( false === $wpdb->query( 'COMMIT' ) ) throw new RuntimeException( 'commit' );
-        $transaction = false;
+        // The caller needs fresh card metadata inside the transaction for comments/receipts.
+        clean_post_cache( $card_id );
+        if ( $owns_transaction ) {
+            $committed = $transaction->commit();
+            if ( is_wp_error( $committed ) ) return $committed;
+        }
+        $success = true;
         return [ 'message' => __( 'Card moved successfully.', 'alba-board' ) ];
     } catch ( Throwable $e ) {
         return alba_board_move_error( 'alba_move_failed', __( 'Move not confirmed. Reload.', 'alba-board' ), 500 );
     } finally {
-        if ( $transaction ) $wpdb->query( 'ROLLBACK' );
-        foreach ( $changed as $id ) { clean_post_cache( $id ); delete_transient( 'alba_card_live_admin_' . $id ); delete_transient( 'alba_card_live_frontend_' . $id ); }
-        $wpdb->get_var( $wpdb->prepare( 'SELECT RELEASE_LOCK(%s)', $lock ) );
+        if ( ! $success ) $transaction->mark_failed();
+        if ( $owns_transaction && ! $success ) $transaction->rollback();
     }
 }
 
