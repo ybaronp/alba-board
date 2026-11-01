@@ -69,7 +69,7 @@ The optional AI connection runs on your WordPress site. Users do not need Node.j
 Site owner setup:
 1. Use HTTPS and WordPress 6.9 or newer. Install and activate the official [MCP Adapter](https://wordpress.org/plugins/mcp-adapter/) version 0.7.1 or newer.
 2. Open **Alba Board > AI connections**, enable AI access and **browser sign-in (OAuth)**, select a test board, and save. New-board creation is a separate opt-in.
-3. Copy the **MCP server URL** displayed there. It points to the Alba-only server at `alba-board/v1/mcp`; use the displayed URL so Plain permalinks and WordPress subdirectories work too.
+3. Use **Copy prompt** to paste setup guidance into your AI chat, or copy the **MCP server URL** directly. The prompt includes your endpoint and guides browser sign-in; you still add and authenticate the connection in your AI app. It points to the Alba-only server at `alba-board/v1/mcp`; use the displayed URL so Plain permalinks and WordPress subdirectories work too.
 
 Connecting a user:
 1. In a compatible AI app, add a remote MCP server with **Streamable HTTP** and the copied URL. Choose **OAuth** authentication. Apps supporting automatic registration do not need a manually copied client ID, secret, or WordPress Application Password.

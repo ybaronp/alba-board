@@ -36,16 +36,20 @@
     });
     // No selection is saved until the WordPress settings form is submitted.
     refresh();
-    document.getElementById('alba-copy-mcp-url').addEventListener('click', async function () {
-        var field = document.getElementById('alba-mcp-url');
-        var status = document.getElementById('alba-copy-status');
-        try {
-            await navigator.clipboard.writeText(field.value);
-            status.textContent = status.dataset.copied;
-        } catch (error) {
-            field.focus();
-            field.select();
-            status.textContent = status.dataset.fallback;
-        }
-    });
+    function bindCopy(buttonId, fieldId, statusId) {
+        document.getElementById(buttonId).addEventListener('click', async function () {
+            var field = document.getElementById(fieldId);
+            var status = document.getElementById(statusId);
+            try {
+                await navigator.clipboard.writeText(field.value);
+                status.textContent = status.dataset.copied;
+            } catch (error) {
+                field.focus();
+                field.select();
+                status.textContent = status.dataset.fallback;
+            }
+        });
+    }
+    bindCopy('alba-copy-mcp-url', 'alba-mcp-url', 'alba-copy-status');
+    bindCopy('alba-copy-mcp-prompt', 'alba-mcp-setup-prompt', 'alba-copy-prompt-status');
 }());

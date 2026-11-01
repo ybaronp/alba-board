@@ -52,6 +52,8 @@ function alba_board_mcp_settings_page() {
     if ( ! current_user_can( 'manage_options' ) ) return;
     $settings = alba_board_mcp_settings();
     $ready = function_exists( 'wp_register_ability' ) && defined( 'WP_MCP_VERSION' ) && version_compare( WP_MCP_VERSION, '0.7.1', '>=' );
+    /* translators: %s: this site's MCP server URL. */
+    $setup_prompt = sprintf( __( "Help me connect Alba Board to this AI app using remote MCP.\n\nServer URL: %s\n\nUse Streamable HTTP and OAuth browser sign-in. Guide me to this app’s MCP connection settings and its Authenticate or Log in button. If this app or my plan does not support remote MCP connections, tell me.\n\nI will sign in on my WordPress site and choose the boards and permissions. Do not ask me to paste passwords or tokens into this chat.\n\nOnce connected, list my available boards. Do not create, change or delete anything unless I ask.", 'alba-board' ), alba_board_mcp_url() );
     ?>
     <div class="wrap alba-ai">
         <h1><?php esc_html_e( 'AI connections', 'alba-board' ); ?></h1>
@@ -96,8 +98,13 @@ function alba_board_mcp_settings_page() {
         </ol>
         <p><label for="alba-mcp-url"><strong><?php esc_html_e( 'MCP server URL', 'alba-board' ); ?></strong></label></p>
         <div class="alba-ai-url"><input id="alba-mcp-url" class="large-text code" readonly value="<?php echo esc_attr( alba_board_mcp_url() ); ?>" onclick="this.select()">
-        <button type="button" class="button button-primary" id="alba-copy-mcp-url"><?php esc_html_e( 'Copy URL', 'alba-board' ); ?></button></div>
+        <button type="button" class="button" id="alba-copy-mcp-url"><?php esc_html_e( 'Copy URL', 'alba-board' ); ?></button></div>
         <p id="alba-copy-status" role="status" aria-live="polite" data-copied="<?php esc_attr_e( 'URL copied.', 'alba-board' ); ?>" data-fallback="<?php esc_attr_e( 'URL selected. Copy it using your keyboard or touch menu.', 'alba-board' ); ?>"></p>
+        <p><label for="alba-mcp-setup-prompt"><strong><?php esc_html_e( 'Setup prompt', 'alba-board' ); ?></strong></label></p>
+        <p class="description" id="alba-mcp-prompt-help"><?php esc_html_e( 'Paste this into your AI chat for connection steps.', 'alba-board' ); ?></p>
+        <textarea id="alba-mcp-setup-prompt" class="large-text" rows="10" readonly aria-describedby="alba-mcp-prompt-help"><?php echo esc_textarea( $setup_prompt ); ?></textarea>
+        <p><button type="button" class="button button-primary" id="alba-copy-mcp-prompt"><?php esc_html_e( 'Copy prompt', 'alba-board' ); ?></button></p>
+        <p id="alba-copy-prompt-status" role="status" aria-live="polite" data-copied="<?php esc_attr_e( 'Prompt copied.', 'alba-board' ); ?>" data-fallback="<?php esc_attr_e( 'Prompt selected. Copy it using your keyboard or touch menu.', 'alba-board' ); ?>"></p>
         <p><?php esc_html_e( 'Try asking: “Show my boards and summarize the tasks due next.”', 'alba-board' ); ?></p>
         <p><a class="button" href="<?php echo esc_url( admin_url( 'profile.php#alba-ai-connections' ) ); ?>"><?php esc_html_e( 'Manage my connections', 'alba-board' ); ?></a></p>
         <p class="description"><?php esc_html_e( 'Requires an AI app with remote MCP and OAuth support. Your AI provider’s privacy terms apply to shared content.', 'alba-board' ); ?></p>
