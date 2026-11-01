@@ -30,7 +30,13 @@
 .alba-ai-url input { flex: 1; min-width: 0; font-size: 12px; border: 1px solid #8c8f94; border-radius: 6px; background: #f6f7f7; color: #1d2327; padding: 8px; }
 .alba-ai-url button { flex-shrink: 0; }
 .alba-ai #alba-mcp-setup-prompt { box-sizing: border-box; width: 100%; margin-top: 10px; padding: 12px; resize: vertical; line-height: 1.5; border-radius: 6px; }
-.alba-ai #alba-copy-status:empty, .alba-ai #alba-copy-prompt-status:empty { display: none; }
+.alba-ai-connect-intro { line-height: 1.6; }
+.alba-ai .alba-ai-primary-action { margin: 20px 0; }
+.alba-ai-connection-details { border-top: 1px solid #e5e7eb; padding: 14px 0; }
+.alba-ai-connection-details summary { cursor: pointer; font-weight: 600; }
+.alba-ai-connection-details summary:focus-visible { outline: 2px solid #2271b1; outline-offset: 4px; }
+.alba-ai-connection-details .alba-ai-steps { margin-top: 16px; margin-bottom: 0; }
+.alba-ai .alba-ai-manage { margin: 14px 0 0; }
 .alba-ai .alba-ai-advanced { margin-top: 24px; }
 .alba-ai-advanced details + details { border-top: 1px solid #dcdcde; padding-top: 16px; margin-top: 16px; }
 .alba-ai-advanced summary { cursor: pointer; font-weight: 600; padding: 4px 0; }

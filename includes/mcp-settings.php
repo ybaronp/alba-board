@@ -62,6 +62,7 @@ function alba_board_mcp_settings_page() {
         <div class="alba-ai-layout">
         <form class="alba-ai-panel" method="post" action="options.php">
             <h2><?php esc_html_e( 'Board access', 'alba-board' ); ?></h2>
+            <p><?php esc_html_e( 'Enable access, choose boards and save.', 'alba-board' ); ?></p>
             <?php settings_fields( 'alba_board_mcp_group' ); ?>
             <p><label><input type="checkbox" name="alba_board_mcp[enabled]" value="1" <?php checked( ! empty( $settings['enabled'] ) ); ?>> <?php esc_html_e( 'Enable AI access', 'alba-board' ); ?></label></p>
             <p><label><input type="checkbox" name="alba_board_mcp[oauth_enabled]" value="1" <?php checked( ! empty( $settings['oauth_enabled'] ) ); ?>> <?php esc_html_e( 'Allow browser sign-in (OAuth)', 'alba-board' ); ?></label></p>
@@ -84,28 +85,32 @@ function alba_board_mcp_settings_page() {
             <?php endforeach; ?>
             <p id="alba-board-no-results" hidden><?php esc_html_e( 'No boards match. Try another search or turn off Selected only.', 'alba-board' ); ?></p>
             </div>
-            <p class="description"><?php esc_html_e( 'Save to apply. New boards need to be selected separately. Each user’s existing board permissions still apply.', 'alba-board' ); ?></p>
+            <p class="description"><?php esc_html_e( 'New boards need to be selected separately. Each user’s existing board permissions still apply.', 'alba-board' ); ?></p>
             </fieldset>
             <p><label><input type="checkbox" name="alba_board_mcp[create_boards]" value="1" <?php checked( ! empty( $settings['create_boards'] ) ); ?>> <?php esc_html_e( 'Allow eligible users to create boards through AI', 'alba-board' ); ?></label></p>
             <?php submit_button(); ?>
         </form>
         <section class="alba-ai-panel alba-ai-connect">
         <h2><?php esc_html_e( 'Connect your AI app', 'alba-board' ); ?></h2>
-        <ol class="alba-ai-steps">
-            <li><?php esc_html_e( 'Enable access, choose boards and save.', 'alba-board' ); ?></li>
-            <li><?php esc_html_e( 'Add this URL in your AI app using Streamable HTTP.', 'alba-board' ); ?></li>
-            <li><?php esc_html_e( 'Click Authenticate or Log in in your AI app. Sign in here and approve the boards and permissions.', 'alba-board' ); ?></li>
-        </ol>
-        <p><label for="alba-mcp-url"><strong><?php esc_html_e( 'MCP server URL', 'alba-board' ); ?></strong></label></p>
-        <div class="alba-ai-url"><input id="alba-mcp-url" class="large-text code" readonly value="<?php echo esc_attr( alba_board_mcp_url() ); ?>" onclick="this.select()">
-        <button type="button" class="button" id="alba-copy-mcp-url"><?php esc_html_e( 'Copy URL', 'alba-board' ); ?></button></div>
-        <p id="alba-copy-status" role="status" aria-live="polite" data-copied="<?php esc_attr_e( 'URL copied.', 'alba-board' ); ?>" data-fallback="<?php esc_attr_e( 'URL selected. Copy it using your keyboard or touch menu.', 'alba-board' ); ?>"></p>
-        <p><label for="alba-mcp-setup-prompt"><strong><?php esc_html_e( 'Setup prompt', 'alba-board' ); ?></strong></label></p>
-        <p class="description" id="alba-mcp-prompt-help"><?php esc_html_e( 'Paste this into your AI chat for connection steps.', 'alba-board' ); ?></p>
-        <textarea id="alba-mcp-setup-prompt" class="large-text" rows="10" readonly aria-describedby="alba-mcp-prompt-help"><?php echo esc_textarea( $setup_prompt ); ?></textarea>
-        <p><button type="button" class="button button-primary" id="alba-copy-mcp-prompt"><?php esc_html_e( 'Copy prompt', 'alba-board' ); ?></button></p>
-        <p id="alba-copy-prompt-status" role="status" aria-live="polite" data-copied="<?php esc_attr_e( 'Prompt copied.', 'alba-board' ); ?>"></p>
-        <p><a class="button" href="<?php echo esc_url( admin_url( 'profile.php#alba-ai-connections' ) ); ?>"><?php esc_html_e( 'Manage my connections', 'alba-board' ); ?></a></p>
+        <p class="alba-ai-connect-intro"><?php esc_html_e( 'Copy the setup prompt, paste it into your AI chat, and follow the sign-in steps.', 'alba-board' ); ?></p>
+        <p class="alba-ai-primary-action"><button type="button" class="button button-primary" id="alba-copy-mcp-prompt" data-copied="<?php esc_attr_e( 'Copied ✓', 'alba-board' ); ?>" data-fallback="<?php esc_attr_e( 'Copy manually', 'alba-board' ); ?>"><?php esc_html_e( 'Copy setup prompt', 'alba-board' ); ?></button></p>
+        <details class="alba-ai-connection-details" id="alba-mcp-prompt-preview">
+            <summary><?php esc_html_e( 'Preview prompt', 'alba-board' ); ?></summary>
+            <label class="screen-reader-text" for="alba-mcp-setup-prompt"><?php esc_html_e( 'Setup prompt', 'alba-board' ); ?></label>
+            <textarea id="alba-mcp-setup-prompt" class="large-text" rows="10" readonly><?php echo esc_textarea( $setup_prompt ); ?></textarea>
+        </details>
+        <details class="alba-ai-connection-details">
+            <summary><?php esc_html_e( 'Connect manually', 'alba-board' ); ?></summary>
+            <ol class="alba-ai-steps">
+                <li><?php esc_html_e( 'Add this URL in your AI app using Streamable HTTP.', 'alba-board' ); ?></li>
+                <li><?php esc_html_e( 'Click Authenticate or Log in in your AI app. Sign in here and approve the boards and permissions.', 'alba-board' ); ?></li>
+            </ol>
+            <p><label for="alba-mcp-url"><strong><?php esc_html_e( 'MCP server URL', 'alba-board' ); ?></strong></label></p>
+            <div class="alba-ai-url"><input id="alba-mcp-url" class="large-text code" readonly value="<?php echo esc_attr( alba_board_mcp_url() ); ?>" onclick="this.select()">
+            <button type="button" class="button" id="alba-copy-mcp-url" data-copied="<?php esc_attr_e( 'Copied ✓', 'alba-board' ); ?>" data-fallback="<?php esc_attr_e( 'Copy manually', 'alba-board' ); ?>"><?php esc_html_e( 'Copy URL', 'alba-board' ); ?></button></div>
+        </details>
+        <span id="alba-copy-status" class="screen-reader-text" role="status" aria-live="polite"></span>
+        <p class="alba-ai-manage"><a href="<?php echo esc_url( admin_url( 'profile.php#alba-ai-connections' ) ); ?>"><?php esc_html_e( 'Manage connections', 'alba-board' ); ?></a></p>
         </section>
         </div>
         <section class="alba-ai-panel alba-ai-advanced">
