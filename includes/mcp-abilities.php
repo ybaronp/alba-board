@@ -33,7 +33,7 @@ function alba_board_mcp_definitions() {
         'create-list' => [ __( 'Create a list', 'alba-board' ), __( 'Append a list to a selected board. Obtain user approval first.', 'alba-board' ), [ 'board_id' => $id, 'title' => $title ], [ 'board_id', 'title' ], false ],
         'create-card' => [ __( 'Create a card', 'alba-board' ), __( 'Append a card to a selected list, respecting card limits. Obtain user approval first.', 'alba-board' ), [ 'list_id' => $id, 'title' => $title, 'description' => $text ], [ 'list_id', 'title' ], false ],
         'update-card' => [ __( 'Edit a card', 'alba-board' ), __( 'Replace only the supplied title or description. Other card properties are preserved. Obtain user approval first.', 'alba-board' ), [ 'card_id' => $id, 'title' => $title, 'description' => $text ], [ 'card_id' ], false ],
-        'move-card' => [ __( 'Move a card', 'alba-board' ), __( 'Append a card to another list in the same selected board without reordering other cards. Obtain user approval first.', 'alba-board' ), [ 'card_id' => $id, 'list_id' => $id ], [ 'card_id', 'list_id' ], false ],
+        'move-card' => [ __( 'Move a card', 'alba-board' ), __( 'Move one card within its selected board. Optionally save a comment in the same operation. Reuse known IDs; the receipt confirms the completed request. Obtain user approval first.', 'alba-board' ), [ 'card_id' => $id, 'list_id' => $id, 'comment' => [ 'type' => 'string', 'minLength' => 1, 'maxLength' => 5000, 'description' => __( 'Optional comment to save together with this single-card move. Both changes must succeed.', 'alba-board' ) ] ], [ 'card_id', 'list_id' ], false ],
         'add-comment' => [ __( 'Add a comment', 'alba-board' ), __( 'Append a plain-text comment as the connected WordPress user. Obtain user approval first.', 'alba-board' ), [ 'card_id' => $id, 'comment' => [ 'type' => 'string', 'minLength' => 1, 'maxLength' => 5000 ] ], [ 'card_id', 'comment' ], false ],
     ] );
 }
@@ -90,6 +90,7 @@ function alba_board_mcp_permission( $action, $input ) {
     if ( 'add-comment' === $action ) return alba_board_can_comment_card( $post->ID );
     if ( in_array( $action, [ 'update-card', 'move-card' ], true ) && ! current_user_can( 'edit_card', $post->ID ) ) return false;
     if ( 'move-card' === $action ) {
+        if ( isset( $input['comment'] ) && ! alba_board_can_comment_card( $post->ID ) ) return false;
         $list = alba_board_mcp_post( $input['list_id'] ?? 0, 'alba_list' );
         return $list && alba_board_mcp_board_id( $list ) === alba_board_mcp_board_id( $post ) && current_user_can( 'edit_list', $list->ID );
     }
@@ -147,13 +148,13 @@ function alba_board_mcp_execute( $action, $input ) {
     $key = 'alba_mcp_' . hash( 'sha256', $actor . ':' . $input['request_id'] );
     ksort( $input );
     $fingerprint = hash( 'sha256', $action . ':' . wp_json_encode( $input ) );
-    $cached = get_transient( $key );
+    $cached = get_transient( $key ) ?: alba_board_mcp_combined_cached( $key );
     if ( $cached ) return alba_board_mcp_cached_result( $cached, $fingerprint );
     $lock_key = $key . '_lock';
     if ( ! alba_board_mcp_lock( $lock_key ) ) return alba_board_mcp_error( 'alba_mcp_busy', __( 'This request is being processed. Retry with the same request ID later.', 'alba-board' ), 409 );
     $object_locks = [];
     try {
-        $cached = get_transient( $key );
+        $cached = get_transient( $key ) ?: alba_board_mcp_combined_cached( $key );
         if ( $cached ) return alba_board_mcp_cached_result( $cached, $fingerprint );
         // Serialize MCP writes to the same card/list (including different request IDs).
         $resources = [ 'card_id', 'list_id', 'board_id' ];
@@ -168,7 +169,9 @@ function alba_board_mcp_execute( $action, $input ) {
         }
         // Authorization can change while waiting for another request to finish.
         if ( ! alba_board_mcp_permission( $action, $input ) ) return alba_board_mcp_error( 'alba_mcp_forbidden', __( 'AI access to this action is not allowed.', 'alba-board' ), 403 );
-        $result = alba_board_mcp_run( $action, $input );
+        $result = 'move-card' === $action && array_key_exists( 'comment', $input )
+            ? alba_board_mcp_move_with_comment( $input, $key, $fingerprint )
+            : alba_board_mcp_run( $action, $input );
         if ( ! is_wp_error( $result ) ) set_transient( $key, [ 'fingerprint' => $fingerprint, 'result' => $result ], DAY_IN_SECONDS );
         return $result;
     } finally {
@@ -296,5 +299,12 @@ function alba_board_mcp_run( $action, $input ) {
     $history[] = [ 'user_id' => get_current_user_id(), 'action' => $action, 'time' => current_time( 'mysql', true ) ];
     update_post_meta( $id, '_alba_mcp_activity', array_slice( $history, -20 ) );
     do_action( 'alba_board_mcp_action_completed', $action, $id, get_current_user_id() );
-    return alba_board_mcp_item( get_post( $id ) );
+    $result = alba_board_mcp_item( get_post( $id ) );
+    $result['receipt'] = [ 'request_id' => $input['request_id'], 'action' => $action, 'saved' => true ];
+    if ( 'move-card' === $action ) $result['receipt']['destination_list_id'] = $result['list_id'];
+    if ( 'add-comment' === $action ) {
+        $result['receipt']['comment_added'] = true;
+        $result['receipt']['comment_count'] = count( $comments );
+    }
+    return $result;
 }
