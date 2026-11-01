@@ -46,7 +46,7 @@
             } catch (error) {
                 field.focus();
                 field.select();
-                status.textContent = status.dataset.fallback;
+                status.textContent = status.dataset.fallback || '';
             }
         });
     }
