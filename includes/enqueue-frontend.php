@@ -59,7 +59,7 @@ function alba_board_enqueue_assets() {
     wp_enqueue_script(
         'alba-kanban',
         $plugin_url . 'assets/js/alba-board-frontend.js',
-        ['sortablejs', 'jquery', 'alba-board-session', 'alba-card-autosize'],
+        ['alba-board-i18n', 'sortablejs', 'jquery', 'alba-board-session', 'alba-card-autosize'],
         file_exists($frontend_script_path) ? filemtime($frontend_script_path) : $plugin_version,
         true
     );

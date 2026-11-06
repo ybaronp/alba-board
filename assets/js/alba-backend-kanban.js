@@ -93,7 +93,7 @@ document.addEventListener('DOMContentLoaded', () => {
           body: move.params
         });
         const response = await result.json();
-        if (!response.success) throw new Error(response.data && response.data.message || albaBoard.move_error || 'Could not move the card.');
+        if (!response.success) throw new Error(response.data && response.data.message || albaBoard.move_error || window.albaBoardText.moveError);
         cardMoves.shift();
       } catch (error) {
         // A lost response may have committed, and a conflict means local positions are stale.
@@ -206,7 +206,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             if (originalLocation && originalLocation.parent) {
                                 originalLocation.parent.insertBefore(evt.item, originalLocation.nextSibling && originalLocation.nextSibling.parentNode === originalLocation.parent ? originalLocation.nextSibling : null);
                             }
-                            alert(response.data && response.data.message ? response.data.message : (albaBoard.fetch_error || 'Could not save the list order.'));
+                            alert(response.data && response.data.message ? response.data.message : (albaBoard.fetch_error || window.albaBoardText.orderError));
                         }
                     })
                     .catch(() => {
@@ -214,7 +214,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         if (originalLocation && originalLocation.parent) {
                             originalLocation.parent.insertBefore(evt.item, originalLocation.nextSibling && originalLocation.nextSibling.parentNode === originalLocation.parent ? originalLocation.nextSibling : null);
                         }
-                        alert(albaBoard.fetch_error || 'Could not save the list order.');
+                        alert(albaBoard.fetch_error || window.albaBoardText.orderError);
                     });
             }
         });
@@ -342,7 +342,8 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             
             const originalHTML = copyShortcodeBtn.innerHTML;
-            copyShortcodeBtn.innerHTML = '<span class="dashicons dashicons-yes-alt" style="font-size:16px; width:16px; height:16px; margin-top:1px; color:#10b981;"></span> <span style="color:#10b981;">Copied!</span>';
+            copyShortcodeBtn.innerHTML = '<span class="dashicons dashicons-yes-alt" style="font-size:16px; width:16px; height:16px; margin-top:1px; color:#10b981;"></span> <span style="color:#10b981;"></span>';
+            copyShortcodeBtn.lastElementChild.textContent = window.albaBoardText.copied;
             
             setTimeout(() => {
                 copyShortcodeBtn.innerHTML = originalHTML;
@@ -386,7 +387,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const deleteListBtn = e.target.closest('.alba-delete-list-btn');
         if (deleteListBtn) {
             e.preventDefault();
-            if (confirm('Delete this list and archive all of its cards?')) {
+            if (confirm(window.albaBoardText.deleteListConfirm)) {
                 const listId = deleteListBtn.dataset.listId;
                 const listContainer = deleteListBtn.closest('.alba-list');
                 deleteListBtn.style.opacity = '0.5'; deleteListBtn.style.pointerEvents = 'none';
@@ -403,7 +404,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         listContainer.style.transition = 'all 0.3s ease'; listContainer.style.opacity = '0'; listContainer.style.transform = 'scale(0.9)';
                         setTimeout(() => listContainer.remove(), 300);
                     } else { 
-                        alert((response.data && response.data.message) ? response.data.message : 'Error deleting list.'); 
+                        alert((response.data && response.data.message) ? response.data.message : window.albaBoardText.deleteListError);
                         deleteListBtn.style.opacity = '1'; 
                         deleteListBtn.style.pointerEvents = 'auto'; 
                     }
@@ -437,14 +438,16 @@ document.addEventListener('DOMContentLoaded', () => {
             if (modalThemeWrapper) modalThemeWrapper.classList.add('alba-admin-modal-open');
             
             if(modalAdmin) { modalAdmin.classList.remove('alba-is-hidden'); modalAdmin.classList.add('active'); }
-            if(modalBody) { modalHeading.replaceChildren(); modalBody.removeAttribute('role'); modalBody.innerHTML = albaBoard.loading || 'Loading...'; }
+            if(modalBody) { modalHeading.replaceChildren(); modalBody.removeAttribute('role'); modalBody.innerHTML = albaBoard.loading || window.albaBoardText.loading; }
 
             // ZERO FRICTION UX: Update URL immediately 
             updateUrlWithCard(cardId);
 
-            window.albaBoardRequest.fetch(window.albaBoardRequest.cardDetailsUrl(cardId, 'admin'), {
+            // Admin card details follow the user's profile language (_locale=user).
+            const detailsUrl = new URL(window.albaBoardRequest.cardDetailsUrl(cardId, 'admin')); detailsUrl.searchParams.set('_locale', 'user');
+            window.albaBoardRequest.fetch(detailsUrl.href, {
                 method: 'GET',
-                headers: { 'X-WP-Nonce': albaBoard.rest_nonce }
+                headers: { 'X-WP-Nonce': albaBoard.rest_nonce, 'Accept': 'application/json' }
             })
             .then(async res => { const response = await res.json(); if (!res.ok || !response.html) throw new Error(response.message || albaBoard.fetch_error); return response; })
             .then(response => {
@@ -457,7 +460,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             })
             .catch(error => {
-                if(modalBody && currentOpenedCard === card) { modalBody.textContent = error.message || albaBoard.fetch_error || 'Error loading card.'; modalBody.setAttribute('role', 'alert'); } 
+                if(modalBody && currentOpenedCard === card) { modalBody.textContent = error.message || albaBoard.fetch_error || window.albaBoardText.loadError; modalBody.setAttribute('role', 'alert'); }
             });
         });
     });
@@ -506,7 +509,7 @@ document.addEventListener('DOMContentLoaded', () => {
     jQuery(document).on('alba_modal_loaded', function() {
         const dateInput = document.getElementById('alba-card-due-date');
         if (dateInput && typeof flatpickr !== 'undefined') {
-            const fp = flatpickr(dateInput, { dateFormat: "Y-m-d", disableMobile: true });
+            const fp = flatpickr(dateInput, { dateFormat: "Y-m-d", disableMobile: true, locale: window.albaBoardText.calendar });
             const clearBtn = document.getElementById('alba-clear-date');
             if (clearBtn) {
                 clearBtn.addEventListener('click', function(e) { e.preventDefault(); fp.clear(); dateInput.value = ''; this.style.display = 'none'; });
@@ -616,7 +619,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const originalText = button.textContent;
         button.disabled = true;
         button.setAttribute('aria-busy', 'true');
-        if (restoreButton) button.textContent = 'Restoring…';
+        if (restoreButton) button.textContent = window.albaBoardText.restoring;
 
         const body = new URLSearchParams();
         body.append('action', 'alba_manage_archived_card');
@@ -637,14 +640,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
             const feedback = document.getElementById('alba-archive-feedback');
-            if (feedback) feedback.textContent = response.data?.message || 'Could not update this card.';
+            if (feedback) feedback.textContent = response.data?.message || window.albaBoardText.updateError;
             button.disabled = false;
             button.removeAttribute('aria-busy');
             if (restoreButton) button.textContent = originalText;
         })
         .catch(() => {
             const feedback = document.getElementById('alba-archive-feedback');
-            if (feedback) feedback.textContent = 'Could not update this card.';
+            if (feedback) feedback.textContent = window.albaBoardText.updateError;
             button.disabled = false;
             button.removeAttribute('aria-busy');
             if (restoreButton) button.textContent = originalText;
@@ -710,7 +713,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!file || !cardId) return;
             
             if (feedbackDiv) {
-                feedbackDiv.textContent = albaBoard.uploading || 'Uploading...'; 
+                feedbackDiv.textContent = albaBoard.uploading || window.albaBoardText.uploading;
                 feedbackDiv.style.color = '#2271b1';
             }
             
@@ -742,7 +745,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         listDiv.appendChild(newItem); 
                     } else { 
                         if (feedbackDiv) {
-                            feedbackDiv.textContent = response.data.message || 'Error uploading.'; 
+                            feedbackDiv.textContent = response.data.message || window.albaBoardText.uploadError;
                             feedbackDiv.style.color = 'var(--alba-danger)'; 
                         }
                     }
@@ -791,7 +794,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (response.success && itemDiv.length) { 
                         itemDiv.remove(); 
                     } else { 
-                        alert((response.data && response.data.message) ? response.data.message : 'Failed to delete.'); 
+                        alert((response.data && response.data.message) ? response.data.message : window.albaBoardText.deleteError);
                         btn.text('✖').prop('disabled', false);
                     }
                 },
