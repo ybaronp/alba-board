@@ -51,14 +51,11 @@ add_action( 'admin_enqueue_scripts', function( $hook ) {
 function alba_board_mcp_settings_page() {
     if ( ! current_user_can( 'manage_options' ) ) return;
     $settings = alba_board_mcp_settings();
-    $ready = function_exists( 'wp_register_ability' ) && defined( 'WP_MCP_VERSION' ) && version_compare( WP_MCP_VERSION, '0.7.1', '>=' );
     /* translators: %s: this site's MCP server URL. */
     $setup_prompt = sprintf( __( "Help me connect Alba Board to this AI app using remote MCP.\n\nServer URL: %s\n\nUse Streamable HTTP and OAuth browser sign-in. Guide me to this app’s MCP connection settings and its Authenticate or Log in button. If this app or my plan does not support remote MCP connections, tell me.\n\nI will sign in on my WordPress site and choose the boards and permissions. Do not ask me to paste passwords or tokens into this chat.\n\nOnce connected, list my available boards. Do not create, change or delete anything unless I ask.", 'alba-board' ), alba_board_mcp_url() );
     ?>
     <div class="wrap alba-ai">
         <h1><?php esc_html_e( 'AI connections', 'alba-board' ); ?></h1>
-        <p class="alba-ai-intro"><?php esc_html_e( 'Let your AI assistant help with everyday work. Choose which boards it can use, then connect your app.', 'alba-board' ); ?></p>
-        <div class="alba-ai-status <?php echo $ready ? 'is-ready' : ''; ?>"><?php echo esc_html( $ready ? __( 'Connection requirements ready', 'alba-board' ) : __( 'Requires WordPress 6.9+ and official MCP Adapter 0.7.1+.', 'alba-board' ) ); ?></div>
         <div class="alba-ai-layout">
         <form class="alba-ai-panel" method="post" action="options.php">
             <h2><?php esc_html_e( 'Board access', 'alba-board' ); ?></h2>

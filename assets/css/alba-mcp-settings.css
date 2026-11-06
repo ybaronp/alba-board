@@ -1,7 +1,4 @@
 .alba-ai { max-width: 1240px; }
-.alba-ai .alba-ai-intro { font-size: 15px; color: #50575e; max-width: 760px; }
-.alba-ai-status { display: inline-block; background: #fff3d6; color: #674800; border-radius: 20px; padding: 7px 14px; margin: 6px 0 22px; font-weight: 600; }
-.alba-ai-status.is-ready { background: #dcfce7; color: #14532d; }
 .alba-ai-layout { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 24px; align-items: start; }
 .alba-ai .alba-ai-panel { background: #fff; border: 1px solid #dcdcde; border-radius: 12px; padding: 24px; box-shadow: 0 3px 12px #00000006; min-width: 0; }
 .alba-ai .alba-ai-panel h2 { margin: 0 0 20px; font-size: 20px; }
