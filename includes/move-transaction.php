@@ -12,9 +12,19 @@ final class Alba_Board_Move_Transaction {
 
     private function __construct() {}
 
+    /**
+     * Whether this connection already has an open transaction.
+     * Only MariaDB reports this (@@in_transaction); MySQL has no such variable, so null means unknown.
+     */
+    public static function connection_in_transaction() {
+        global $wpdb;
+        if ( false === stripos( (string) $wpdb->db_server_info(), 'mariadb' ) ) return null;
+        return '0' !== (string) $wpdb->get_var( 'SELECT @@in_transaction' );
+    }
+
     public static function begin( $with_receipt = false ) {
         global $wpdb;
-        if ( self::$current || '0' !== (string) $wpdb->get_var( 'SELECT @@in_transaction' ) ) return alba_board_move_error( 'alba_move_transaction_busy', __( 'Another card operation is in progress.', 'alba-board' ), 409 );
+        if ( self::$current || true === self::connection_in_transaction() ) return alba_board_move_error( 'alba_move_transaction_busy', __( 'Another card operation is in progress.', 'alba-board' ), 409 );
         $owner = new self();
         $owner->lock = 'alba_move_' . md5( $wpdb->posts );
         if ( '1' !== (string) $wpdb->get_var( $wpdb->prepare( 'SELECT GET_LOCK(%s,5)', $owner->lock ) ) ) return alba_board_move_error( 'alba_move_busy', __( 'Move in progress. Try again.', 'alba-board' ), 409 );
