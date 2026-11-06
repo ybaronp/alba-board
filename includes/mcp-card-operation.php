@@ -28,7 +28,8 @@ function alba_board_mcp_move_with_comment( $input, $key, $fingerprint ) {
     if ( isset( $GLOBALS['alba_board_mcp_notification_queue'] ) ) return alba_board_mcp_error( 'alba_mcp_busy', __( 'Another card operation is in progress.', 'alba-board' ), 409 );
     global $wpdb;
     $id = (int) $input['card_id'];
-    if ( ! class_exists( 'Alba_Board_Move_Transaction' ) && '0' !== (string) $wpdb->get_var( 'SELECT @@in_transaction' ) ) return alba_board_mcp_error( 'alba_mcp_busy', __( 'Another card operation is in progress.', 'alba-board' ), 409 );
+    // @@in_transaction exists only on MariaDB; MySQL cannot report an open transaction (card #190).
+    if ( ! class_exists( 'Alba_Board_Move_Transaction' ) && false !== stripos( (string) $wpdb->db_server_info(), 'mariadb' ) && '0' !== (string) $wpdb->get_var( 'SELECT @@in_transaction' ) ) return alba_board_mcp_error( 'alba_mcp_busy', __( 'Another card operation is in progress.', 'alba-board' ), 409 );
     $owner = class_exists( 'Alba_Board_Move_Transaction' ) ? Alba_Board_Move_Transaction::begin( true ) : null;
     if ( is_wp_error( $owner ) ) return $owner;
     if ( ! $owner && false === $wpdb->query( 'START TRANSACTION' ) ) return alba_board_mcp_error( 'alba_mcp_save_failed', __( 'Could not start the card operation.', 'alba-board' ), 500 );
