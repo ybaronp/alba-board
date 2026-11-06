@@ -37,6 +37,7 @@ function alba_board_enqueue_admin_assets($hook) {
         'rest_url'                => esc_url_raw( rest_url() ), 
         'card_details_url'        => esc_url_raw( rest_url( 'alba-board/v1/card/__ALBA_CARD_ID__' ) ),
         'rest_nonce'              => wp_create_nonce( 'wp_rest' ),
+        'move_connection_lost' => __( 'Connection lost. Reload.', 'alba-board' ),
         'nonce'                   => wp_create_nonce('alba_move_card_nonce'),
         'get_card_details_nonce'  => wp_create_nonce('alba_get_card_details_admin'),
         'save_saving' => __( 'Saving…', 'alba-board' ),
