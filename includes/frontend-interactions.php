@@ -20,6 +20,8 @@ function alba_board_core_frontend_comment() {
     update_post_meta($card_id, 'alba_comments', $comments);
     foreach ( $comments as &$comment ) $comment['segments'] = alba_board_card_comment_segments( $comment['text'], $card_id );
     unset( $comment );
+    foreach ( $comments as &$comment ) $comment['html'] = alba_board_format_card_comment( $comment['text'], $card_id );
+    unset( $comment );
     wp_send_json_success(['comments' => $comments]);
 }
 add_action('wp_ajax_alba_add_card_comment', 'alba_board_core_frontend_comment', 5);

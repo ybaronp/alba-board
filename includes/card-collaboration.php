@@ -124,12 +124,7 @@ function alba_board_card_comment_segments( $text, $card_id ) {
 }
 
 function alba_board_format_card_comment( $text, $card_id ) {
-    $html = '';
-    foreach ( alba_board_card_comment_segments( $text, $card_id ) as $part ) {
-        $escaped = esc_html( $part['text'] );
-        $html .= $part['mention'] ? '<strong class="alba-comment-mention">' . $escaped . '</strong>' : $escaped;
-    }
-    return $html;
+    return alba_board_render_markdown( $text, $card_id );
 }
 
 function alba_board_render_card_members( $card_id ) {

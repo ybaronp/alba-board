@@ -76,6 +76,7 @@ function alba_output_card_details_admin_modal( $card_id, $force_author = null ) 
     echo '<div class="alba-form-group alba-card-description">';
     echo '<label>' . esc_html__( 'Description:', 'alba-board' ) . '</label>';
     echo '<textarea name="card_content" class="alba-form-input-text" rows="3">' . esc_textarea( $card->post_content ) . '</textarea>';
+    alba_board_rich_text_controls( $card_id, 'description', 'textarea[name=card_content]' );
     echo '</div>';
 
     echo '<div class="alba-card-addons-row">';
@@ -144,6 +145,7 @@ function alba_output_card_details_admin_modal( $card_id, $force_author = null ) 
     echo '<div class="alba-form-group">';
     echo '<label class="alba-comment-label">' . esc_html__( 'Write a comment:', 'alba-board' ) . '</label>';
     echo '<textarea id="alba-new-comment" name="new_comment" class="alba-form-input-text" rows="2" placeholder="' . esc_attr__('Type here...', 'alba-board') . '"></textarea>';
+    alba_board_rich_text_controls( $card_id, 'comment', '#alba-new-comment' );
     echo '</div>';
 
     echo '<div class="alba-card-details-actions">';

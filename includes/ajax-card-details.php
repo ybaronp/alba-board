@@ -93,7 +93,7 @@ function alba_output_card_details_frontend_modal( $card_id ) {
         <div class="alba-description" style="margin-top: 15px;">
             <?php
             $description = trim($card->post_content);
-            echo ($description !== '') ? nl2br(esc_html($description)) : '<span>' . esc_html__('No description.', 'alba-board') . '</span>';
+            echo ($description !== '') ? alba_board_render_markdown( $description, $card_id ) : '<span>' . esc_html__('No description.', 'alba-board') . '</span>';
             ?>
         </div>
         
@@ -139,6 +139,7 @@ function alba_output_card_details_frontend_modal( $card_id ) {
         if ($can_comment): ?>
             <div class="alba-add-comment-section" data-alba-frontend-ui="core-interactions">
                 <textarea id="alba-new-comment-text" class="alba-form-input-text" data-card-id="<?php echo esc_attr($card_id); ?>" rows="2" placeholder="<?php esc_attr_e('Write a comment...', 'alba-board'); ?>"></textarea>
+                <?php alba_board_rich_text_controls( $card_id, 'comment', '#alba-new-comment-text' ); ?>
                 <button type="button" id="alba-add-comment-btn" class="alba-btn-neumorphic"><?php esc_html_e('Add comment', 'alba-board'); ?></button>
                 <div id="alba-comment-feedback"></div>
             </div>
