@@ -85,7 +85,7 @@ function alba_board_mcp_settings_page() {
             <?php endforeach; ?>
             <p id="alba-board-no-results" hidden><?php esc_html_e( 'No boards match. Try another search or turn off Selected only.', 'alba-board' ); ?></p>
             </div>
-            <p class="description"><?php esc_html_e( 'New boards need to be selected separately. Each user’s existing board permissions still apply.', 'alba-board' ); ?></p>
+            <p class="description"><?php esc_html_e( 'Other new boards need to be selected separately. Boards created through AI (when allowed below) are added to this list automatically. Each user’s existing board permissions still apply.', 'alba-board' ); ?></p>
             </fieldset>
             <p><label><input type="checkbox" name="alba_board_mcp[create_boards]" value="1" <?php checked( ! empty( $settings['create_boards'] ) ); ?>> <?php esc_html_e( 'Allow eligible users to create boards through AI', 'alba-board' ); ?></label></p>
             <?php submit_button(); ?>

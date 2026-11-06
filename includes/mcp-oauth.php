@@ -41,8 +41,18 @@ function alba_board_oauth_redirect_valid( $url ) {
     // Redirects are browser-only; metadata URLs are never fetched by the server.
     return 'https' === ( $parts['scheme'] ?? '' ) || ( 'http' === ( $parts['scheme'] ?? '' ) && in_array( $parts['host'], [ '127.0.0.1', 'localhost', '[::1]' ], true ) );
 }
+/**
+ * Address used for rate limits. Forwarded headers are spoofable, so only the connecting address is
+ * trusted by default. Sites behind a trusted proxy or CDN can return the real visitor address
+ * through the 'alba_board_oauth_client_ip' filter; otherwise every visitor shares one limit.
+ */
+function alba_board_oauth_client_ip() {
+    $address = isset( $_SERVER['REMOTE_ADDR'] ) && is_string( $_SERVER['REMOTE_ADDR'] ) ? $_SERVER['REMOTE_ADDR'] : '';
+    $filtered = apply_filters( 'alba_board_oauth_client_ip', $address );
+    return is_string( $filtered ) && false !== filter_var( $filtered, FILTER_VALIDATE_IP ) ? $filtered : $address;
+}
 function alba_board_oauth_rate( $bucket, $maximum, $seconds ) {
-    $key = alba_board_oauth_key( 'rate', $bucket . ':' . ( $_SERVER['REMOTE_ADDR'] ?? '' ) );
+    $key = alba_board_oauth_key( 'rate', $bucket . ':' . alba_board_oauth_client_ip() );
     // Atomic lease makes limits consistent across concurrent registration/token requests.
     if ( ! alba_board_mcp_lock( $key . '_lock' ) ) return false;
     try {
@@ -91,6 +101,28 @@ function alba_board_oauth_client( $id ) {
     $client = get_option( alba_board_oauth_key( 'client', $id ) );
     return is_array( $client ) && $client['expires'] > time() ? $client : null;
 }
+/** Delete the oldest registration that never completed sign-in and is older than ten minutes. Caller holds the registry lock. */
+function alba_board_oauth_evict_unused_client() {
+    global $wpdb;
+    $oldest = null;
+    foreach ( $wpdb->get_results( $wpdb->prepare( "SELECT option_name, option_value FROM $wpdb->options WHERE option_name LIKE %s", $wpdb->esc_like( 'alba_oauth_client_' ) . '%' ) ) as $row ) {
+        $client = maybe_unserialize( $row->option_value );
+        // Registrations saved before this field existed are treated as in use.
+        if ( ! is_array( $client ) || ! array_key_exists( 'activated', $client ) || $client['activated'] || (int) $client['created'] > time() - 10 * MINUTE_IN_SECONDS ) continue;
+        if ( ! $oldest || (int) $client['created'] < $oldest['created'] ) $oldest = [ 'name' => $row->option_name, 'created' => (int) $client['created'] ];
+    }
+    return $oldest ? delete_option( $oldest['name'] ) : false;
+}
+/** A registration becomes long-lived only after a user approved it and the app completed sign-in. */
+function alba_board_oauth_activate_client( $client_id ) {
+    $key = alba_board_oauth_key( 'client', $client_id );
+    $client = get_option( $key );
+    // Nothing to do for unknown clients, or already-active ones with plenty of time left.
+    if ( ! is_array( $client ) || ( ! empty( $client['activated'] ) && $client['expires'] > time() + 30 * DAY_IN_SECONDS ) ) return;
+    $client['activated'] = true;
+    $client['expires'] = max( (int) $client['expires'], time() + 90 * DAY_IN_SECONDS );
+    update_option( $key, $client, false );
+}
 function alba_board_oauth_register( $request ) {
     if ( ! alba_board_oauth_rate( 'register', 20, HOUR_IN_SECONDS ) ) return alba_board_oauth_error( 'temporarily_unavailable', __( 'Too many app registrations. Try later.', 'alba-board' ), 429 );
     $data = $request->get_json_params();
@@ -108,9 +140,12 @@ function alba_board_oauth_register( $request ) {
         alba_board_oauth_cleanup();
         global $wpdb;
         $count = (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM $wpdb->options WHERE option_name LIKE %s", $wpdb->esc_like( 'alba_oauth_client_' ) . '%' ) );
-        if ( $count >= 100 ) return alba_board_oauth_error( 'temporarily_unavailable', __( 'App registration is full. Ask the site administrator to remove unused apps.', 'alba-board' ), 503 );
+        // Anonymous registrations must not lock out real apps: replace the oldest registration that
+        // never completed sign-in. Fresh ones are kept for a few minutes so a real app can finish.
+        if ( $count >= 100 && ! alba_board_oauth_evict_unused_client() ) return alba_board_oauth_error( 'temporarily_unavailable', __( 'App registration is full. Ask the site administrator to remove unused apps.', 'alba-board' ), 503 );
         $id = 'alba_' . bin2hex( random_bytes( 16 ) );
-        $client = [ 'client_id' => $id, 'client_name' => sanitize_text_field( $data['client_name'] ?? 'AI app' ), 'redirect_uris' => array_values( array_unique( $data['redirect_uris'] ) ), 'token_endpoint_auth_method' => $method, 'created' => time(), 'expires' => time() + 90 * DAY_IN_SECONDS ];
+        // Unused registrations expire after a day; completing sign-in extends this (alba_board_oauth_activate_client).
+        $client = [ 'client_id' => $id, 'client_name' => sanitize_text_field( $data['client_name'] ?? 'AI app' ), 'redirect_uris' => array_values( array_unique( $data['redirect_uris'] ) ), 'token_endpoint_auth_method' => $method, 'created' => time(), 'expires' => time() + DAY_IN_SECONDS, 'activated' => false ];
         $secret = 'none' !== $method ? alba_board_oauth_random() : null;
         if ( $secret ) $client['secret_hash'] = wp_hash_password( $secret );
         if ( ! add_option( alba_board_oauth_key( 'client', $id ), $client, '', false ) ) return alba_board_oauth_error( 'server_error', __( 'Could not register the app.', 'alba-board' ), 500 );
@@ -198,7 +233,7 @@ add_action( 'template_redirect', function() {
                 <?php foreach ( $boards as $id ) : ?><p><label><input type="checkbox" name="boards[]" value="<?php echo esc_attr( $id ); ?>"> <?php echo esc_html( get_the_title( $id ) ); ?></label></p><?php endforeach; ?>
             </fieldset>
             <?php if ( in_array( 'alba:write', alba_board_oauth_scopes( $input['scope'] ), true ) ) : ?>
-                <p><label><input type="checkbox" name="allow_write" value="1" checked> <?php esc_html_e( 'Allow creating lists/cards, editing or moving cards, and adding comments. Uncheck for read-only access.', 'alba-board' ); ?></label></p>
+                <p><label><input type="checkbox" name="allow_write" value="1"> <?php esc_html_e( 'Allow creating lists/cards, editing or moving cards, and adding comments. Leave unchecked for read-only access.', 'alba-board' ); ?></label></p>
                 <?php if ( ! empty( alba_board_mcp_settings()['create_boards'] ) && current_user_can( 'publish_boards' ) ) : ?><p><label><input type="checkbox" name="allow_create_boards" value="1"> <?php esc_html_e( 'Also allow creating new boards for this connection.', 'alba-board' ); ?></label></p><?php endif; ?>
             <?php endif; ?>
             <p><?php esc_html_e( 'Your existing WordPress permissions still apply. You can disconnect this app from your WordPress profile. Content the app reads may be sent to its AI provider.', 'alba-board' ); ?></p>
@@ -280,7 +315,9 @@ function alba_board_oauth_token( $request ) {
                 $id = bin2hex( random_bytes( 16 ) );
                 $record['created'] = time(); $record['expires'] = time() + 30 * DAY_IN_SECONDS; $record['generation'] = 1;
                 unset( $record['challenge'], $record['redirect_uri'] );
-                return alba_board_oauth_issue( $id, $record );
+                $issued = alba_board_oauth_issue( $id, $record );
+                if ( ! is_wp_error( $issued ) ) alba_board_oauth_activate_client( $client['client_id'] );
+                return $issued;
             } finally { delete_option( $user_lock ); }
         } finally { delete_option( $key . '_lock' ); }
     }
@@ -305,6 +342,8 @@ function alba_board_oauth_token( $request ) {
     } finally { delete_option( $key . '_lock' ); }
 }
 function alba_board_oauth_revoke( $request ) {
+    // Each attempt may verify a client secret hash; limit attempts like the token endpoint.
+    if ( ! alba_board_oauth_rate( 'revoke', 60, MINUTE_IN_SECONDS ) ) return alba_board_oauth_error( 'temporarily_unavailable', __( 'Too many requests. Try again in a minute.', 'alba-board' ), 429 );
     $client = alba_board_oauth_authenticate_client( $request );
     if ( ! $client ) return alba_board_oauth_error( 'invalid_client', __( 'The app could not be authenticated.', 'alba-board' ), 401 );
     $token = $request->get_param( 'token' ); $id = null;
@@ -480,7 +519,7 @@ function alba_board_oauth_registered_apps() {
     if ( ! current_user_can( 'manage_options' ) ) return;
     global $wpdb;
     $rows = $wpdb->get_results( $wpdb->prepare( "SELECT option_value FROM $wpdb->options WHERE option_name LIKE %s LIMIT 100", $wpdb->esc_like( 'alba_oauth_client_' ) . '%' ) );
-    echo '<details><summary>' . esc_html__( 'Registered AI apps', 'alba-board' ) . '</summary><p>' . esc_html__( 'Remove an unused registration to disconnect all its users. Registrations expire after 90 days. New registrations are rate-limited and capped at 100 per site.', 'alba-board' ) . '</p>';
+    echo '<details><summary>' . esc_html__( 'Registered AI apps', 'alba-board' ) . '</summary><p>' . esc_html__( 'Remove an unused registration to disconnect all its users. Registrations that never complete sign-in expire after one day; others expire after 90 days. New registrations are rate-limited and capped at 100 per site; when full, the oldest unused registration is replaced.', 'alba-board' ) . '</p>';
     foreach ( $rows as $row ) {
         $client = maybe_unserialize( $row->option_value );
         if ( ! is_array( $client ) || empty( $client['client_id'] ) ) continue;
