@@ -1,11 +1,28 @@
-# Alba Board development
+# Alba Board: notes for coding agents
 
-- Use the existing checkout; each cloud task is already isolated. Do not create a Git worktree unless requested.
-- Develop on `codex/` branches. Open pull requests targeting `main` for manual review and merge; do not merge automatically.
-- Use repository-relative paths in agent documentation and memory instructions.
-- The plugin entry point is `alba-board.php`; PHP modules are in `includes/`, browser assets in `assets/`, translations in `languages/`, and plugin documentation in `readme.txt`.
-- The disposable cloud site and tools live alongside the checkout in `../alba-dev/`. Its `wordpress/wp-content/plugins/alba-board` symlink points to this checkout, so source edits apply immediately.
-- Start retained services with `bash ../alba-dev/start.sh`. Use `../alba-dev/bin/wp` for WP-CLI and `../alba-dev/php/bin/php` for PHP 8.3. Run browser smoke checks with `node ../alba-dev/browser/smoke.cjs`.
-- The local test site uses loopback port 8080, with administration at `/wp-admin/`. This is a disposable site, never production. Locally generated login credentials are kept in `../alba-dev/credentials.json`; never commit them or print them in logs.
-- Before submitting changes, lint changed PHP files and exercise the affected frontend and authenticated admin behavior. There is no repository-provided build or automated test suite at onboarding time.
-- Keep WordPress core, database data, downloaded tools, credentials, browser artifacts, and generated files outside the plugin checkout. Do not commit environment state or secrets.
+Alba Board is a visual, AI-ready (MCP) project management plugin for WordPress. It aims to automate work, save users time and help them perform better, through a beautiful, simple UI. It provides boards, lists and cards with comments, attachments, roles and permissions in WordPress admin and on the frontend (shortcode), plus an optional AI connection through the WordPress Abilities API and MCP.
+
+## Code map
+- `alba-board.php`: plugin header and bootstrap. Keep the version here in step with `Stable tag` in `readme.txt`.
+- `includes/`: PHP modules, such as admin pages, AJAX and REST handlers, permissions, shortcodes and MCP/OAuth.
+- `assets/`: CSS, JavaScript and images, shipped as-is with no build step.
+- `languages/`: `.pot`, `.po` and `.mo` files for text domain `alba-board`.
+- `readme.txt`: the WordPress.org listing and changelog. `uninstall.php`: data cleanup.
+
+## Rules
+- Only change what is needed for the task; do not do more than asked. When something is unclear, ask.
+- Protect existing data. Do not rename or remove post types (`alba_board`, `alba_list`, `alba_card`), meta keys or option names unless it is required, for example for performance. Then include a safe migration that can run twice, keeps old data readable, and update `uninstall.php` to match.
+- Follow the WordPress coding standards and the Plugin Directory guidelines. Sanitize input, escape output, check capabilities and nonces, and use `$wpdb->prepare()` for queries.
+- Support PHP 7.4+, WordPress 5.8+, and both MySQL and MariaDB.
+- Make all user-facing text translatable with the `alba-board` text domain.
+- Keep the UI simple and consistent with the existing design; check phone and desktop widths.
+- Do not load remote code or assets, add tracking that runs without consent, or obfuscate code.
+- Work on a branch and open a pull request to `main`. Do not merge or release on your own.
+
+## Testing and releases
+This repository ships only the plugin. The maintainer tests, runs QA and prepares releases with a separate private toolkit (Cosmonauts).
+- If your session started in that private workspace, follow its instructions for test sites, QA and releases.
+- Otherwise, use any disposable WordPress install outside this folder, and never a production site.
+- Never commit WordPress core, databases, credentials, test output or tool configuration to this repository.
+
+Development files such as this one are excluded from the WordPress.org package through `.distignore` and `.gitattributes`.
