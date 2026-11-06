@@ -92,56 +92,75 @@ function alba_board_serve_card_image() {
 add_action( 'wp_ajax_alba_card_image', 'alba_board_serve_card_image' );
 add_action( 'wp_ajax_nopriv_alba_card_image', 'alba_board_serve_card_image' );
 
-function alba_board_upload_card_image() {
-    check_ajax_referer( 'alba_card_rich_text', 'nonce' );
-    $card_id = isset( $_POST['card_id'] ) ? absint( $_POST['card_id'] ) : 0;
-    $target = isset( $_POST['target'] ) && is_string( $_POST['target'] ) ? sanitize_key( $_POST['target'] ) : '';
-    if ( ! in_array( $target, [ 'description', 'comment' ], true ) || 'alba_card' !== get_post_type( $card_id )
-        || 'publish' !== get_post_status( $card_id ) || ! alba_board_can_view_shared_card( $card_id )
-        || ( 'description' === $target ? ! current_user_can( 'edit_card', $card_id ) : ! alba_board_can_comment_card( $card_id ) ) ) {
-        wp_send_json_error( [ 'message' => __( 'You cannot add images to this card.', 'alba-board' ) ], 403 );
+/**
+ * Validate, re-encode and store one private card image. Shared by browser paste and AI uploads.
+ *
+ * @param int      $card_id       Card that owns the image.
+ * @param string   $path          Local temporary file to read.
+ * @param string   $name          Original file name (stored as a label only).
+ * @param callable $still_allowed Re-checks access while the per-card lock is held.
+ * @return int|WP_Error Image ID, or an error whose data holds an HTTP status.
+ */
+function alba_board_store_card_image( $card_id, $path, $name, $still_allowed ) {
+    if ( ! is_string( $path ) || '' === $path || ! is_file( $path ) || filesize( $path ) > 2 * MB_IN_BYTES ) {
+        return new WP_Error( 'alba_image_file', __( 'Choose a PNG, JPEG or WebP image up to 2 MB.', 'alba-board' ), [ 'status' => 400 ] );
     }
-    $file = $_FILES['image'] ?? [];
-    if ( ! is_array( $file ) || empty( $file['tmp_name'] ) || ! is_string( $file['tmp_name'] ) || ! is_uploaded_file( $file['tmp_name'] ) || ! isset( $file['error'] ) || UPLOAD_ERR_OK !== $file['error']
-        || filesize( $file['tmp_name'] ) > 2 * MB_IN_BYTES ) {
-        wp_send_json_error( [ 'message' => __( 'Choose a PNG, JPEG or WebP image up to 2 MB.', 'alba-board' ) ], 400 );
-    }
-    $size = wp_getimagesize( $file['tmp_name'] );
+    $size = wp_getimagesize( $path );
     if ( ! $size || ! in_array( $size['mime'], [ 'image/png', 'image/jpeg', 'image/webp' ], true ) || $size[0] < 1 || $size[1] < 1
         || $size[0] > 6000 || $size[1] > 6000 || $size[0] * $size[1] > 12000000 ) {
-        wp_send_json_error( [ 'message' => __( 'Use a valid PNG, JPEG or WebP image, at most 6000 pixels per side and 12 megapixels.', 'alba-board' ) ], 400 );
+        return new WP_Error( 'alba_image_type', __( 'Use a valid PNG, JPEG or WebP image, at most 6000 pixels per side and 12 megapixels.', 'alba-board' ), [ 'status' => 400 ] );
     }
     // Re-encode images, stripping metadata and anything appended to an uploaded file.
     require_once ABSPATH . 'wp-admin/includes/image.php';
-    $editor = wp_get_image_editor( $file['tmp_name'] );
-    if ( is_wp_error( $editor ) ) wp_send_json_error( [ 'message' => __( 'This server cannot process that image format.', 'alba-board' ) ], 400 );
+    require_once ABSPATH . 'wp-admin/includes/file.php'; // wp_tempnam() outside admin requests (AI uploads).
+    $editor = wp_get_image_editor( $path );
+    if ( is_wp_error( $editor ) ) return new WP_Error( 'alba_image_editor', __( 'This server cannot process that image format.', 'alba-board' ), [ 'status' => 400 ] );
     $resized = ( $size[0] > 2000 || $size[1] > 2000 ) ? $editor->resize( 2000, 2000, false ) : true;
-    if ( is_wp_error( $resized ) ) wp_send_json_error( [ 'message' => __( 'Could not resize the image.', 'alba-board' ) ], 400 );
+    if ( is_wp_error( $resized ) ) return new WP_Error( 'alba_image_resize', __( 'Could not resize the image.', 'alba-board' ), [ 'status' => 400 ] );
     $temporary = wp_tempnam( 'alba-image' );
-    if ( ! $temporary ) wp_send_json_error( [ 'message' => __( 'Could not prepare the image.', 'alba-board' ) ], 500 );
+    if ( ! $temporary ) return new WP_Error( 'alba_image_temp', __( 'Could not prepare the image.', 'alba-board' ), [ 'status' => 500 ] );
     $saved = $editor->save( $temporary, $size['mime'] );
-    if ( is_wp_error( $saved ) ) { @unlink( $temporary ); wp_send_json_error( [ 'message' => __( 'Could not process the image.', 'alba-board' ) ], 400 ); }
+    if ( is_wp_error( $saved ) ) { wp_delete_file( $temporary ); return new WP_Error( 'alba_image_save', __( 'Could not process the image.', 'alba-board' ), [ 'status' => 400 ] ); }
     $bytes = file_get_contents( $saved['path'] );
-    @unlink( $saved['path'] ); @unlink( $temporary );
-    if ( false === $bytes || strlen( $bytes ) > 2 * MB_IN_BYTES ) wp_send_json_error( [ 'message' => __( 'The processed image is too large.', 'alba-board' ) ], 400 );
+    wp_delete_file( $saved['path'] ); wp_delete_file( $temporary );
+    if ( false === $bytes || strlen( $bytes ) > 2 * MB_IN_BYTES ) return new WP_Error( 'alba_image_large', __( 'The processed image is too large.', 'alba-board' ), [ 'status' => 400 ] );
     // A database lock prevents concurrent requests bypassing the per-card image limit.
     $lock = 'alba_image_lock_' . $card_id;
     if ( ! add_option( $lock, time(), '', false ) ) {
         if ( (int) get_option( $lock ) < time() - 120 ) delete_option( $lock );
-        wp_send_json_error( [ 'message' => __( 'Another image is uploading. Please retry.', 'alba-board' ) ], 409 );
+        return new WP_Error( 'alba_image_busy', __( 'Another image is uploading. Please retry.', 'alba-board' ), [ 'status' => 409 ] );
     }
-    $result = null;
     try {
-        if ( 'publish' !== get_post_status( $card_id ) || ! alba_board_can_view_shared_card( $card_id ) || ( 'description' === $target ? ! current_user_can( 'edit_card', $card_id ) : ! alba_board_can_comment_card( $card_id ) ) ) throw new RuntimeException( 'Card access changed during upload.' );
+        if ( 'publish' !== get_post_status( $card_id ) || ! call_user_func( $still_allowed ) ) {
+            return new WP_Error( 'access_changed', __( 'Card access changed. Refresh and try again.', 'alba-board' ), [ 'status' => 400 ] );
+        }
         $ids = get_posts( [ 'post_type' => 'alba_card_image', 'post_parent' => $card_id, 'post_status' => 'private', 'fields' => 'ids', 'numberposts' => 20 ] );
-        if ( count( $ids ) >= 20 ) $result = new WP_Error( 'limit', __( 'This card has reached its 20-image limit.', 'alba-board' ) );
-        else $result = wp_insert_post( [ 'post_type' => 'alba_card_image', 'post_status' => 'private', 'post_parent' => $card_id,
-            'post_author' => get_current_user_id(), 'post_title' => sanitize_file_name( isset( $file['name'] ) && is_string( $file['name'] ) ? $file['name'] : 'image' ),
+        if ( count( $ids ) >= 20 ) return new WP_Error( 'limit', __( 'This card has reached its 20-image limit.', 'alba-board' ), [ 'status' => 400 ] );
+        $result = wp_insert_post( [ 'post_type' => 'alba_card_image', 'post_status' => 'private', 'post_parent' => $card_id,
+            'post_author' => get_current_user_id(), 'post_title' => sanitize_file_name( is_string( $name ) && '' !== $name ? $name : 'image' ),
             'post_mime_type' => $saved['mime-type'], 'post_content' => base64_encode( $bytes ),
         ], true );
-    } catch ( RuntimeException $error ) { $result = new WP_Error( 'access_changed', __( 'Card access changed. Refresh and try again.', 'alba-board' ) ); }
-    finally { delete_option( $lock ); }
-    if ( is_wp_error( $result ) || ! $result ) wp_send_json_error( [ 'message' => is_wp_error( $result ) ? $result->get_error_message() : __( 'Could not save the image.', 'alba-board' ) ], 400 );
+        return $result ? $result : new WP_Error( 'alba_image_insert', __( 'Could not save the image.', 'alba-board' ), [ 'status' => 400 ] );
+    } finally { delete_option( $lock ); }
+}
+
+function alba_board_upload_card_image() {
+    check_ajax_referer( 'alba_card_rich_text', 'nonce' );
+    $card_id = isset( $_POST['card_id'] ) ? absint( $_POST['card_id'] ) : 0;
+    $target = isset( $_POST['target'] ) && is_string( $_POST['target'] ) ? sanitize_key( $_POST['target'] ) : '';
+    $allowed = function() use ( $card_id, $target ) {
+        return alba_board_can_view_shared_card( $card_id ) && ( 'description' === $target ? current_user_can( 'edit_card', $card_id ) : alba_board_can_comment_card( $card_id ) );
+    };
+    if ( ! in_array( $target, [ 'description', 'comment' ], true ) || 'alba_card' !== get_post_type( $card_id )
+        || 'publish' !== get_post_status( $card_id ) || ! $allowed() ) {
+        wp_send_json_error( [ 'message' => __( 'You cannot add images to this card.', 'alba-board' ) ], 403 );
+    }
+    $file = $_FILES['image'] ?? [];
+    if ( ! is_array( $file ) || empty( $file['tmp_name'] ) || ! is_string( $file['tmp_name'] ) || ! is_uploaded_file( $file['tmp_name'] ) || ! isset( $file['error'] ) || UPLOAD_ERR_OK !== $file['error'] ) {
+        wp_send_json_error( [ 'message' => __( 'Choose a PNG, JPEG or WebP image up to 2 MB.', 'alba-board' ) ], 400 );
+    }
+    $result = alba_board_store_card_image( $card_id, $file['tmp_name'], isset( $file['name'] ) && is_string( $file['name'] ) ? $file['name'] : 'image', $allowed );
+    if ( is_wp_error( $result ) ) wp_send_json_error( [ 'message' => $result->get_error_message() ], (int) ( $result->get_error_data()['status'] ?? 400 ) );
     wp_send_json_success( [ 'id' => (int) $result, 'markdown' => '![Screenshot](alba-image:' . (int) $result . ')' ] );
 }
 add_action( 'wp_ajax_alba_upload_card_image', 'alba_board_upload_card_image' );
@@ -192,7 +211,7 @@ function alba_board_enqueue_rich_text() {
     wp_localize_script( 'alba-rich-text', 'albaRichText', [ 'url' => admin_url( 'admin-ajax.php' ), 'nonce' => wp_create_nonce( 'alba_card_rich_text' ),
         'preview' => __( 'Preview', 'alba-board' ), 'edit' => __( 'Edit text', 'alba-board' ),
         'working' => __( 'Working…', 'alba-board' ), 'error' => __( 'Could not complete the request. Please retry.', 'alba-board' ),
-        'partial' => __( '%1$d image(s) pasted; %2$d not uploaded. %3$s', 'alba-board' ),
+        'partial' => /* translators: 1: number of images pasted, 2: number of images not uploaded, 3: error details. */ __( '%1$d image(s) pasted; %2$d not uploaded. %3$s', 'alba-board' ),
         'inserted' => __( 'Image pasted.', 'alba-board' ),
     ] );
 }

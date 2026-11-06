@@ -221,8 +221,8 @@ add_action( 'template_redirect', function() {
     <!doctype html><html <?php language_attributes(); ?>><head><meta charset="<?php bloginfo( 'charset' ); ?>"><meta name="viewport" content="width=device-width, initial-scale=1"><title><?php esc_html_e( 'Connect to Alba Board', 'alba-board' ); ?></title></head>
     <body><main style="max-width:42rem;margin:3rem auto;padding:1.5rem;font-family:system-ui;line-height:1.6">
         <h1><?php esc_html_e( 'Connect to Alba Board', 'alba-board' ); ?></h1>
-        <p><?php echo esc_html( sprintf( __( 'Signed in as: %s', 'alba-board' ), wp_get_current_user()->display_name ) ); ?> <a href="<?php echo esc_url( wp_logout_url( add_query_arg( array_merge( [ 'alba_oauth' => 'authorize' ], $input ), home_url( '/' ) ) ) ); ?>"><?php esc_html_e( 'Use another account', 'alba-board' ); ?></a></p>
-        <p><?php echo esc_html( sprintf( __( 'App: %s', 'alba-board' ), $client['client_name'] ) ); ?></p>
+        <p><?php echo esc_html( sprintf( /* translators: %s: user display name. */ __( 'Signed in as: %s', 'alba-board' ), wp_get_current_user()->display_name ) ); ?> <a href="<?php echo esc_url( wp_logout_url( add_query_arg( array_merge( [ 'alba_oauth' => 'authorize' ], $input ), home_url( '/' ) ) ) ); ?>"><?php esc_html_e( 'Use another account', 'alba-board' ); ?></a></p>
+        <p><?php echo esc_html( sprintf( /* translators: %s: AI app name. */ __( 'App: %s', 'alba-board' ), $client['client_name'] ) ); ?></p>
         <p><strong><?php esc_html_e( 'Return address:', 'alba-board' ); ?></strong> <?php echo esc_html( $callback['host'] . ( isset( $callback['port'] ) ? ':' . $callback['port'] : '' ) ); ?></p>
         <p><?php esc_html_e( 'App names are supplied by the app and are not verified. Approve only a connection you started. Your WordPress password stays on this site.', 'alba-board' ); ?></p>
         <form method="post" action="<?php echo esc_url( add_query_arg( 'alba_oauth', 'authorize', home_url( '/' ) ) ); ?>">

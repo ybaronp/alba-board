@@ -133,7 +133,7 @@ function alba_board_templates_page() {
     foreach ( $templates as $template ) {
         $url = add_query_arg( [ 'page' => 'alba-board-templates', 'template_id' => $template['id'] ], admin_url( 'admin.php' ) );
         $count = array_sum( array_map( function( $list ) { return count( $list['cards'] ); }, $template['lists'] ) );
-        echo '<section class="alba-template-tile"><span class="alba-template-badge">' . esc_html__( 'Free template', 'alba-board' ) . '</span><h2>' . esc_html( $template['name'] ) . '</h2><p>' . esc_html( $template['description'] ) . '</p><p>' . esc_html( sprintf( __( '%1$d lists · %2$d starter tasks', 'alba-board' ), count( $template['lists'] ), $count ) ) . '</p><a class="button" href="' . esc_url( $url ) . '">' . esc_html( sprintf( __( 'Preview %s', 'alba-board' ), $template['name'] ) ) . '</a></section>';
+        echo '<section class="alba-template-tile"><span class="alba-template-badge">' . esc_html__( 'Free template', 'alba-board' ) . '</span><h2>' . esc_html( $template['name'] ) . '</h2><p>' . esc_html( $template['description'] ) . '</p><p>' . esc_html( sprintf( /* translators: 1: number of lists, 2: number of starter tasks. */ __( '%1$d lists · %2$d starter tasks', 'alba-board' ), count( $template['lists'] ), $count ) ) . '</p><a class="button" href="' . esc_url( $url ) . '">' . esc_html( sprintf( /* translators: %s: template name. */ __( 'Preview %s', 'alba-board' ), $template['name'] ) ) . '</a></section>';
     }
     echo '</div>';
     if ( $selected ) {

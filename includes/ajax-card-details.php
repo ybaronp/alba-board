@@ -93,7 +93,7 @@ function alba_output_card_details_frontend_modal( $card_id ) {
         <div class="alba-description" style="margin-top: 15px;">
             <?php
             $description = trim($card->post_content);
-            echo ($description !== '') ? alba_board_render_markdown( $description, $card_id ) : '<span>' . esc_html__('No description.', 'alba-board') . '</span>';
+            echo ($description !== '') ? alba_board_render_markdown( $description, $card_id ) : '<span>' . esc_html__('No description.', 'alba-board') . '</span>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Sanitized with wp_kses() in alba_board_render_markdown().
             ?>
         </div>
         
@@ -125,7 +125,7 @@ function alba_output_card_details_frontend_modal( $card_id ) {
                     <div class="alba-board-comment" data-comment-index="<?php echo esc_attr($i); ?>">
                         <span class="alba-comment-author"><strong><?php echo esc_html($c['author']); ?></strong></span>
                         <span class="alba-comment-date"><?php echo esc_html($c['date']); ?></span>
-                        <div class="alba-comment-text"><?php echo alba_board_format_card_comment($c['text'], $card_id); ?></div>
+                        <div class="alba-comment-text"><?php echo alba_board_format_card_comment($c['text'], $card_id); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Sanitized with wp_kses() in alba_board_render_markdown(). ?></div>
                     </div>
                     <?php
                 }

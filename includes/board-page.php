@@ -60,7 +60,7 @@ add_action( 'admin_post_alba_create_board_page', function() {
     $page_id = alba_board_create_draft_page( $board_id );
     if ( is_wp_error( $page_id ) ) {
         $data = $page_id->get_error_data();
-        wp_die( esc_html( $page_id->get_error_message() ), '', [ 'response' => is_array( $data ) && isset( $data['status'] ) ? $data['status'] : 500 ] );
+        wp_die( esc_html( $page_id->get_error_message() ), '', [ 'response' => is_array( $data ) && isset( $data['status'] ) ? (int) $data['status'] : 500 ] );
     }
     wp_safe_redirect( get_edit_post_link( $page_id, 'raw' ) );
     exit;
