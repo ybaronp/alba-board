@@ -10,7 +10,7 @@ add_action( 'wp_abilities_api_categories_init', function() {
     }
 } );
 
-function alba_board_mcp_definitions() {
+function alba_board_mcp_core_definitions() {
     $id = [ 'type' => 'integer', 'minimum' => 1 ];
     $title = [ 'type' => 'string', 'minLength' => 1, 'maxLength' => 200 ];
     $text = [ 'type' => 'string', 'maxLength' => 20000 ];
@@ -41,6 +41,27 @@ function alba_board_mcp_definitions() {
             'purpose' => [ 'type' => 'string', 'enum' => [ 'comment-image', 'attachment' ] ],
             'filename' => [ 'type' => 'string', 'minLength' => 1, 'maxLength' => 120, 'pattern' => '^[^/\\\\]+$' ] ], [ 'card_id', 'purpose', 'filename' ], false ],
     ] );
+}
+
+function alba_board_mcp_definitions() {
+    $core = alba_board_mcp_core_definitions();
+    /**
+     * Add-ons may add AI actions that run through Alba Board's permission checks, AI sign-in scopes,
+     * retry protection and locks. Each entry: [ label, description, input properties, required, readonly ].
+     * Core actions cannot be replaced. Handle new actions with the alba_board_mcp_permission and
+     * alba_board_mcp_run filters.
+     */
+    $extra = apply_filters( 'alba_board_mcp_definitions', [] );
+    foreach ( is_array( $extra ) ? $extra : [] as $action => $definition ) {
+        if ( isset( $core[ $action ] ) || ! is_string( $action ) || ! preg_match( '/^[a-z0-9-]{3,40}$/', $action ) || ! is_array( $definition ) || 5 !== count( $definition ) ) continue;
+        $core[ $action ] = array_values( $definition );
+    }
+    return $core;
+}
+
+/** True for actions supplied by add-ons through alba_board_mcp_definitions. */
+function alba_board_mcp_is_extension( $action ) {
+    return ! isset( alba_board_mcp_core_definitions()[ $action ] );
 }
 
 add_action( 'wp_abilities_api_init', function() {
@@ -86,6 +107,8 @@ function alba_board_mcp_permission( $action, $input ) {
     if ( 'create-board-from-template' === $action ) return function_exists( 'alba_board_can_create_from_template' ) && alba_board_can_create_from_template() && ! empty( alba_board_mcp_settings()['create_boards'] ) && true === ( $input['confirmed'] ?? false );
     if ( 'list-boards' === $action ) return true;
     if ( 'create-board' === $action ) return ! empty( alba_board_mcp_settings()['create_boards'] ) && current_user_can( 'edit_boards' ) && current_user_can( 'publish_boards' );
+    // Add-on actions decide their own access; deny unless the add-on explicitly allows it.
+    if ( alba_board_mcp_is_extension( $action ) ) return true === apply_filters( 'alba_board_mcp_permission', false, $action, $input );
     $type = isset( $input['card_id'] ) ? 'card' : ( isset( $input['list_id'] ) ? 'list' : 'board' );
     $post = alba_board_mcp_post( $input[ $type . '_id' ] ?? 0, 'alba_' . $type );
     if ( ! $post || ! alba_board_mcp_can_read_board( alba_board_mcp_board_id( $post ) ) ) return false;
@@ -211,6 +234,10 @@ function alba_board_mcp_check_limit( $list_id, $exclude = 0 ) {
 }
 
 function alba_board_mcp_run( $action, $input, $move_transaction = null ) {
+    if ( alba_board_mcp_is_extension( $action ) ) {
+        $result = apply_filters( 'alba_board_mcp_run', null, $action, $input );
+        return null === $result ? alba_board_mcp_error( 'alba_mcp_unavailable', __( 'This AI action is not available.', 'alba-board' ), 404 ) : $result;
+    }
     if ( 'get-board-summary' === $action ) return alba_board_mcp_summary( $input['board_id'], $input['max_items'] ?? 10 );
     if ( 'list-templates' === $action ) {
         $items = [];
@@ -253,6 +280,11 @@ function alba_board_mcp_run( $action, $input, $move_transaction = null ) {
             $item['comments'][] = [ 'author' => (string) ( $comment['author'] ?? '' ), 'date' => (string) ( $comment['date'] ?? '' ), 'text' => (string) ( $comment['text'] ?? '' ) ];
         }
         $item['attachments'] = array_map( 'alba_board_mcp_attachment_item', array_map( 'intval', get_post_meta( $input['card_id'], 'alba_card_attachments' ) ) );
+        /** Add-ons may add read-only card fields (for example tags) to the AI card view. */
+        $extra = apply_filters( 'alba_board_mcp_card_fields', [], (int) $input['card_id'] );
+        foreach ( is_array( $extra ) ? $extra : [] as $field => $value ) {
+            if ( is_string( $field ) && ! isset( $item[ $field ] ) ) $item[ $field ] = $value;
+        }
         return $item;
     }
     if ( isset( $input['title'] ) && '' === trim( sanitize_text_field( $input['title'] ) ) ) return alba_board_mcp_error( 'alba_mcp_empty_title', __( 'Write a title first.', 'alba-board' ) );
