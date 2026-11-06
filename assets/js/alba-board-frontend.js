@@ -193,7 +193,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Keep the selected card in the browser URL.
     updateUrlWithCard(cardId);
 
-    window.albaBoardRequest.fetch(albaBoard.rest_url + 'alba-board/v1/card/' + encodeURIComponent(cardId) + '?context=frontend', { 
+    window.albaBoardRequest.fetch(window.albaBoardRequest.cardDetailsUrl(cardId, 'frontend'), {
         method: 'GET',
         headers: {
             'X-WP-Nonce': albaBoard.rest_nonce

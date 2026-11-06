@@ -447,7 +447,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // ZERO FRICTION UX: Update URL immediately 
             updateUrlWithCard(cardId);
 
-            window.albaBoardRequest.fetch(albaBoard.rest_url + 'alba-board/v1/card/' + cardId + '?context=admin', {
+            window.albaBoardRequest.fetch(window.albaBoardRequest.cardDetailsUrl(cardId, 'admin'), {
                 method: 'GET',
                 headers: { 'X-WP-Nonce': albaBoard.rest_nonce }
             })
