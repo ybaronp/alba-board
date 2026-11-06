@@ -63,7 +63,8 @@
 .alba-master-theme-wrapper { 
     background: var(--alba-bg); 
     min-height: calc(100vh - 32px); 
-    margin: -10px -20px -20px -20px; 
+    /* WordPress pads #wpcontent on the left only (20px, or 10px at 782px and below), so bleed left only. */
+    margin: -10px 0 -20px -20px; 
     padding: 20px; 
     font-family: inherit; 
     color: var(--alba-text-main); 
@@ -71,6 +72,10 @@
     background-attachment: fixed; 
     background-size: cover;
     background-repeat: no-repeat;
+}
+
+@media screen and (max-width: 782px) {
+    .alba-master-theme-wrapper { margin-left: -10px; }
 }
 
 .alba-is-hidden { display: none !important; }
