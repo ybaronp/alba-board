@@ -156,7 +156,7 @@ msgstr "Annulla disattivazione"
 #: includes/admin-board-page.php:271
 #: includes/admin-board-page.php:331
 #: includes/admin-board-page.php:347
-#: includes/mcp-oauth.php:206
+#: includes/mcp-oauth.php:241
 msgid "Cancel"
 msgstr "Annulla"
 
@@ -1512,254 +1512,246 @@ msgstr "Fornisci un titolo o una descrizione da aggiornare."
 msgid "Could not save the comment."
 msgstr "Impossibile salvare il commento."
 
-#: includes/mcp-oauth.php:95
+#: includes/mcp-oauth.php:127
 msgid "Too many app registrations. Try later."
 msgstr "Troppe registrazioni di app. Riprova più tardi."
 
-#: includes/mcp-oauth.php:97
+#: includes/mcp-oauth.php:129
 msgid "Supply up to ten exact HTTPS or loopback callback URLs."
 msgstr "Fornisci fino a dieci URL di richiamo esatti HTTPS o di loopback."
 
-#: includes/mcp-oauth.php:98
+#: includes/mcp-oauth.php:130
 msgid "The callback URL is not allowed."
 msgstr "L’URL di richiamo non è consentito."
 
-#: includes/mcp-oauth.php:100
+#: includes/mcp-oauth.php:132
 msgid "Unsupported client authentication method."
 msgstr "Metodo di autenticazione del client non supportato."
 
-#: includes/mcp-oauth.php:102
+#: includes/mcp-oauth.php:134
 msgid "Only authorization code and refresh grants are supported."
 msgstr "Sono supportate solo le autorizzazioni tramite codice e rinnovo."
 
-#: includes/mcp-oauth.php:104
+#: includes/mcp-oauth.php:136
 msgid "Choose a shorter app name."
 msgstr "Scegli un nome dell’app più breve."
 
-#: includes/mcp-oauth.php:106
+#: includes/mcp-oauth.php:138
 msgid "Please retry registration."
 msgstr "Riprova la registrazione."
 
-#: includes/mcp-oauth.php:111
+#: includes/mcp-oauth.php:145
 msgid "App registration is full. Ask the site administrator to remove unused apps."
 msgstr "Il registro delle app è pieno. Chiedi all’amministratore di rimuovere le app inutilizzate."
 
-#: includes/mcp-oauth.php:116
+#: includes/mcp-oauth.php:151
 msgid "Could not register the app."
 msgstr "Impossibile registrare l’app."
 
-#: includes/mcp-oauth.php:150
+#: includes/mcp-oauth.php:185
 msgid "Browser sign-in is not enabled for Alba Board."
 msgstr "L’accesso tramite browser non è attivo per Alba Board."
 
-#: includes/mcp-oauth.php:153
+#: includes/mcp-oauth.php:188
 msgid "Invalid connection request. Return to your AI app and try again."
 msgstr "Richiesta di connessione non valida. Torna all’app IA e riprova."
 
-#: includes/mcp-oauth.php:158
+#: includes/mcp-oauth.php:193
 msgid "Sign in with a WordPress Board user to connect."
 msgstr "Accedi con un utente WordPress di Alba Board per connetterti."
 
-#: includes/mcp-oauth.php:173
+#: includes/mcp-oauth.php:208
 msgid "Select at least one available board."
 msgstr "Seleziona almeno una bacheca disponibile."
 
-#: includes/mcp-oauth.php:179
+#: includes/mcp-oauth.php:214
 msgid "Could not complete sign-in. Try again."
 msgstr "Impossibile completare l’accesso. Riprova."
 
-#: includes/mcp-oauth.php:186
-#: includes/mcp-oauth.php:188
+#: includes/mcp-oauth.php:221
+#: includes/mcp-oauth.php:223
 msgid "Connect to Alba Board"
 msgstr "Connetti ad Alba Board"
 
-#: includes/mcp-oauth.php:189
+#: includes/mcp-oauth.php:224
 #, php-format
 msgid "Signed in as: %s"
 msgstr "Accesso effettuato come: %s"
 
-#: includes/mcp-oauth.php:189
+#: includes/mcp-oauth.php:224
 msgid "Use another account"
 msgstr "Usa un altro account"
 
-#: includes/mcp-oauth.php:190
+#: includes/mcp-oauth.php:225
 #, php-format
 msgid "App: %s"
 msgstr "App: %s"
 
-#: includes/mcp-oauth.php:191
+#: includes/mcp-oauth.php:226
 msgid "Return address:"
 msgstr "Indirizzo di ritorno:"
 
-#: includes/mcp-oauth.php:192
+#: includes/mcp-oauth.php:227
 msgid "App names are supplied by the app and are not verified. Approve only a connection you started. Your WordPress password stays on this site."
 msgstr "I nomi delle app sono forniti dalle app e non sono verificati. Approva solo una connessione che hai avviato. La password WordPress rimane su questo sito."
 
-#: includes/mcp-oauth.php:197
+#: includes/mcp-oauth.php:232
 msgid "Choose boards this app can access"
 msgstr "Scegli le bacheche accessibili a questa app"
 
-#: includes/mcp-oauth.php:201
-msgid "Allow creating lists/cards, editing or moving cards, and adding comments. Uncheck for read-only access."
-msgstr "Consenti di creare liste e schede, modificare o spostare schede e aggiungere commenti. Deseleziona per l’accesso in sola lettura."
-
-#: includes/mcp-oauth.php:202
+#: includes/mcp-oauth.php:237
 msgid "Also allow creating new boards for this connection."
 msgstr "Consenti anche di creare nuove bacheche per questa connessione."
 
-#: includes/mcp-oauth.php:204
+#: includes/mcp-oauth.php:239
 msgid "Your existing WordPress permissions still apply. You can disconnect this app from your WordPress profile. Content the app reads may be sent to its AI provider."
 msgstr "Restano validi i tuoi permessi WordPress. Puoi scollegare l’app dal tuo profilo. Il contenuto letto può essere inviato al suo fornitore IA."
 
-#: includes/mcp-oauth.php:205
+#: includes/mcp-oauth.php:240
 msgid "Allow connection"
 msgstr "Consenti connessione"
 
-#: includes/mcp-oauth.php:253
+#: includes/mcp-oauth.php:288
 msgid "Could not save the connection."
 msgstr "Impossibile salvare la connessione."
 
-#: includes/mcp-oauth.php:257
+#: includes/mcp-oauth.php:292
 msgid "Too many token requests."
 msgstr "Troppe richieste di token."
 
-#: includes/mcp-oauth.php:259
-#: includes/mcp-oauth.php:309
+#: includes/mcp-oauth.php:294
+#: includes/mcp-oauth.php:348
 msgid "The app could not be authenticated."
 msgstr "Impossibile autenticare l’app."
 
-#: includes/mcp-oauth.php:260
+#: includes/mcp-oauth.php:295
 msgid "This token must be used only for Alba Board."
 msgstr "Questo token può essere usato solo per Alba Board."
 
-#: includes/mcp-oauth.php:264
-#: includes/mcp-oauth.php:269
+#: includes/mcp-oauth.php:299
+#: includes/mcp-oauth.php:304
 msgid "Invalid or expired authorization code."
 msgstr "Codice di autorizzazione non valido o scaduto."
 
-#: includes/mcp-oauth.php:266
+#: includes/mcp-oauth.php:301
 msgid "Authorization code is already being used."
 msgstr "Questo codice di autorizzazione è già in uso."
 
-#: includes/mcp-oauth.php:274
+#: includes/mcp-oauth.php:309
 msgid "Authorization code or PKCE verification failed."
 msgstr "Verifica del codice di autorizzazione o PKCE non riuscita."
 
-#: includes/mcp-oauth.php:276
+#: includes/mcp-oauth.php:311
 msgid "Another sign-in is completing. Please retry."
 msgstr "È in corso un altro accesso. Riprova."
 
-#: includes/mcp-oauth.php:279
+#: includes/mcp-oauth.php:314
 msgid "Disconnect an unused AI app from your WordPress profile first."
 msgstr "Scollega prima un’app IA inutilizzata dal tuo profilo WordPress."
 
-#: includes/mcp-oauth.php:287
+#: includes/mcp-oauth.php:324
 msgid "Use authorization code or refresh token."
 msgstr "Usa un codice di autorizzazione o un token di rinnovo."
 
-#: includes/mcp-oauth.php:289
-#: includes/mcp-oauth.php:297
+#: includes/mcp-oauth.php:326
+#: includes/mcp-oauth.php:334
 msgid "Invalid refresh token."
 msgstr "Token di rinnovo non valido."
 
-#: includes/mcp-oauth.php:291
+#: includes/mcp-oauth.php:328
 msgid "Another refresh is in progress."
 msgstr "È in corso un altro rinnovo."
 
-#: includes/mcp-oauth.php:294
+#: includes/mcp-oauth.php:331
 msgid "This connection expired or was disconnected. Sign in again."
 msgstr "Questa connessione è scaduta o è stata scollegata. Accedi di nuovo."
 
-#: includes/mcp-oauth.php:296
+#: includes/mcp-oauth.php:333
 msgid "A refresh token was reused. Reconnect the app."
 msgstr "È stato riutilizzato un token di rinnovo. Riconnetti l’app."
 
-#: includes/mcp-oauth.php:300
+#: includes/mcp-oauth.php:337
 msgid "A refresh cannot increase access."
 msgstr "Un rinnovo non può ampliare l’accesso."
 
-#: includes/mcp-oauth.php:316
-#: includes/mcp-oauth.php:453
+#: includes/mcp-oauth.php:355
+#: includes/mcp-oauth.php:492
 msgid "Please retry disconnecting."
 msgstr "Riprova a scollegare."
 
-#: includes/mcp-oauth.php:329
+#: includes/mcp-oauth.php:368
 msgid "Alba Board browser sign-in is unavailable."
 msgstr "L’accesso tramite browser di Alba Board non è disponibile."
 
-#: includes/mcp-oauth.php:332
+#: includes/mcp-oauth.php:371
 msgid "Request is too large."
 msgstr "La richiesta è troppo grande."
 
-#: includes/mcp-oauth.php:333
+#: includes/mcp-oauth.php:372
 msgid "Send OAuth credentials in the request body, not the URL."
 msgstr "Invia le credenziali OAuth nel corpo della richiesta, non nell’URL."
 
-#: includes/mcp-oauth.php:355
+#: includes/mcp-oauth.php:394
 msgid "Use HTTPS to connect to Alba Board."
 msgstr "Usa HTTPS per connetterti ad Alba Board."
 
-#: includes/mcp-oauth.php:365
+#: includes/mcp-oauth.php:404
 msgid "Connection expired or invalid. Sign in to Alba Board again."
 msgstr "Connessione scaduta o non valida. Accedi di nuovo ad Alba Board."
 
-#: includes/mcp-oauth.php:393
+#: includes/mcp-oauth.php:432
 msgid "Reconnect and approve permission to manage this board."
 msgstr "Riconnetti e approva il permesso di gestire questa bacheca."
 
-#: includes/mcp-oauth.php:405
+#: includes/mcp-oauth.php:444
 msgid "Sign in to connect to Alba Board."
 msgstr "Accedi per connetterti ad Alba Board."
 
-#: includes/mcp-oauth.php:437
+#: includes/mcp-oauth.php:476
 msgid "Connected AI apps — Alba Board"
 msgstr "App IA connesse — Alba Board"
 
-#: includes/mcp-oauth.php:438
+#: includes/mcp-oauth.php:477
 msgid "No active AI app connections."
 msgstr "Nessuna connessione IA attiva."
 
-#: includes/mcp-oauth.php:443
+#: includes/mcp-oauth.php:482
 msgid "Read and manage selected boards"
 msgstr "Leggi e gestisci le bacheche selezionate"
 
-#: includes/mcp-oauth.php:443
+#: includes/mcp-oauth.php:482
 msgid "Read selected boards"
 msgstr "Leggi le bacheche selezionate"
 
-#: includes/mcp-oauth.php:443
+#: includes/mcp-oauth.php:482
 msgid "Disconnect"
 msgstr "Scollega"
 
-#: includes/mcp-oauth.php:450
+#: includes/mcp-oauth.php:489
 msgid "Unknown connection."
 msgstr "Connessione sconosciuta."
 
-#: includes/mcp-oauth.php:456
+#: includes/mcp-oauth.php:495
 msgid "You cannot disconnect this app."
 msgstr "Non puoi scollegare questa app."
 
-#: includes/mcp-oauth.php:483
+#: includes/mcp-oauth.php:522
 msgid "Registered AI apps"
 msgstr "App IA registrate"
 
-#: includes/mcp-oauth.php:483
-msgid "Remove an unused registration to disconnect all its users. Registrations expire after 90 days. New registrations are rate-limited and capped at 100 per site."
-msgstr "Rimuovere una registrazione inutilizzata scollega tutti i suoi utenti. Le registrazioni scadono dopo 90 giorni. Le nuove registrazioni hanno un limite di frequenza e un massimo di 100 per sito."
-
-#: includes/mcp-oauth.php:488
+#: includes/mcp-oauth.php:527
 msgid "Remove registration"
 msgstr "Rimuovi registrazione"
 
-#: includes/mcp-oauth.php:493
+#: includes/mcp-oauth.php:532
 msgid "Administrator access is required."
 msgstr "È richiesto l’accesso come amministratore."
 
-#: includes/mcp-oauth.php:495
+#: includes/mcp-oauth.php:534
 msgid "Unknown app."
 msgstr "App sconosciuta."
 
-#: includes/mcp-oauth.php:497
+#: includes/mcp-oauth.php:536
 msgid "Please retry removing the app."
 msgstr "Riprova a rimuovere l’app."
 
@@ -3178,10 +3170,6 @@ msgstr ""
 "\n"
 "Una volta collegato, elenca le mie bacheche disponibili. Non creare, modificare o eliminare nulla se non te lo chiedo."
 
-#: includes/mcp-settings.php:88
-msgid "New boards need to be selected separately. Each user’s existing board permissions still apply."
-msgstr "Le nuove bacheche devono essere selezionate separatamente. Si applicano comunque i permessi esistenti di ogni utente sulle bacheche."
-
 #: includes/mcp-settings.php:95
 msgid "Copy the setup prompt, paste it into your AI chat, and follow the sign-in steps."
 msgstr "Copia il prompt di configurazione, incollalo nella tua chat di IA e segui i passaggi di accesso."
@@ -3308,3 +3296,19 @@ msgstr "Copiato"
 #: includes/support-details.php:35
 msgid "Select and copy the text."
 msgstr "Seleziona e copia il testo."
+
+#: includes/mcp-oauth.php:236
+msgid "Allow creating lists/cards, editing or moving cards, and adding comments. Leave unchecked for read-only access."
+msgstr "Consenti di creare liste e schede, modificare o spostare schede e aggiungere commenti. Lascia deselezionato per l’accesso in sola lettura."
+
+#: includes/mcp-oauth.php:346
+msgid "Too many requests. Try again in a minute."
+msgstr "Troppe richieste. Riprova tra un minuto."
+
+#: includes/mcp-oauth.php:522
+msgid "Remove an unused registration to disconnect all its users. Registrations that never complete sign-in expire after one day; others expire after 90 days. New registrations are rate-limited and capped at 100 per site; when full, the oldest unused registration is replaced."
+msgstr "Rimuovere una registrazione inutilizzata scollega tutti i suoi utenti. Le registrazioni che non completano mai l’accesso scadono dopo un giorno; le altre dopo 90 giorni. Le nuove registrazioni hanno un limite di frequenza e un massimo di 100 per sito; al raggiungimento del limite viene sostituita la registrazione inutilizzata più vecchia."
+
+#: includes/mcp-settings.php:88
+msgid "Other new boards need to be selected separately. Boards created through AI (when allowed below) are added to this list automatically. Each user’s existing board permissions still apply."
+msgstr "Le altre nuove bacheche devono essere selezionate separatamente. Le bacheche create tramite IA (se consentito qui sotto) vengono aggiunte automaticamente a questo elenco. Si applicano comunque i permessi esistenti di ogni utente sulle bacheche."

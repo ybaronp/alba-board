@@ -156,7 +156,7 @@ msgstr "Peru käytöstä poisto"
 #: includes/admin-board-page.php:271
 #: includes/admin-board-page.php:331
 #: includes/admin-board-page.php:347
-#: includes/mcp-oauth.php:206
+#: includes/mcp-oauth.php:241
 msgid "Cancel"
 msgstr "Peruuta"
 
@@ -1512,254 +1512,246 @@ msgstr "Anna päivitettävä otsikko tai kuvaus."
 msgid "Could not save the comment."
 msgstr "Kommenttia ei voitu tallentaa."
 
-#: includes/mcp-oauth.php:95
+#: includes/mcp-oauth.php:127
 msgid "Too many app registrations. Try later."
 msgstr "Liian monta sovellusrekisteröintiä. Yritä myöhemmin."
 
-#: includes/mcp-oauth.php:97
+#: includes/mcp-oauth.php:129
 msgid "Supply up to ten exact HTTPS or loopback callback URLs."
 msgstr "Anna enintään kymmenen täsmällistä HTTPS- tai loopback-paluuosoitetta."
 
-#: includes/mcp-oauth.php:98
+#: includes/mcp-oauth.php:130
 msgid "The callback URL is not allowed."
 msgstr "Paluuosoitetta ei sallita."
 
-#: includes/mcp-oauth.php:100
+#: includes/mcp-oauth.php:132
 msgid "Unsupported client authentication method."
 msgstr "Asiakkaan tunnistautumismenetelmää ei tueta."
 
-#: includes/mcp-oauth.php:102
+#: includes/mcp-oauth.php:134
 msgid "Only authorization code and refresh grants are supported."
 msgstr "Vain valtuutuskoodia ja uusimista tuetaan."
 
-#: includes/mcp-oauth.php:104
+#: includes/mcp-oauth.php:136
 msgid "Choose a shorter app name."
 msgstr "Valitse lyhyempi sovellusnimi."
 
-#: includes/mcp-oauth.php:106
+#: includes/mcp-oauth.php:138
 msgid "Please retry registration."
 msgstr "Yritä rekisteröintiä uudelleen."
 
-#: includes/mcp-oauth.php:111
+#: includes/mcp-oauth.php:145
 msgid "App registration is full. Ask the site administrator to remove unused apps."
 msgstr "Sovellusrekisteri on täynnä. Pyydä ylläpitäjää poistamaan käyttämättömät sovellukset."
 
-#: includes/mcp-oauth.php:116
+#: includes/mcp-oauth.php:151
 msgid "Could not register the app."
 msgstr "Sovellusta ei voitu rekisteröidä."
 
-#: includes/mcp-oauth.php:150
+#: includes/mcp-oauth.php:185
 msgid "Browser sign-in is not enabled for Alba Board."
 msgstr "Alba Boardin selainkirjautumista ei ole otettu käyttöön."
 
-#: includes/mcp-oauth.php:153
+#: includes/mcp-oauth.php:188
 msgid "Invalid connection request. Return to your AI app and try again."
 msgstr "Virheellinen yhteyspyyntö. Palaa tekoälysovellukseen ja yritä uudelleen."
 
-#: includes/mcp-oauth.php:158
+#: includes/mcp-oauth.php:193
 msgid "Sign in with a WordPress Board user to connect."
 msgstr "Kirjaudu WordPressin taulukäyttäjänä yhteyden muodostamiseksi."
 
-#: includes/mcp-oauth.php:173
+#: includes/mcp-oauth.php:208
 msgid "Select at least one available board."
 msgstr "Valitse vähintään yksi käytettävissä oleva taulu."
 
-#: includes/mcp-oauth.php:179
+#: includes/mcp-oauth.php:214
 msgid "Could not complete sign-in. Try again."
 msgstr "Kirjautumista ei voitu suorittaa. Yritä uudelleen."
 
-#: includes/mcp-oauth.php:186
-#: includes/mcp-oauth.php:188
+#: includes/mcp-oauth.php:221
+#: includes/mcp-oauth.php:223
 msgid "Connect to Alba Board"
 msgstr "Yhdistä Alba Boardiin"
 
-#: includes/mcp-oauth.php:189
+#: includes/mcp-oauth.php:224
 #, php-format
 msgid "Signed in as: %s"
 msgstr "Kirjautunut käyttäjänä: %s"
 
-#: includes/mcp-oauth.php:189
+#: includes/mcp-oauth.php:224
 msgid "Use another account"
 msgstr "Käytä toista tiliä"
 
-#: includes/mcp-oauth.php:190
+#: includes/mcp-oauth.php:225
 #, php-format
 msgid "App: %s"
 msgstr "Sovellus: %s"
 
-#: includes/mcp-oauth.php:191
+#: includes/mcp-oauth.php:226
 msgid "Return address:"
 msgstr "Paluuosoite:"
 
-#: includes/mcp-oauth.php:192
+#: includes/mcp-oauth.php:227
 msgid "App names are supplied by the app and are not verified. Approve only a connection you started. Your WordPress password stays on this site."
 msgstr "Sovellusnimet ovat sovelluksen antamia, eikä niitä ole vahvistettu. Hyväksy vain itse aloittamasi yhteys. WordPress-salasanasi pysyy tällä sivustolla."
 
-#: includes/mcp-oauth.php:197
+#: includes/mcp-oauth.php:232
 msgid "Choose boards this app can access"
 msgstr "Valitse taulut, joihin sovellus pääsee"
 
-#: includes/mcp-oauth.php:201
-msgid "Allow creating lists/cards, editing or moving cards, and adding comments. Uncheck for read-only access."
-msgstr "Salli listojen/korttien luonti, korttien muokkaus ja siirto sekä kommentointi. Poista valinta vain luku -oikeutta varten."
-
-#: includes/mcp-oauth.php:202
+#: includes/mcp-oauth.php:237
 msgid "Also allow creating new boards for this connection."
 msgstr "Salli myös uusien taulujen luonti tälle yhteydelle."
 
-#: includes/mcp-oauth.php:204
+#: includes/mcp-oauth.php:239
 msgid "Your existing WordPress permissions still apply. You can disconnect this app from your WordPress profile. Content the app reads may be sent to its AI provider."
 msgstr "Nykyiset WordPress-oikeutesi pätevät edelleen. Voit katkaista sovelluksen yhteyden profiilistasi. Luettu sisältö voidaan lähettää sen tekoälypalveluun."
 
-#: includes/mcp-oauth.php:205
+#: includes/mcp-oauth.php:240
 msgid "Allow connection"
 msgstr "Salli yhteys"
 
-#: includes/mcp-oauth.php:253
+#: includes/mcp-oauth.php:288
 msgid "Could not save the connection."
 msgstr "Yhteyttä ei voitu tallentaa."
 
-#: includes/mcp-oauth.php:257
+#: includes/mcp-oauth.php:292
 msgid "Too many token requests."
 msgstr "Liian monta tunnistepyyntöä."
 
-#: includes/mcp-oauth.php:259
-#: includes/mcp-oauth.php:309
+#: includes/mcp-oauth.php:294
+#: includes/mcp-oauth.php:348
 msgid "The app could not be authenticated."
 msgstr "Sovellusta ei voitu todentaa."
 
-#: includes/mcp-oauth.php:260
+#: includes/mcp-oauth.php:295
 msgid "This token must be used only for Alba Board."
 msgstr "Tätä tunnistetta saa käyttää vain Alba Boardissa."
 
-#: includes/mcp-oauth.php:264
-#: includes/mcp-oauth.php:269
+#: includes/mcp-oauth.php:299
+#: includes/mcp-oauth.php:304
 msgid "Invalid or expired authorization code."
 msgstr "Virheellinen tai vanhentunut valtuutuskoodi."
 
-#: includes/mcp-oauth.php:266
+#: includes/mcp-oauth.php:301
 msgid "Authorization code is already being used."
 msgstr "Valtuutuskoodi on jo käytössä."
 
-#: includes/mcp-oauth.php:274
+#: includes/mcp-oauth.php:309
 msgid "Authorization code or PKCE verification failed."
 msgstr "Valtuutuskoodin tai PKCE:n tarkistus epäonnistui."
 
-#: includes/mcp-oauth.php:276
+#: includes/mcp-oauth.php:311
 msgid "Another sign-in is completing. Please retry."
 msgstr "Toista kirjautumista viimeistellään. Yritä uudelleen."
 
-#: includes/mcp-oauth.php:279
+#: includes/mcp-oauth.php:314
 msgid "Disconnect an unused AI app from your WordPress profile first."
 msgstr "Katkaise ensin käyttämättömän tekoälysovelluksen yhteys WordPress-profiilistasi."
 
-#: includes/mcp-oauth.php:287
+#: includes/mcp-oauth.php:324
 msgid "Use authorization code or refresh token."
 msgstr "Käytä valtuutuskoodia tai uusimistunnistetta."
 
-#: includes/mcp-oauth.php:289
-#: includes/mcp-oauth.php:297
+#: includes/mcp-oauth.php:326
+#: includes/mcp-oauth.php:334
 msgid "Invalid refresh token."
 msgstr "Virheellinen uusimistunniste."
 
-#: includes/mcp-oauth.php:291
+#: includes/mcp-oauth.php:328
 msgid "Another refresh is in progress."
 msgstr "Toinen uusiminen on käynnissä."
 
-#: includes/mcp-oauth.php:294
+#: includes/mcp-oauth.php:331
 msgid "This connection expired or was disconnected. Sign in again."
 msgstr "Yhteys on vanhentunut tai katkaistu. Kirjaudu uudelleen."
 
-#: includes/mcp-oauth.php:296
+#: includes/mcp-oauth.php:333
 msgid "A refresh token was reused. Reconnect the app."
 msgstr "Uusimistunnistetta käytettiin uudelleen. Yhdistä sovellus uudelleen."
 
-#: includes/mcp-oauth.php:300
+#: includes/mcp-oauth.php:337
 msgid "A refresh cannot increase access."
 msgstr "Uusiminen ei voi laajentaa oikeuksia."
 
-#: includes/mcp-oauth.php:316
-#: includes/mcp-oauth.php:453
+#: includes/mcp-oauth.php:355
+#: includes/mcp-oauth.php:492
 msgid "Please retry disconnecting."
 msgstr "Yritä katkaista yhteys uudelleen."
 
-#: includes/mcp-oauth.php:329
+#: includes/mcp-oauth.php:368
 msgid "Alba Board browser sign-in is unavailable."
 msgstr "Alba Boardin selainkirjautuminen ei ole käytettävissä."
 
-#: includes/mcp-oauth.php:332
+#: includes/mcp-oauth.php:371
 msgid "Request is too large."
 msgstr "Pyyntö on liian suuri."
 
-#: includes/mcp-oauth.php:333
+#: includes/mcp-oauth.php:372
 msgid "Send OAuth credentials in the request body, not the URL."
 msgstr "Lähetä OAuth-tunnistetiedot pyynnön sisällössä, älä URL-osoitteessa."
 
-#: includes/mcp-oauth.php:355
+#: includes/mcp-oauth.php:394
 msgid "Use HTTPS to connect to Alba Board."
 msgstr "Käytä HTTPS-yhteyttä Alba Boardiin."
 
-#: includes/mcp-oauth.php:365
+#: includes/mcp-oauth.php:404
 msgid "Connection expired or invalid. Sign in to Alba Board again."
 msgstr "Yhteys on vanhentunut tai virheellinen. Kirjaudu Alba Boardiin uudelleen."
 
-#: includes/mcp-oauth.php:393
+#: includes/mcp-oauth.php:432
 msgid "Reconnect and approve permission to manage this board."
 msgstr "Yhdistä uudelleen ja hyväksy oikeus hallita taulua."
 
-#: includes/mcp-oauth.php:405
+#: includes/mcp-oauth.php:444
 msgid "Sign in to connect to Alba Board."
 msgstr "Kirjaudu yhdistääksesi Alba Boardiin."
 
-#: includes/mcp-oauth.php:437
+#: includes/mcp-oauth.php:476
 msgid "Connected AI apps — Alba Board"
 msgstr "Yhdistetyt tekoälysovellukset — Alba Board"
 
-#: includes/mcp-oauth.php:438
+#: includes/mcp-oauth.php:477
 msgid "No active AI app connections."
 msgstr "Ei aktiivisia tekoälysovellusyhteyksiä."
 
-#: includes/mcp-oauth.php:443
+#: includes/mcp-oauth.php:482
 msgid "Read and manage selected boards"
 msgstr "Lue ja hallitse valittuja tauluja"
 
-#: includes/mcp-oauth.php:443
+#: includes/mcp-oauth.php:482
 msgid "Read selected boards"
 msgstr "Lue valittuja tauluja"
 
-#: includes/mcp-oauth.php:443
+#: includes/mcp-oauth.php:482
 msgid "Disconnect"
 msgstr "Katkaise yhteys"
 
-#: includes/mcp-oauth.php:450
+#: includes/mcp-oauth.php:489
 msgid "Unknown connection."
 msgstr "Tuntematon yhteys."
 
-#: includes/mcp-oauth.php:456
+#: includes/mcp-oauth.php:495
 msgid "You cannot disconnect this app."
 msgstr "Et voi katkaista tämän sovelluksen yhteyttä."
 
-#: includes/mcp-oauth.php:483
+#: includes/mcp-oauth.php:522
 msgid "Registered AI apps"
 msgstr "Rekisteröidyt tekoälysovellukset"
 
-#: includes/mcp-oauth.php:483
-msgid "Remove an unused registration to disconnect all its users. Registrations expire after 90 days. New registrations are rate-limited and capped at 100 per site."
-msgstr "Käyttämättömän rekisteröinnin poistaminen katkaisee kaikkien sen käyttäjien yhteyden. Rekisteröinnit vanhenevat 90 päivässä. Uusien rekisteröintien määrää rajoitetaan, ja sivustolla voi olla enintään 100."
-
-#: includes/mcp-oauth.php:488
+#: includes/mcp-oauth.php:527
 msgid "Remove registration"
 msgstr "Poista rekisteröinti"
 
-#: includes/mcp-oauth.php:493
+#: includes/mcp-oauth.php:532
 msgid "Administrator access is required."
 msgstr "Ylläpitäjän oikeus vaaditaan."
 
-#: includes/mcp-oauth.php:495
+#: includes/mcp-oauth.php:534
 msgid "Unknown app."
 msgstr "Tuntematon sovellus."
 
-#: includes/mcp-oauth.php:497
+#: includes/mcp-oauth.php:536
 msgid "Please retry removing the app."
 msgstr "Yritä sovelluksen poistamista uudelleen."
 
@@ -3178,10 +3170,6 @@ msgstr ""
 "\n"
 "Kun yhteys on muodostettu, luettele käytettävissä olevat taulut. Älä luo, muuta tai poista mitään, ellen pyydä."
 
-#: includes/mcp-settings.php:88
-msgid "New boards need to be selected separately. Each user’s existing board permissions still apply."
-msgstr "Uudet taulut on valittava erikseen. Jokaisen käyttäjän nykyiset taulujen käyttöoikeudet ovat edelleen voimassa."
-
 #: includes/mcp-settings.php:95
 msgid "Copy the setup prompt, paste it into your AI chat, and follow the sign-in steps."
 msgstr "Kopioi käyttöönottokehote, liitä se tekoälykeskusteluun ja seuraa kirjautumisvaiheita."
@@ -3308,3 +3296,19 @@ msgstr "Kopioitu"
 #: includes/support-details.php:35
 msgid "Select and copy the text."
 msgstr "Valitse ja kopioi teksti."
+
+#: includes/mcp-oauth.php:236
+msgid "Allow creating lists/cards, editing or moving cards, and adding comments. Leave unchecked for read-only access."
+msgstr "Salli listojen/korttien luonti, korttien muokkaus ja siirto sekä kommentointi. Jätä valitsematta vain luku -oikeutta varten."
+
+#: includes/mcp-oauth.php:346
+msgid "Too many requests. Try again in a minute."
+msgstr "Liian monta pyyntöä. Yritä uudelleen minuutin kuluttua."
+
+#: includes/mcp-oauth.php:522
+msgid "Remove an unused registration to disconnect all its users. Registrations that never complete sign-in expire after one day; others expire after 90 days. New registrations are rate-limited and capped at 100 per site; when full, the oldest unused registration is replaced."
+msgstr "Käyttämättömän rekisteröinnin poistaminen katkaisee kaikkien sen käyttäjien yhteyden. Rekisteröinnit, joiden kirjautuminen ei koskaan valmistu, vanhenevat päivässä; muut vanhenevat 90 päivässä. Uusien rekisteröintien määrää rajoitetaan, ja sivustolla voi olla enintään 100; kun raja täyttyy, vanhin käyttämätön rekisteröinti korvataan."
+
+#: includes/mcp-settings.php:88
+msgid "Other new boards need to be selected separately. Boards created through AI (when allowed below) are added to this list automatically. Each user’s existing board permissions still apply."
+msgstr "Muut uudet taulut on valittava erikseen. Tekoälyn kautta luodut taulut (jos se sallitaan alla) lisätään tähän luetteloon automaattisesti. Jokaisen käyttäjän nykyiset taulujen käyttöoikeudet ovat edelleen voimassa."

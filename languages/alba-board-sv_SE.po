@@ -156,7 +156,7 @@ msgstr "Avbryt inaktivering"
 #: includes/admin-board-page.php:271
 #: includes/admin-board-page.php:331
 #: includes/admin-board-page.php:347
-#: includes/mcp-oauth.php:206
+#: includes/mcp-oauth.php:241
 msgid "Cancel"
 msgstr "Avbryt"
 
@@ -1512,254 +1512,246 @@ msgstr "Ange rubrik eller beskrivning att uppdatera."
 msgid "Could not save the comment."
 msgstr "Kommentaren kunde inte sparas."
 
-#: includes/mcp-oauth.php:95
+#: includes/mcp-oauth.php:127
 msgid "Too many app registrations. Try later."
 msgstr "För många appregistreringar. Försök senare."
 
-#: includes/mcp-oauth.php:97
+#: includes/mcp-oauth.php:129
 msgid "Supply up to ten exact HTTPS or loopback callback URLs."
 msgstr "Ange upp till tio exakta HTTPS- eller loopback-adresser för återanrop."
 
-#: includes/mcp-oauth.php:98
+#: includes/mcp-oauth.php:130
 msgid "The callback URL is not allowed."
 msgstr "Återanropsadressen tillåts inte."
 
-#: includes/mcp-oauth.php:100
+#: includes/mcp-oauth.php:132
 msgid "Unsupported client authentication method."
 msgstr "Klientens autentiseringsmetod stöds inte."
 
-#: includes/mcp-oauth.php:102
+#: includes/mcp-oauth.php:134
 msgid "Only authorization code and refresh grants are supported."
 msgstr "Endast auktoriseringskod och förnyelse stöds."
 
-#: includes/mcp-oauth.php:104
+#: includes/mcp-oauth.php:136
 msgid "Choose a shorter app name."
 msgstr "Välj ett kortare appnamn."
 
-#: includes/mcp-oauth.php:106
+#: includes/mcp-oauth.php:138
 msgid "Please retry registration."
 msgstr "Försök registrera igen."
 
-#: includes/mcp-oauth.php:111
+#: includes/mcp-oauth.php:145
 msgid "App registration is full. Ask the site administrator to remove unused apps."
 msgstr "Appregistret är fullt. Be administratören ta bort oanvända appar."
 
-#: includes/mcp-oauth.php:116
+#: includes/mcp-oauth.php:151
 msgid "Could not register the app."
 msgstr "Appen kunde inte registreras."
 
-#: includes/mcp-oauth.php:150
+#: includes/mcp-oauth.php:185
 msgid "Browser sign-in is not enabled for Alba Board."
 msgstr "Webbläsarinloggning är inte aktiverad för Alba Board."
 
-#: includes/mcp-oauth.php:153
+#: includes/mcp-oauth.php:188
 msgid "Invalid connection request. Return to your AI app and try again."
 msgstr "Ogiltig anslutningsbegäran. Gå tillbaka till AI-appen och försök igen."
 
-#: includes/mcp-oauth.php:158
+#: includes/mcp-oauth.php:193
 msgid "Sign in with a WordPress Board user to connect."
 msgstr "Logga in med en WordPress-tavelanvändare för att ansluta."
 
-#: includes/mcp-oauth.php:173
+#: includes/mcp-oauth.php:208
 msgid "Select at least one available board."
 msgstr "Välj minst en tillgänglig tavla."
 
-#: includes/mcp-oauth.php:179
+#: includes/mcp-oauth.php:214
 msgid "Could not complete sign-in. Try again."
 msgstr "Inloggningen kunde inte slutföras. Försök igen."
 
-#: includes/mcp-oauth.php:186
-#: includes/mcp-oauth.php:188
+#: includes/mcp-oauth.php:221
+#: includes/mcp-oauth.php:223
 msgid "Connect to Alba Board"
 msgstr "Anslut till Alba Board"
 
-#: includes/mcp-oauth.php:189
+#: includes/mcp-oauth.php:224
 #, php-format
 msgid "Signed in as: %s"
 msgstr "Inloggad som: %s"
 
-#: includes/mcp-oauth.php:189
+#: includes/mcp-oauth.php:224
 msgid "Use another account"
 msgstr "Använd ett annat konto"
 
-#: includes/mcp-oauth.php:190
+#: includes/mcp-oauth.php:225
 #, php-format
 msgid "App: %s"
 msgstr "App: %s"
 
-#: includes/mcp-oauth.php:191
+#: includes/mcp-oauth.php:226
 msgid "Return address:"
 msgstr "Returadress:"
 
-#: includes/mcp-oauth.php:192
+#: includes/mcp-oauth.php:227
 msgid "App names are supplied by the app and are not verified. Approve only a connection you started. Your WordPress password stays on this site."
 msgstr "Appnamnen kommer från apparna och är inte verifierade. Godkänn bara anslutningar som du startat. Ditt WordPress-lösenord stannar på den här webbplatsen."
 
-#: includes/mcp-oauth.php:197
+#: includes/mcp-oauth.php:232
 msgid "Choose boards this app can access"
 msgstr "Välj vilka tavlor appen får åtkomst till"
 
-#: includes/mcp-oauth.php:201
-msgid "Allow creating lists/cards, editing or moving cards, and adding comments. Uncheck for read-only access."
-msgstr "Tillåt skapande av listor/kort, redigering och flytt av kort samt kommentarer. Avmarkera för skrivskyddad åtkomst."
-
-#: includes/mcp-oauth.php:202
+#: includes/mcp-oauth.php:237
 msgid "Also allow creating new boards for this connection."
 msgstr "Tillåt även nya tavlor för anslutningen."
 
-#: includes/mcp-oauth.php:204
+#: includes/mcp-oauth.php:239
 msgid "Your existing WordPress permissions still apply. You can disconnect this app from your WordPress profile. Content the app reads may be sent to its AI provider."
 msgstr "Dina WordPress-behörigheter gäller fortfarande. Du kan koppla från appen i din profil. Innehåll appen läser kan skickas till AI-leverantören."
 
-#: includes/mcp-oauth.php:205
+#: includes/mcp-oauth.php:240
 msgid "Allow connection"
 msgstr "Tillåt anslutning"
 
-#: includes/mcp-oauth.php:253
+#: includes/mcp-oauth.php:288
 msgid "Could not save the connection."
 msgstr "Anslutningen kunde inte sparas."
 
-#: includes/mcp-oauth.php:257
+#: includes/mcp-oauth.php:292
 msgid "Too many token requests."
 msgstr "För många tokenbegäranden."
 
-#: includes/mcp-oauth.php:259
-#: includes/mcp-oauth.php:309
+#: includes/mcp-oauth.php:294
+#: includes/mcp-oauth.php:348
 msgid "The app could not be authenticated."
 msgstr "Appen kunde inte autentiseras."
 
-#: includes/mcp-oauth.php:260
+#: includes/mcp-oauth.php:295
 msgid "This token must be used only for Alba Board."
 msgstr "Token får bara användas för Alba Board."
 
-#: includes/mcp-oauth.php:264
-#: includes/mcp-oauth.php:269
+#: includes/mcp-oauth.php:299
+#: includes/mcp-oauth.php:304
 msgid "Invalid or expired authorization code."
 msgstr "Ogiltig eller utgången auktoriseringskod."
 
-#: includes/mcp-oauth.php:266
+#: includes/mcp-oauth.php:301
 msgid "Authorization code is already being used."
 msgstr "Auktoriseringskoden används redan."
 
-#: includes/mcp-oauth.php:274
+#: includes/mcp-oauth.php:309
 msgid "Authorization code or PKCE verification failed."
 msgstr "Kontroll av auktoriseringskod eller PKCE misslyckades."
 
-#: includes/mcp-oauth.php:276
+#: includes/mcp-oauth.php:311
 msgid "Another sign-in is completing. Please retry."
 msgstr "En annan inloggning slutförs. Försök igen."
 
-#: includes/mcp-oauth.php:279
+#: includes/mcp-oauth.php:314
 msgid "Disconnect an unused AI app from your WordPress profile first."
 msgstr "Koppla först från en oanvänd AI-app via din WordPress-profil."
 
-#: includes/mcp-oauth.php:287
+#: includes/mcp-oauth.php:324
 msgid "Use authorization code or refresh token."
 msgstr "Använd en auktoriseringskod eller förnyelsetoken."
 
-#: includes/mcp-oauth.php:289
-#: includes/mcp-oauth.php:297
+#: includes/mcp-oauth.php:326
+#: includes/mcp-oauth.php:334
 msgid "Invalid refresh token."
 msgstr "Ogiltig förnyelsetoken."
 
-#: includes/mcp-oauth.php:291
+#: includes/mcp-oauth.php:328
 msgid "Another refresh is in progress."
 msgstr "En annan förnyelse pågår."
 
-#: includes/mcp-oauth.php:294
+#: includes/mcp-oauth.php:331
 msgid "This connection expired or was disconnected. Sign in again."
 msgstr "Anslutningen har gått ut eller kopplats från. Logga in igen."
 
-#: includes/mcp-oauth.php:296
+#: includes/mcp-oauth.php:333
 msgid "A refresh token was reused. Reconnect the app."
 msgstr "En förnyelsetoken återanvändes. Anslut appen igen."
 
-#: includes/mcp-oauth.php:300
+#: includes/mcp-oauth.php:337
 msgid "A refresh cannot increase access."
 msgstr "En förnyelse får inte utöka åtkomsten."
 
-#: includes/mcp-oauth.php:316
-#: includes/mcp-oauth.php:453
+#: includes/mcp-oauth.php:355
+#: includes/mcp-oauth.php:492
 msgid "Please retry disconnecting."
 msgstr "Försök koppla från igen."
 
-#: includes/mcp-oauth.php:329
+#: includes/mcp-oauth.php:368
 msgid "Alba Board browser sign-in is unavailable."
 msgstr "Alba Boards webbläsarinloggning är inte tillgänglig."
 
-#: includes/mcp-oauth.php:332
+#: includes/mcp-oauth.php:371
 msgid "Request is too large."
 msgstr "Begäran är för stor."
 
-#: includes/mcp-oauth.php:333
+#: includes/mcp-oauth.php:372
 msgid "Send OAuth credentials in the request body, not the URL."
 msgstr "Skicka OAuth-uppgifter i begärans innehåll, inte i URL:en."
 
-#: includes/mcp-oauth.php:355
+#: includes/mcp-oauth.php:394
 msgid "Use HTTPS to connect to Alba Board."
 msgstr "Använd HTTPS för att ansluta till Alba Board."
 
-#: includes/mcp-oauth.php:365
+#: includes/mcp-oauth.php:404
 msgid "Connection expired or invalid. Sign in to Alba Board again."
 msgstr "Anslutningen har gått ut eller är ogiltig. Logga in på Alba Board igen."
 
-#: includes/mcp-oauth.php:393
+#: includes/mcp-oauth.php:432
 msgid "Reconnect and approve permission to manage this board."
 msgstr "Anslut igen och godkänn behörighet att hantera tavlan."
 
-#: includes/mcp-oauth.php:405
+#: includes/mcp-oauth.php:444
 msgid "Sign in to connect to Alba Board."
 msgstr "Logga in för att ansluta till Alba Board."
 
-#: includes/mcp-oauth.php:437
+#: includes/mcp-oauth.php:476
 msgid "Connected AI apps — Alba Board"
 msgstr "Anslutna AI-appar — Alba Board"
 
-#: includes/mcp-oauth.php:438
+#: includes/mcp-oauth.php:477
 msgid "No active AI app connections."
 msgstr "Inga aktiva AI-appanslutningar."
 
-#: includes/mcp-oauth.php:443
+#: includes/mcp-oauth.php:482
 msgid "Read and manage selected boards"
 msgstr "Läs och hantera valda tavlor"
 
-#: includes/mcp-oauth.php:443
+#: includes/mcp-oauth.php:482
 msgid "Read selected boards"
 msgstr "Läs valda tavlor"
 
-#: includes/mcp-oauth.php:443
+#: includes/mcp-oauth.php:482
 msgid "Disconnect"
 msgstr "Koppla från"
 
-#: includes/mcp-oauth.php:450
+#: includes/mcp-oauth.php:489
 msgid "Unknown connection."
 msgstr "Okänd anslutning."
 
-#: includes/mcp-oauth.php:456
+#: includes/mcp-oauth.php:495
 msgid "You cannot disconnect this app."
 msgstr "Du kan inte koppla från appen."
 
-#: includes/mcp-oauth.php:483
+#: includes/mcp-oauth.php:522
 msgid "Registered AI apps"
 msgstr "Registrerade AI-appar"
 
-#: includes/mcp-oauth.php:483
-msgid "Remove an unused registration to disconnect all its users. Registrations expire after 90 days. New registrations are rate-limited and capped at 100 per site."
-msgstr "Att ta bort en oanvänd registrering kopplar från alla dess användare. Registreringar går ut efter 90 dagar. Nya registreringar är frekvensbegränsade och högst 100 per webbplats."
-
-#: includes/mcp-oauth.php:488
+#: includes/mcp-oauth.php:527
 msgid "Remove registration"
 msgstr "Ta bort registrering"
 
-#: includes/mcp-oauth.php:493
+#: includes/mcp-oauth.php:532
 msgid "Administrator access is required."
 msgstr "Administratörsåtkomst krävs."
 
-#: includes/mcp-oauth.php:495
+#: includes/mcp-oauth.php:534
 msgid "Unknown app."
 msgstr "Okänd app."
 
-#: includes/mcp-oauth.php:497
+#: includes/mcp-oauth.php:536
 msgid "Please retry removing the app."
 msgstr "Försök ta bort appen igen."
 
@@ -3178,10 +3170,6 @@ msgstr ""
 "\n"
 "När anslutningen är klar, lista mina tillgängliga tavlor. Skapa, ändra eller radera ingenting om jag inte ber dig om det."
 
-#: includes/mcp-settings.php:88
-msgid "New boards need to be selected separately. Each user’s existing board permissions still apply."
-msgstr "Nya tavlor måste väljas separat. Varje användares befintliga tavelbehörigheter gäller fortfarande."
-
 #: includes/mcp-settings.php:95
 msgid "Copy the setup prompt, paste it into your AI chat, and follow the sign-in steps."
 msgstr "Kopiera installationsprompten, klistra in den i din AI-chatt och följ inloggningsstegen."
@@ -3308,3 +3296,19 @@ msgstr "Kopierat"
 #: includes/support-details.php:35
 msgid "Select and copy the text."
 msgstr "Markera och kopiera texten."
+
+#: includes/mcp-oauth.php:236
+msgid "Allow creating lists/cards, editing or moving cards, and adding comments. Leave unchecked for read-only access."
+msgstr "Tillåt skapande av listor/kort, redigering och flytt av kort samt kommentarer. Lämna omarkerat för skrivskyddad åtkomst."
+
+#: includes/mcp-oauth.php:346
+msgid "Too many requests. Try again in a minute."
+msgstr "För många begäranden. Försök igen om en minut."
+
+#: includes/mcp-oauth.php:522
+msgid "Remove an unused registration to disconnect all its users. Registrations that never complete sign-in expire after one day; others expire after 90 days. New registrations are rate-limited and capped at 100 per site; when full, the oldest unused registration is replaced."
+msgstr "Att ta bort en oanvänd registrering kopplar från alla dess användare. Registreringar som aldrig slutför inloggningen går ut efter en dag; övriga efter 90 dagar. Nya registreringar är frekvensbegränsade och högst 100 per webbplats; när gränsen nås ersätts den äldsta oanvända registreringen."
+
+#: includes/mcp-settings.php:88
+msgid "Other new boards need to be selected separately. Boards created through AI (when allowed below) are added to this list automatically. Each user’s existing board permissions still apply."
+msgstr "Andra nya tavlor måste väljas separat. Tavlor som skapas via AI (när det tillåts nedan) läggs automatiskt till i den här listan. Varje användares befintliga tavelbehörigheter gäller fortfarande."
