@@ -10,6 +10,10 @@ foreach ( [ 'alba_board_usage_consent', 'alba_board_usage_consent_schema', 'alba
     delete_option( $alba_feedback_option );
 }
 
+wp_clear_scheduled_hook( 'alba_template_cleanup' );
+global $wpdb;
+foreach ( $wpdb->get_col( $wpdb->prepare( "SELECT option_name FROM $wpdb->options WHERE option_name LIKE %s", $wpdb->esc_like( 'alba_template_request_' ) . '%' ) ) as $alba_template_option ) delete_option( $alba_template_option );
+
 $alba_board_delete_data = get_option('alba_delete_on_uninstall', false);
 if ( ! $alba_board_delete_data ) {
     return;
