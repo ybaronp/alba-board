@@ -5,72 +5,89 @@ if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
     exit;
 }
 
-wp_clear_scheduled_hook( 'alba_board_usage_send' );
-wp_clear_scheduled_hook( 'alba_board_oauth_cleanup' );
-// Always revoke AI credentials on uninstall, even when the owner keeps their boards.
-global $wpdb;
-$alba_oauth_options = $wpdb->get_col( $wpdb->prepare( "SELECT option_name FROM $wpdb->options WHERE option_name LIKE %s", $wpdb->esc_like( 'alba_oauth_' ) . '%' ) );
-foreach ( $alba_oauth_options as $alba_oauth_option ) delete_option( $alba_oauth_option );
-// Durable retry receipts are temporary MCP data, even when boards are retained.
-$wpdb->query( $wpdb->prepare( "DELETE FROM $wpdb->options WHERE option_name LIKE %s", $wpdb->esc_like( 'alba_mcp_' ) . '%' . $wpdb->esc_like( '_receipt' ) ) );
-$alba_oauth_settings = get_option( 'alba_board_mcp', [] );
-if ( is_array( $alba_oauth_settings ) ) {
-    $alba_oauth_settings['oauth_enabled'] = false;
-    $alba_oauth_settings['oauth_epoch'] = wp_generate_uuid4();
-    update_option( 'alba_board_mcp', $alba_oauth_settings, false );
-}
-foreach ( [ 'alba_board_usage_consent', 'alba_board_usage_consent_schema', 'alba_board_usage_identity', 'alba_board_usage_activity', 'alba_board_usage_last_sent', 'alba_board_feedback_started', 'alba_board_feedback_used', 'alba_board_feedback_state' ] as $alba_feedback_option ) {
-    delete_option( $alba_feedback_option );
-}
+/** Remove Alba Board data from the current site. Runs once per site on multisite networks. */
+function alba_board_uninstall_site() {
+    global $wpdb;
+    wp_clear_scheduled_hook( 'alba_board_usage_send' );
+    wp_clear_scheduled_hook( 'alba_board_oauth_cleanup' );
+    // Always revoke AI credentials on uninstall, even when the owner keeps their boards.
+    $alba_oauth_options = $wpdb->get_col( $wpdb->prepare( "SELECT option_name FROM $wpdb->options WHERE option_name LIKE %s", $wpdb->esc_like( 'alba_oauth_' ) . '%' ) );
+    foreach ( $alba_oauth_options as $alba_oauth_option ) delete_option( $alba_oauth_option );
+    // Temporary AI data is removed even when boards are retained: retry receipts and locks
+    // (alba_mcp_*), saved results and rate counters (transients), and AI activity history.
+    $wpdb->query( $wpdb->prepare( "DELETE FROM $wpdb->options WHERE option_name LIKE %s", $wpdb->esc_like( 'alba_mcp_' ) . '%' ) );
+    foreach ( [ '_transient_alba_mcp_', '_transient_timeout_alba_mcp_', '_transient_alba_oauth_', '_transient_timeout_alba_oauth_' ] as $alba_transient_prefix ) {
+        $wpdb->query( $wpdb->prepare( "DELETE FROM $wpdb->options WHERE option_name LIKE %s", $wpdb->esc_like( $alba_transient_prefix ) . '%' ) );
+    }
+    foreach ( [ '_alba_mcp_activity', '_alba_mcp_template_creation_logged' ] as $alba_mcp_meta ) delete_post_meta_by_key( $alba_mcp_meta );
+    $alba_oauth_settings = get_option( 'alba_board_mcp', [] );
+    if ( is_array( $alba_oauth_settings ) ) {
+        $alba_oauth_settings['oauth_enabled'] = false;
+        $alba_oauth_settings['oauth_epoch'] = wp_generate_uuid4();
+        update_option( 'alba_board_mcp', $alba_oauth_settings, false );
+    }
+    foreach ( [ 'alba_board_usage_consent', 'alba_board_usage_consent_schema', 'alba_board_usage_identity', 'alba_board_usage_activity', 'alba_board_usage_last_sent', 'alba_board_feedback_started', 'alba_board_feedback_used', 'alba_board_feedback_state' ] as $alba_feedback_option ) {
+        delete_option( $alba_feedback_option );
+    }
 
-wp_clear_scheduled_hook( 'alba_template_cleanup' );
-global $wpdb;
-foreach ( $wpdb->get_col( $wpdb->prepare( "SELECT option_name FROM $wpdb->options WHERE option_name LIKE %s", $wpdb->esc_like( 'alba_template_request_' ) . '%' ) ) as $alba_template_option ) delete_option( $alba_template_option );
+    wp_clear_scheduled_hook( 'alba_template_cleanup' );
+    foreach ( $wpdb->get_col( $wpdb->prepare( "SELECT option_name FROM $wpdb->options WHERE option_name LIKE %s", $wpdb->esc_like( 'alba_template_request_' ) . '%' ) ) as $alba_template_option ) delete_option( $alba_template_option );
 
-$alba_board_delete_data = get_option('alba_delete_on_uninstall', false);
-if ( ! $alba_board_delete_data ) {
-    return;
-}
+    $alba_board_delete_data = get_option('alba_delete_on_uninstall', false);
+    if ( ! $alba_board_delete_data ) {
+        return;
+    }
 
-$alba_board_post_types = [ 'alba_board', 'alba_list', 'alba_card', 'alba_card_image' ];
-foreach ( $alba_board_post_types as $alba_board_pt ) {
-    $alba_board_posts = get_posts([
-        'post_type'   => $alba_board_pt,
-        'numberposts' => -1,
-        'post_status' => 'any'
+    $alba_board_post_types = [ 'alba_board', 'alba_list', 'alba_card', 'alba_card_image' ];
+    foreach ( $alba_board_post_types as $alba_board_pt ) {
+        $alba_board_posts = get_posts([
+            'post_type'   => $alba_board_pt,
+            'numberposts' => -1,
+            'post_status' => 'any'
+        ]);
+        foreach ( $alba_board_posts as $alba_board_post ) {
+            wp_delete_post( $alba_board_post->ID, true );
+        }
+    }
+
+    $alba_board_terms = get_terms([
+        'taxonomy'   => 'alba_tag',
+        'hide_empty' => false
     ]);
-    foreach ( $alba_board_posts as $alba_board_post ) {
-        wp_delete_post( $alba_board_post->ID, true );
+    if ( ! is_wp_error( $alba_board_terms ) ) {
+        foreach ( $alba_board_terms as $alba_board_term ) {
+            wp_delete_term( $alba_board_term->term_id, 'alba_tag' );
+        }
+    }
+
+    delete_option('alba_board_limits');
+    delete_option('alba_board_mcp');
+
+    delete_option('alba_board_notifications');
+    delete_option('alba_board_uploads'); // Remember to delete the new settings as well.
+    delete_option('alba_delete_on_uninstall');
+
+    $alba_board_roles = [ 'administrator', 'editor' ];
+    $alba_board_caps = [
+        'edit_board', 'read_board', 'delete_board', 'edit_boards', 'edit_others_boards', 'delete_boards', 'delete_others_boards', 'publish_boards', 'read_private_boards',
+        'edit_list', 'read_list', 'delete_list', 'edit_lists', 'edit_others_lists', 'delete_lists', 'delete_others_lists', 'publish_lists', 'read_private_lists',
+        'edit_card', 'read_card', 'delete_card', 'edit_cards', 'edit_others_cards', 'delete_cards', 'delete_others_cards', 'publish_cards', 'read_private_cards',
+    ];
+    foreach ( $alba_board_roles as $alba_board_role_name ) {
+        $alba_board_role = get_role( $alba_board_role_name );
+        if ( ! $alba_board_role ) continue;
+        foreach ( $alba_board_caps as $alba_board_cap ) {
+            $alba_board_role->remove_cap( $alba_board_cap );
+        }
     }
 }
 
-$alba_board_terms = get_terms([
-    'taxonomy'   => 'alba_tag',
-    'hide_empty' => false
-]);
-if ( ! is_wp_error( $alba_board_terms ) ) {
-    foreach ( $alba_board_terms as $alba_board_term ) {
-        wp_delete_term( $alba_board_term->term_id, 'alba_tag' );
+if ( is_multisite() ) {
+    foreach ( get_sites( [ 'fields' => 'ids', 'number' => 0 ] ) as $alba_board_site_id ) {
+        switch_to_blog( $alba_board_site_id );
+        alba_board_uninstall_site();
+        restore_current_blog();
     }
-}
-
-delete_option('alba_board_limits');
-delete_option('alba_board_mcp');
-
-delete_option('alba_board_notifications');
-delete_option('alba_board_uploads'); // Remember to delete the new settings as well.
-delete_option('alba_delete_on_uninstall');
-
-$alba_board_roles = [ 'administrator', 'editor' ];
-$alba_board_caps = [
-    'edit_board', 'read_board', 'delete_board', 'edit_boards', 'edit_others_boards', 'delete_boards', 'delete_others_boards', 'publish_boards', 'read_private_boards',
-    'edit_list', 'read_list', 'delete_list', 'edit_lists', 'edit_others_lists', 'delete_lists', 'delete_others_lists', 'publish_lists', 'read_private_lists',
-    'edit_card', 'read_card', 'delete_card', 'edit_cards', 'edit_others_cards', 'delete_cards', 'delete_others_cards', 'publish_cards', 'read_private_cards',
-];
-foreach ( $alba_board_roles as $alba_board_role_name ) {
-    $alba_board_role = get_role( $alba_board_role_name );
-    if ( ! $alba_board_role ) continue;
-    foreach ( $alba_board_caps as $alba_board_cap ) {
-        $alba_board_role->remove_cap( $alba_board_cap );
-    }
+} else {
+    alba_board_uninstall_site();
 }
