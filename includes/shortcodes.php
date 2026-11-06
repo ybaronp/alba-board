@@ -22,7 +22,7 @@ function alba_board_render_shortcode($atts) {
     }
 
     // 2. Zero-Friction Auto-Capture: Learn the public URL for notifications silently
-    if ( ! is_admin() && get_the_ID() ) {
+    if ( ! is_admin() && get_the_ID() && ! is_preview() && 'publish' === get_post_status( get_the_ID() ) ) {
         $current_url = get_permalink( get_the_ID() ); 
         $stored_url  = get_post_meta( $board_id, 'alba_board_public_url', true );
         

@@ -57,6 +57,7 @@ require_once plugin_dir_path(__FILE__) . 'includes/capabilities.php';
 require_once plugin_dir_path(__FILE__) . 'includes/roles.php';
 require_once plugin_dir_path(__FILE__) . 'includes/boards.php';
 require_once plugin_dir_path(__FILE__) . 'includes/templates.php';
+require_once plugin_dir_path(__FILE__) . 'includes/board-page.php';
 require_once plugin_dir_path(__FILE__) . 'includes/lists.php';
 require_once plugin_dir_path(__FILE__) . 'includes/cards.php';
 require_once plugin_dir_path(__FILE__) . 'includes/template-create.php';
