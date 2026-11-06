@@ -137,7 +137,7 @@ function alba_board_render_card_members( $card_id ) {
         if ( ! $user ) continue;
         echo '<span class="alba-card-member" data-member-id="' . esc_attr( $id ) . '">' . esc_html( $user->display_name );
         if ( $can_manage ) echo '<input type="hidden" name="card_members[]" value="' . esc_attr( $id ) . '">';
-        if ( $can_manage ) echo ' <button type="button" class="alba-remove-member" aria-label="' . esc_attr( sprintf( __( 'Remove %s', 'alba-board' ), $user->display_name ) ) . '">&times;</button>';
+        if ( $can_manage ) echo ' <button type="button" class="alba-remove-member" aria-label="' . esc_attr( sprintf( /* translators: %s: user display name. */ __( 'Remove %s', 'alba-board' ), $user->display_name ) ) . '">&times;</button>';
         echo '</span>';
     }
     echo '</div>';

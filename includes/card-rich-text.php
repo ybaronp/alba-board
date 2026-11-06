@@ -120,9 +120,9 @@ function alba_board_upload_card_image() {
     $temporary = wp_tempnam( 'alba-image' );
     if ( ! $temporary ) wp_send_json_error( [ 'message' => __( 'Could not prepare the image.', 'alba-board' ) ], 500 );
     $saved = $editor->save( $temporary, $size['mime'] );
-    if ( is_wp_error( $saved ) ) { @unlink( $temporary ); wp_send_json_error( [ 'message' => __( 'Could not process the image.', 'alba-board' ) ], 400 ); }
+    if ( is_wp_error( $saved ) ) { wp_delete_file( $temporary ); wp_send_json_error( [ 'message' => __( 'Could not process the image.', 'alba-board' ) ], 400 ); }
     $bytes = file_get_contents( $saved['path'] );
-    @unlink( $saved['path'] ); @unlink( $temporary );
+    wp_delete_file( $saved['path'] ); wp_delete_file( $temporary );
     if ( false === $bytes || strlen( $bytes ) > 2 * MB_IN_BYTES ) wp_send_json_error( [ 'message' => __( 'The processed image is too large.', 'alba-board' ) ], 400 );
     // A database lock prevents concurrent requests bypassing the per-card image limit.
     $lock = 'alba_image_lock_' . $card_id;
@@ -192,7 +192,7 @@ function alba_board_enqueue_rich_text() {
     wp_localize_script( 'alba-rich-text', 'albaRichText', [ 'url' => admin_url( 'admin-ajax.php' ), 'nonce' => wp_create_nonce( 'alba_card_rich_text' ),
         'preview' => __( 'Preview', 'alba-board' ), 'edit' => __( 'Edit text', 'alba-board' ),
         'working' => __( 'Working…', 'alba-board' ), 'error' => __( 'Could not complete the request. Please retry.', 'alba-board' ),
-        'partial' => __( '%1$d image(s) pasted; %2$d not uploaded. %3$s', 'alba-board' ),
+        'partial' => /* translators: 1: number of images pasted, 2: number of images not uploaded, 3: error details. */ __( '%1$d image(s) pasted; %2$d not uploaded. %3$s', 'alba-board' ),
         'inserted' => __( 'Image pasted.', 'alba-board' ),
     ] );
 }

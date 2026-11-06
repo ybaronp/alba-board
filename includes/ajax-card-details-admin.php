@@ -134,7 +134,7 @@ function alba_output_card_details_admin_modal( $card_id, $force_author = null ) 
             echo '<div class="alba-board-comment" style="margin-bottom: 10px; border-bottom: 1px solid var(--alba-shadow-dark); padding-bottom: 8px;">';
             echo '<strong style="color: var(--alba-text-title);">' . esc_html( $c['author'] ) . '</strong> ';
             echo '<span class="alba-comment-date" style="font-size: 0.8em; color: var(--alba-text-muted);">' . esc_html( alba_board_time_ago_or_date($c['date']) ) . '</span>';
-            echo '<div class="alba-comment-text" style="margin-top: 4px; color: var(--alba-text-main);">' . alba_board_format_card_comment( $c['text'], $card_id ) . '</div>';
+            echo '<div class="alba-comment-text" style="margin-top: 4px; color: var(--alba-text-main);">' . alba_board_format_card_comment( $c['text'], $card_id ) . '</div>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Sanitized with wp_kses() in alba_board_render_markdown().
             echo '</div>';
         }
     } else {
