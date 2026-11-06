@@ -55,6 +55,11 @@ function alba_get_smart_card_url($card_id, $context = 'wp_user') {
  * 1. THE ENGINE: Replaces variables and relies strictly on wp_mail()
  */
 function alba_board_send_notification($to_email, $subject, $user_name, $card_title, $card_content, $card_link, $template_type, $comment_text = '') {
+    // A combined MCP write sends built-in notifications only after its database commit.
+    if ( isset( $GLOBALS['alba_board_mcp_notification_queue'] ) ) {
+        $GLOBALS['alba_board_mcp_notification_queue'][] = func_get_args();
+        return;
+    }
     $options = get_option('alba_board_notifications', []);
     
     $defaults = [];

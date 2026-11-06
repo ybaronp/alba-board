@@ -11,6 +11,8 @@ wp_clear_scheduled_hook( 'alba_board_oauth_cleanup' );
 global $wpdb;
 $alba_oauth_options = $wpdb->get_col( $wpdb->prepare( "SELECT option_name FROM $wpdb->options WHERE option_name LIKE %s", $wpdb->esc_like( 'alba_oauth_' ) . '%' ) );
 foreach ( $alba_oauth_options as $alba_oauth_option ) delete_option( $alba_oauth_option );
+// Durable retry receipts are temporary MCP data, even when boards are retained.
+$wpdb->query( $wpdb->prepare( "DELETE FROM $wpdb->options WHERE option_name LIKE %s", $wpdb->esc_like( 'alba_mcp_' ) . '%' . $wpdb->esc_like( '_receipt' ) ) );
 $alba_oauth_settings = get_option( 'alba_board_mcp', [] );
 if ( is_array( $alba_oauth_settings ) ) {
     $alba_oauth_settings['oauth_enabled'] = false;
