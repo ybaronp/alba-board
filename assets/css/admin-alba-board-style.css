@@ -663,3 +663,7 @@ body.wp-admin .alba-master-theme-wrapper.alba-admin-modal-open { z-index: 100000
 #alba-modal-body-admin .alba-comment-date { color: var(--alba-text-muted); font-size: 12px; }
 #alba-modal-body-admin .alba-board-comment { margin: 12px 0; padding: 12px; }
 #alba-modal-body-admin .alba-add-comment-section textarea { box-sizing: border-box; width: 100%; }
+
+/* Card save feedback stays readable within the modal and follows the active theme. */
+.alba-card-save-status { padding: 10px 12px; border: 1px solid currentColor; border-radius: 8px; overflow-wrap: anywhere; }
+.alba-card-save-status .button { margin: 6px; }
