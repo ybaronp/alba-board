@@ -138,6 +138,21 @@ function alba_board_append_retry_safe_comment( $card_id, $text, $request ) {
 // UPLOAD / DELETE ATTACHMENTS (V1.3.0 CORE)
 // ==========================================
 
+/**
+ * Card attachment rules from Settings, shared by browser and AI uploads.
+ *
+ * @return array{0:int,1:int,2:string[]} Maximum files per card, maximum size in MB, allowed extensions.
+ */
+function alba_board_upload_rules() {
+    $options = get_option('alba_board_uploads', []);
+    $options = is_array($options) ? $options : [];
+    $max_files = isset($options['max_files']) ? intval($options['max_files']) : 3;
+    $max_size_mb = isset($options['max_size']) ? intval($options['max_size']) : 20;
+    $allowed_formats_str = isset($options['allowed_formats']) ? $options['allowed_formats'] : 'jpg,png,pdf,docx,csv';
+    $allowed_formats = array_values(array_filter(array_map('trim', explode(',', strtolower((string) $allowed_formats_str)))));
+    return [$max_files, $max_size_mb, $allowed_formats];
+}
+
 add_action('wp_ajax_alba_upload_attachment', 'alba_board_ajax_upload_attachment');
 function alba_board_ajax_upload_attachment() {
     $nonce = isset($_POST['nonce']) ? sanitize_text_field(wp_unslash($_POST['nonce'])) : '';
@@ -161,11 +176,7 @@ function alba_board_ajax_upload_attachment() {
         wp_send_json_error(['message' => sprintf(esc_html__('Upload failed (error %d). Check the file size and server upload limits.', 'alba-board'), absint($_FILES['file']['error']))], 400);
     }
 
-    $options = get_option('alba_board_uploads', []);
-    $options = is_array($options) ? $options : [];
-    $max_files = isset($options['max_files']) ? intval($options['max_files']) : 3;
-    $max_size_mb = isset($options['max_size']) ? intval($options['max_size']) : 20;
-    $allowed_formats_str = isset($options['allowed_formats']) ? $options['allowed_formats'] : 'jpg,png,pdf,docx,csv';
+    list($max_files, $max_size_mb, $allowed_formats) = alba_board_upload_rules();
     
     if ($max_files <= 0) {
         wp_send_json_error(['message' => esc_html__('File uploads are disabled.', 'alba-board')]);
@@ -185,8 +196,6 @@ function alba_board_ajax_upload_attachment() {
 
     $file_name = isset($_FILES['file']['name']) ? sanitize_file_name(wp_unslash($_FILES['file']['name'])) : '';
     $file_ext = strtolower(pathinfo($file_name, PATHINFO_EXTENSION));
-    
-    $allowed_formats = array_filter(array_map('trim', explode(',', $allowed_formats_str)));
     
     if (!in_array($file_ext, $allowed_formats)) {
         wp_send_json_error(['message' => esc_html__('Format not allowed. Active formats: ', 'alba-board') . implode(', ', $allowed_formats)]);

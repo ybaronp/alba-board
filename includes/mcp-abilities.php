@@ -2,6 +2,7 @@
 /** Structured, permission-checked free-plugin actions for the official MCP Adapter. */
 if ( ! defined( 'ABSPATH' ) ) exit;
 require_once __DIR__ . '/mcp-summary.php';
+require_once __DIR__ . '/mcp-uploads.php';
 
 add_action( 'wp_abilities_api_categories_init', function() {
     if ( function_exists( 'wp_register_ability_category' ) ) {
@@ -34,7 +35,11 @@ function alba_board_mcp_definitions() {
         'create-card' => [ __( 'Create a card', 'alba-board' ), __( 'Append a card to a selected list, respecting card limits. Obtain user approval first.', 'alba-board' ), [ 'list_id' => $id, 'title' => $title, 'description' => $text ], [ 'list_id', 'title' ], false ],
         'update-card' => [ __( 'Edit a card', 'alba-board' ), __( 'Replace only the supplied title or description. Other card properties are preserved. Obtain user approval first.', 'alba-board' ), [ 'card_id' => $id, 'title' => $title, 'description' => $text ], [ 'card_id' ], false ],
         'move-card' => [ __( 'Move a card', 'alba-board' ), __( 'Move one card within its selected board. Optionally save a comment in the same operation. Reuse known IDs; the receipt confirms the completed request. Obtain user approval first.', 'alba-board' ), [ 'card_id' => $id, 'list_id' => $id, 'comment' => [ 'type' => 'string', 'minLength' => 1, 'maxLength' => 5000, 'description' => __( 'Optional comment to save together with this single-card move. Both changes must succeed.', 'alba-board' ) ] ], [ 'card_id', 'list_id' ], false ],
-        'add-comment' => [ __( 'Add a comment', 'alba-board' ), __( 'Append a plain-text comment as the connected WordPress user. Obtain user approval first.', 'alba-board' ), [ 'card_id' => $id, 'comment' => [ 'type' => 'string', 'minLength' => 1, 'maxLength' => 5000 ] ], [ 'card_id', 'comment' ], false ],
+        'add-comment' => [ __( 'Add a comment', 'alba-board' ), __( 'Append a comment (Markdown) as the connected WordPress user. To include screenshots, first upload each image with create-upload (purpose comment-image), then list the upload IDs here; they are added below the text as private images. Obtain user approval first.', 'alba-board' ), [ 'card_id' => $id, 'comment' => [ 'type' => 'string', 'minLength' => 1, 'maxLength' => 5000 ],
+            'image_upload_ids' => [ 'type' => 'array', 'maxItems' => 4, 'uniqueItems' => true, 'items' => [ 'type' => 'string', 'pattern' => '^[a-f0-9]{32}$' ], 'description' => __( 'Optional upload IDs from create-upload with purpose comment-image, already uploaded for this card.', 'alba-board' ) ] ], [ 'card_id', 'comment' ], false ],
+        'create-upload' => [ __( 'Prepare a file upload', 'alba-board' ), __( 'Get a one-time link (valid 10 minutes) to upload one file to a card. Use purpose comment-image for a PNG, JPEG or WebP screenshot (up to 2 MB) to show inside a comment, or attachment to add a file to the card using the site upload rules. Send the file to upload_url as multipart/form-data field "file". Obtain user approval first.', 'alba-board' ), [ 'card_id' => $id,
+            'purpose' => [ 'type' => 'string', 'enum' => [ 'comment-image', 'attachment' ] ],
+            'filename' => [ 'type' => 'string', 'minLength' => 1, 'maxLength' => 120, 'pattern' => '^[^/\\\\]+$' ] ], [ 'card_id', 'purpose', 'filename' ], false ],
     ] );
 }
 
@@ -88,6 +93,7 @@ function alba_board_mcp_permission( $action, $input ) {
     if ( 'create-list' === $action ) return current_user_can( 'edit_board', $post->ID ) && current_user_can( 'edit_lists' ) && current_user_can( 'publish_lists' );
     if ( 'create-card' === $action ) return current_user_can( 'edit_list', $post->ID ) && current_user_can( 'publish_cards' );
     if ( 'add-comment' === $action ) return alba_board_can_comment_card( $post->ID );
+    if ( 'create-upload' === $action ) return alba_board_mcp_upload_allowed( $post->ID, $input['purpose'] ?? '' );
     if ( in_array( $action, [ 'update-card', 'move-card' ], true ) && ! current_user_can( 'edit_card', $post->ID ) ) return false;
     if ( 'move-card' === $action ) {
         if ( isset( $input['comment'] ) && ! alba_board_can_comment_card( $post->ID ) ) return false;
@@ -212,6 +218,7 @@ function alba_board_mcp_run( $action, $input, $move_transaction = null ) {
         return [ 'items' => $items ];
     }
     if ( 'get-template' === $action ) return alba_board_get_builtin_template( $input['template_id'] );
+    if ( 'create-upload' === $action ) return alba_board_mcp_create_upload( $input );
     if ( 'create-board-from-template' === $action ) {
         $context = 'mcp:' . ( $GLOBALS['alba_board_oauth_context']['id'] ?? 'application-password' );
         $result = alba_board_create_from_builtin_template( $input['template_id'], $input['template_version'], $input['title'], $input['request_id'], $context );
@@ -245,6 +252,7 @@ function alba_board_mcp_run( $action, $input, $move_transaction = null ) {
         foreach ( array_slice( is_array( $comments ) ? $comments : [], -20 ) as $comment ) {
             $item['comments'][] = [ 'author' => (string) ( $comment['author'] ?? '' ), 'date' => (string) ( $comment['date'] ?? '' ), 'text' => (string) ( $comment['text'] ?? '' ) ];
         }
+        $item['attachments'] = array_map( 'alba_board_mcp_attachment_item', array_map( 'intval', get_post_meta( $input['card_id'], 'alba_card_attachments' ) ) );
         return $item;
     }
     if ( isset( $input['title'] ) && '' === trim( sanitize_text_field( $input['title'] ) ) ) return alba_board_mcp_error( 'alba_mcp_empty_title', __( 'Write a title first.', 'alba-board' ) );
@@ -286,11 +294,15 @@ function alba_board_mcp_run( $action, $input, $move_transaction = null ) {
         } elseif ( 'add-comment' === $action ) {
             $text = trim( sanitize_textarea_field( $input['comment'] ) );
             if ( '' === $text ) return alba_board_mcp_error( 'alba_mcp_empty_comment', __( 'Write a comment first.', 'alba-board' ) );
+            $images = alba_board_mcp_claim_comment_images( $id, $input['image_upload_ids'] ?? [] );
+            if ( is_wp_error( $images ) ) return $images;
+            if ( $images['markdown'] ) $text .= "\n\n" . implode( "\n\n", $images['markdown'] );
             $comments = get_post_meta( $id, 'alba_comments', true );
             $comments = is_array( $comments ) ? $comments : [];
             $user = wp_get_current_user();
             $comments[] = [ 'author' => $user->display_name ?: $user->user_login, 'date' => current_time( 'Y-m-d H:i' ), 'text' => $text ];
             if ( ! update_post_meta( $id, 'alba_comments', wp_slash( $comments ) ) ) return alba_board_mcp_error( 'alba_mcp_save_failed', __( 'Could not save the comment.', 'alba-board' ), 500 );
+            foreach ( $images['keys'] as $upload_key ) delete_transient( $upload_key );
         }
     }
     // Store only actor/action/time, never credentials, prompts, or private integration data.
@@ -305,6 +317,7 @@ function alba_board_mcp_run( $action, $input, $move_transaction = null ) {
     if ( 'add-comment' === $action ) {
         $result['receipt']['comment_added'] = true;
         $result['receipt']['comment_count'] = count( $comments );
+        $result['receipt']['images_added'] = count( $images['markdown'] );
     }
     return $result;
 }
