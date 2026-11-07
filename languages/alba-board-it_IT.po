@@ -3425,3 +3425,35 @@ msgstr "Un caricamento riuscito restituisce JSON con stato \"uploaded\" (HTTP 20
 #: includes/mcp-settings.php:109
 msgid "If your AI cannot upload screenshots or files, your host’s firewall or bot protection may be blocking them. Allow /wp-json/alba-board/v1/mcp-upload/ there."
 msgstr "Se la tua IA non riesce a caricare screenshot o file, il firewall o la protezione anti-bot del tuo hosting potrebbe bloccarli. Consenti lì /wp-json/alba-board/v1/mcp-upload/."
+
+#: includes/mcp-abilities.php:40
+msgid "Alternatively pass source_url, a public https link, so WordPress downloads the file itself; use it when uploading to upload_url is blocked or the file is already online."
+msgstr "In alternativa passa source_url, un link https pubblico, così WordPress scarica il file da solo; usalo quando il caricamento su upload_url è bloccato o il file è già online."
+
+#: includes/mcp-abilities.php:43
+msgid "Optional public https link (no username, password or port). WordPress downloads the file itself and no upload_url is returned."
+msgstr "Link https pubblico facoltativo (senza nome utente, password o porta). WordPress scarica il file da solo e non viene restituito upload_url."
+
+#: includes/mcp-uploads.php:158
+msgid "Downloading files from a link is turned off on this site. Upload to upload_url instead."
+msgstr "Il download di file da un link è disattivato su questo sito. Carica invece il file su upload_url."
+
+#: includes/mcp-uploads.php:159
+msgid "source_url must be a public https link without a username, password or port."
+msgstr "source_url deve essere un link https pubblico senza nome utente, password o porta."
+
+#: includes/mcp-uploads.php:160
+msgid "Too many downloads from links. Try again later."
+msgstr "Troppi download da link. Riprova più tardi."
+
+#: includes/mcp-uploads.php:141
+msgid "WordPress could not download the file from this link. Use a public https link that opens the file itself."
+msgstr "WordPress non è riuscito a scaricare il file da questo link. Usa un link https pubblico che apra direttamente il file."
+
+#: includes/mcp-uploads.php:151
+msgid "The linked file is larger than the allowed size."
+msgstr "Il file collegato è più grande della dimensione consentita."
+
+#: includes/mcp-uploads.php:195
+msgid "Call add-comment with this upload_id in image_upload_ids."
+msgstr "Chiama add-comment con questo upload_id in image_upload_ids."

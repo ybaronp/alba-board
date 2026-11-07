@@ -3422,3 +3422,35 @@ msgstr "上传成功时会返回状态为 \"uploaded\" 的 JSON(HTTP 201)。如�
 #: includes/mcp-settings.php:109
 msgid "If your AI cannot upload screenshots or files, your host’s firewall or bot protection may be blocking them. Allow /wp-json/alba-board/v1/mcp-upload/ there."
 msgstr "如果你的 AI 无法上传截图或文件,可能是主机的防火墙或机器人防护拦截了上传。请在其中放行 /wp-json/alba-board/v1/mcp-upload/。"
+
+#: includes/mcp-abilities.php:40
+msgid "Alternatively pass source_url, a public https link, so WordPress downloads the file itself; use it when uploading to upload_url is blocked or the file is already online."
+msgstr "也可以传入 source_url(公开的 https 链接),由 WordPress 自行下载文件;当上传到 upload_url 被拦截,或文件已在线时使用。"
+
+#: includes/mcp-abilities.php:43
+msgid "Optional public https link (no username, password or port). WordPress downloads the file itself and no upload_url is returned."
+msgstr "可选的公开 https 链接(不含用户名、密码或端口)。WordPress 会自行下载文件,不会返回 upload_url。"
+
+#: includes/mcp-uploads.php:158
+msgid "Downloading files from a link is turned off on this site. Upload to upload_url instead."
+msgstr "此网站已关闭从链接下载文件。请改为上传到 upload_url。"
+
+#: includes/mcp-uploads.php:159
+msgid "source_url must be a public https link without a username, password or port."
+msgstr "source_url 必须是不含用户名、密码或端口的公开 https 链接。"
+
+#: includes/mcp-uploads.php:160
+msgid "Too many downloads from links. Try again later."
+msgstr "从链接下载的次数过多。请稍后再试。"
+
+#: includes/mcp-uploads.php:141
+msgid "WordPress could not download the file from this link. Use a public https link that opens the file itself."
+msgstr "WordPress 无法从此链接下载文件。请使用可直接打开该文件的公开 https 链接。"
+
+#: includes/mcp-uploads.php:151
+msgid "The linked file is larger than the allowed size."
+msgstr "链接的文件超过了允许的大小。"
+
+#: includes/mcp-uploads.php:195
+msgid "Call add-comment with this upload_id in image_upload_ids."
+msgstr "请使用此 upload_id 在 image_upload_ids 中调用 add-comment。"
