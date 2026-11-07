@@ -106,6 +106,7 @@ function alba_board_mcp_settings_page() {
             <div class="alba-ai-url"><input id="alba-mcp-url" class="large-text code" readonly value="<?php echo esc_attr( alba_board_mcp_url() ); ?>" onclick="this.select()">
             <button type="button" class="button" id="alba-copy-mcp-url" data-copied="<?php esc_attr_e( 'Copied ✓', 'alba-board' ); ?>" data-fallback="<?php esc_attr_e( 'Copy manually', 'alba-board' ); ?>"><?php esc_html_e( 'Copy URL', 'alba-board' ); ?></button></div>
         </details>
+        <p class="description"><?php esc_html_e( 'If your AI cannot upload screenshots or files, your host’s firewall or bot protection may be blocking them. Allow /wp-json/alba-board/v1/mcp-upload/ there.', 'alba-board' ); ?></p>
         <span id="alba-copy-status" class="screen-reader-text" role="status" aria-live="polite"></span>
         <p class="alba-ai-manage"><a href="<?php echo esc_url( admin_url( 'profile.php#alba-ai-connections' ) ); ?>"><?php esc_html_e( 'Manage connections', 'alba-board' ); ?></a></p>
         </section>

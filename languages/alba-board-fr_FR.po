@@ -3417,3 +3417,43 @@ msgstr "L’accès à l’IA est désactivé."
 #: includes/mcp-uploads.php:209
 msgid "Use HTTPS to upload files."
 msgstr "Utilisez HTTPS pour téléverser des fichiers."
+
+#: includes/mcp-uploads.php:32
+msgid "A successful upload returns JSON with status \"uploaded\" (HTTP 201). If you get an HTML page instead (for example \"request is being verified\"), the site’s security filter blocked the upload. Post the comment without the image and ask the user to allow /wp-json/alba-board/v1/mcp-upload/ (or the uploading computer’s IP) in their host firewall."
+msgstr "Un téléversement réussi renvoie du JSON avec le statut \"uploaded\" (HTTP 201). Si vous recevez à la place une page HTML (par exemple \"request is being verified\"), le filtre de sécurité du site a bloqué le téléversement. Publiez le commentaire sans l’image et demandez à l’utilisateur d’autoriser /wp-json/alba-board/v1/mcp-upload/ (ou l’IP de l’ordinateur qui téléverse) dans le pare-feu de son hébergeur."
+
+#: includes/mcp-settings.php:109
+msgid "If your AI cannot upload screenshots or files, your host’s firewall or bot protection may be blocking them. Allow /wp-json/alba-board/v1/mcp-upload/ there."
+msgstr "Si votre IA ne peut pas téléverser de captures d’écran ou de fichiers, le pare-feu ou la protection anti-bots de votre hébergeur les bloque peut-être. Autorisez-y /wp-json/alba-board/v1/mcp-upload/."
+
+#: includes/mcp-abilities.php:40
+msgid "Alternatively pass source_url, a public https link, so WordPress downloads the file itself; use it when uploading to upload_url is blocked or the file is already online."
+msgstr "Vous pouvez aussi fournir source_url, un lien https public, pour que WordPress télécharge lui-même le fichier ; utilisez-le lorsque l’envoi vers upload_url est bloqué ou que le fichier est déjà en ligne."
+
+#: includes/mcp-abilities.php:43
+msgid "Optional public https link (no username, password or port). WordPress downloads the file itself and no upload_url is returned."
+msgstr "Lien https public facultatif (sans nom d’utilisateur, mot de passe ni port). WordPress télécharge lui-même le fichier et aucun upload_url n’est renvoyé."
+
+#: includes/mcp-uploads.php:158
+msgid "Downloading files from a link is turned off on this site. Upload to upload_url instead."
+msgstr "Le téléchargement de fichiers depuis un lien est désactivé sur ce site. Envoyez plutôt le fichier à upload_url."
+
+#: includes/mcp-uploads.php:159
+msgid "source_url must be a public https link without a username, password or port."
+msgstr "source_url doit être un lien https public sans nom d’utilisateur, mot de passe ni port."
+
+#: includes/mcp-uploads.php:160
+msgid "Too many downloads from links. Try again later."
+msgstr "Trop de téléchargements depuis des liens. Veuillez réessayer plus tard."
+
+#: includes/mcp-uploads.php:141
+msgid "WordPress could not download the file from this link. Use a public https link that opens the file itself."
+msgstr "WordPress n’a pas pu télécharger le fichier depuis ce lien. Utilisez un lien https public qui ouvre directement le fichier."
+
+#: includes/mcp-uploads.php:151
+msgid "The linked file is larger than the allowed size."
+msgstr "Le fichier lié dépasse la taille autorisée."
+
+#: includes/mcp-uploads.php:195
+msgid "Call add-comment with this upload_id in image_upload_ids."
+msgstr "Appelez add-comment avec cet upload_id dans image_upload_ids."

@@ -3417,3 +3417,43 @@ msgstr "AI-åtkomst är avstängd."
 #: includes/mcp-uploads.php:209
 msgid "Use HTTPS to upload files."
 msgstr "Använd HTTPS för att ladda upp filer."
+
+#: includes/mcp-uploads.php:32
+msgid "A successful upload returns JSON with status \"uploaded\" (HTTP 201). If you get an HTML page instead (for example \"request is being verified\"), the site’s security filter blocked the upload. Post the comment without the image and ask the user to allow /wp-json/alba-board/v1/mcp-upload/ (or the uploading computer’s IP) in their host firewall."
+msgstr "En lyckad uppladdning returnerar JSON med status \"uploaded\" (HTTP 201). Om du i stället får en HTML-sida (till exempel \"request is being verified\") har webbplatsens säkerhetsfilter blockerat uppladdningen. Publicera kommentaren utan bilden och be användaren tillåta /wp-json/alba-board/v1/mcp-upload/ (eller IP-adressen till datorn som laddar upp) i värdens brandvägg."
+
+#: includes/mcp-settings.php:109
+msgid "If your AI cannot upload screenshots or files, your host’s firewall or bot protection may be blocking them. Allow /wp-json/alba-board/v1/mcp-upload/ there."
+msgstr "Om din AI inte kan ladda upp skärmbilder eller filer kan din värds brandvägg eller botskydd blockera dem. Tillåt /wp-json/alba-board/v1/mcp-upload/ där."
+
+#: includes/mcp-abilities.php:40
+msgid "Alternatively pass source_url, a public https link, so WordPress downloads the file itself; use it when uploading to upload_url is blocked or the file is already online."
+msgstr "Alternativt kan du ange source_url, en offentlig https-länk, så att WordPress hämtar filen själv; använd det när uppladdning till upload_url blockeras eller filen redan finns online."
+
+#: includes/mcp-abilities.php:43
+msgid "Optional public https link (no username, password or port). WordPress downloads the file itself and no upload_url is returned."
+msgstr "Valfri offentlig https-länk (utan användarnamn, lösenord eller port). WordPress hämtar filen själv och ingen upload_url returneras."
+
+#: includes/mcp-uploads.php:158
+msgid "Downloading files from a link is turned off on this site. Upload to upload_url instead."
+msgstr "Nedladdning av filer från en länk är avstängd på den här webbplatsen. Ladda upp till upload_url i stället."
+
+#: includes/mcp-uploads.php:159
+msgid "source_url must be a public https link without a username, password or port."
+msgstr "source_url måste vara en offentlig https-länk utan användarnamn, lösenord eller port."
+
+#: includes/mcp-uploads.php:160
+msgid "Too many downloads from links. Try again later."
+msgstr "För många nedladdningar från länkar. Försök igen senare."
+
+#: includes/mcp-uploads.php:141
+msgid "WordPress could not download the file from this link. Use a public https link that opens the file itself."
+msgstr "WordPress kunde inte hämta filen från den här länken. Använd en offentlig https-länk som öppnar själva filen."
+
+#: includes/mcp-uploads.php:151
+msgid "The linked file is larger than the allowed size."
+msgstr "Den länkade filen är större än den tillåtna storleken."
+
+#: includes/mcp-uploads.php:195
+msgid "Call add-comment with this upload_id in image_upload_ids."
+msgstr "Anropa add-comment med detta upload_id i image_upload_ids."

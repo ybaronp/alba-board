@@ -88,6 +88,9 @@ AI access is disabled by default. Each OAuth connection is restricted to the con
 
 The ten tools read boards/lists/cards, create boards/lists/cards when allowed, edit or move cards, and add comments. No deletion, attachment, assignment or site-administration tools are exposed. Moves stay within one selected board and preserve other cards' order. Card creation and incoming moves respect the configured cards-per-list limit. The WordPress plugin cannot verify human approval in an external AI app; configure the client's approval controls.
 
+= AI screenshots or files don't upload =
+Some hosts and security services (for example Cloudways Firewall or Imunify360 bot protection, or Cloudflare bot modes) answer requests that do not come from a normal browser with an HTML "request is being verified" page. Your AI app's connection to Alba Board still works, but the file upload is blocked and the AI receives that page instead of a confirmation. The AI can still post the comment without the image. To fix it, allow the path /wp-json/alba-board/v1/mcp-upload/ (or the IP address of the computer where the AI runs) in your host firewall or security plugin. Alternatively, the AI can give Alba Board a public https link to the file (source_url) and WordPress downloads it itself, which firewalls do not block. Site owners can turn this off with the alba_board_mcp_allow_server_fetch filter.
+
 = Can an AI move a card and add its comment together? =
 Yes. For example: “Move card #42 to In Progress and comment that the supplies are ready.” The move tool accepts an optional comment so one card needs one operation. Both changes succeed together or neither is saved. Existing separate move and comment tools still work. Combined operations require InnoDB for the WordPress posts, postmeta and options tables; unsupported sites receive an error and can use separate actions. When the transaction-aware shared move service is installed, it joins the same transaction and keeps its move lock until both changes finish. Older shared move services without this support reject combined requests; separate actions remain available.
 
@@ -224,6 +227,7 @@ For controlled development/staging tests, a site administrator can set ALBA_BOAR
 * New: Optional MCP integration using WordPress Abilities API and the official MCP Adapter, with 10 structured board, list, card and comment actions.
 * New: Remote HTTP connection with WordPress browser sign-in, OAuth discovery and app registration, S256 PKCE, per-app board/read/write consent, expiring tokens, refresh rotation and profile disconnect controls. No local Node.js/helper is required for compatible OAuth clients.
 * Security: Administrator-selected boards, existing object permissions, no deletion tools, and immediate access revocation.
+* Improved: When a host firewall blocks an AI file upload, the AI now gets clear instructions to post the comment without the image and ask you to allow the upload path.
 * Reliability: Retry receipts prevent normal duplicate writes; MCP writes to the same object are serialized and card limits are checked.
 
 
