@@ -3414,3 +3414,11 @@ msgstr "AI へのアクセスはオフになっています。"
 #: includes/mcp-uploads.php:209
 msgid "Use HTTPS to upload files."
 msgstr "ファイルをアップロードするには HTTPS を使用してください。"
+
+#: includes/mcp-uploads.php:32
+msgid "A successful upload returns JSON with status \"uploaded\" (HTTP 201). If you get an HTML page instead (for example \"request is being verified\"), the site’s security filter blocked the upload. Post the comment without the image and ask the user to allow /wp-json/alba-board/v1/mcp-upload/ (or the uploading computer’s IP) in their host firewall."
+msgstr "アップロードに成功すると、ステータスが \"uploaded\" の JSON が返されます(HTTP 201)。代わりに HTML ページ(例: \"request is being verified\")が返された場合は、サイトのセキュリティフィルターがアップロードをブロックしています。画像なしでコメントを投稿し、ホスティング会社のファイアウォールで /wp-json/alba-board/v1/mcp-upload/(またはアップロードするコンピューターの IP)を許可するようユーザーに依頼してください。"
+
+#: includes/mcp-settings.php:109
+msgid "If your AI cannot upload screenshots or files, your host’s firewall or bot protection may be blocking them. Allow /wp-json/alba-board/v1/mcp-upload/ there."
+msgstr "AI がスクリーンショットやファイルをアップロードできない場合は、ホスティング会社のファイアウォールまたはボット対策がブロックしている可能性があります。そこで /wp-json/alba-board/v1/mcp-upload/ を許可してください。"

@@ -3414,3 +3414,11 @@ msgstr "AI 访问已关闭。"
 #: includes/mcp-uploads.php:209
 msgid "Use HTTPS to upload files."
 msgstr "请使用 HTTPS 上传文件。"
+
+#: includes/mcp-uploads.php:32
+msgid "A successful upload returns JSON with status \"uploaded\" (HTTP 201). If you get an HTML page instead (for example \"request is being verified\"), the site’s security filter blocked the upload. Post the comment without the image and ask the user to allow /wp-json/alba-board/v1/mcp-upload/ (or the uploading computer’s IP) in their host firewall."
+msgstr "上传成功时会返回状态为 \"uploaded\" 的 JSON(HTTP 201)。如果收到的是 HTML 页面(例如 \"request is being verified\"),说明网站的安全过滤器拦截了上传。请不带图片发布评论,并请用户在主机防火墙中放行 /wp-json/alba-board/v1/mcp-upload/(或上传所用计算机的 IP)。"
+
+#: includes/mcp-settings.php:109
+msgid "If your AI cannot upload screenshots or files, your host’s firewall or bot protection may be blocking them. Allow /wp-json/alba-board/v1/mcp-upload/ there."
+msgstr "如果你的 AI 无法上传截图或文件,可能是主机的防火墙或机器人防护拦截了上传。请在其中放行 /wp-json/alba-board/v1/mcp-upload/。"

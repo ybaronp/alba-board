@@ -3408,3 +3408,11 @@ msgstr ""
 #: includes/unsaved-drafts.php:9
 msgid "Please wait for the current save or upload to finish."
 msgstr ""
+
+#: includes/mcp-uploads.php:32
+msgid "A successful upload returns JSON with status \"uploaded\" (HTTP 201). If you get an HTML page instead (for example \"request is being verified\"), the site’s security filter blocked the upload. Post the comment without the image and ask the user to allow /wp-json/alba-board/v1/mcp-upload/ (or the uploading computer’s IP) in their host firewall."
+msgstr ""
+
+#: includes/mcp-settings.php:109
+msgid "If your AI cannot upload screenshots or files, your host’s firewall or bot protection may be blocking them. Allow /wp-json/alba-board/v1/mcp-upload/ there."
+msgstr ""

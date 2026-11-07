@@ -3417,3 +3417,11 @@ msgstr "L’accès à l’IA est désactivé."
 #: includes/mcp-uploads.php:209
 msgid "Use HTTPS to upload files."
 msgstr "Utilisez HTTPS pour téléverser des fichiers."
+
+#: includes/mcp-uploads.php:32
+msgid "A successful upload returns JSON with status \"uploaded\" (HTTP 201). If you get an HTML page instead (for example \"request is being verified\"), the site’s security filter blocked the upload. Post the comment without the image and ask the user to allow /wp-json/alba-board/v1/mcp-upload/ (or the uploading computer’s IP) in their host firewall."
+msgstr "Un téléversement réussi renvoie du JSON avec le statut \"uploaded\" (HTTP 201). Si vous recevez à la place une page HTML (par exemple \"request is being verified\"), le filtre de sécurité du site a bloqué le téléversement. Publiez le commentaire sans l’image et demandez à l’utilisateur d’autoriser /wp-json/alba-board/v1/mcp-upload/ (ou l’IP de l’ordinateur qui téléverse) dans le pare-feu de son hébergeur."
+
+#: includes/mcp-settings.php:109
+msgid "If your AI cannot upload screenshots or files, your host’s firewall or bot protection may be blocking them. Allow /wp-json/alba-board/v1/mcp-upload/ there."
+msgstr "Si votre IA ne peut pas téléverser de captures d’écran ou de fichiers, le pare-feu ou la protection anti-bots de votre hébergeur les bloque peut-être. Autorisez-y /wp-json/alba-board/v1/mcp-upload/."

@@ -3429,3 +3429,11 @@ msgstr "الوصول إلى الذكاء الاصطناعي متوقف."
 #: includes/mcp-uploads.php:209
 msgid "Use HTTPS to upload files."
 msgstr "استخدم HTTPS لرفع الملفات."
+
+#: includes/mcp-uploads.php:32
+msgid "A successful upload returns JSON with status \"uploaded\" (HTTP 201). If you get an HTML page instead (for example \"request is being verified\"), the site’s security filter blocked the upload. Post the comment without the image and ask the user to allow /wp-json/alba-board/v1/mcp-upload/ (or the uploading computer’s IP) in their host firewall."
+msgstr "يعيد الرفع الناجح ردًّا بصيغة JSON بحالة \"uploaded\" (‏HTTP 201). إذا تلقيت بدلًا من ذلك صفحة HTML (مثل \"request is being verified\") فهذا يعني أن مرشّح الأمان في الموقع حجب الرفع. انشر التعليق بدون الصورة واطلب من المستخدم السماح بالمسار /wp-json/alba-board/v1/mcp-upload/ (أو بعنوان IP للجهاز الذي يرفع الملف) في جدار الحماية لدى مزوّد الاستضافة."
+
+#: includes/mcp-settings.php:109
+msgid "If your AI cannot upload screenshots or files, your host’s firewall or bot protection may be blocking them. Allow /wp-json/alba-board/v1/mcp-upload/ there."
+msgstr "إذا تعذّر على الذكاء الاصطناعي رفع لقطات الشاشة أو الملفات، فقد يكون جدار الحماية أو الحماية من الروبوتات لدى مزوّد الاستضافة يحجبها. اسمح هناك بالمسار /wp-json/alba-board/v1/mcp-upload/."

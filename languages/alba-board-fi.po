@@ -3417,3 +3417,11 @@ msgstr "AI-käyttö on poistettu käytöstä."
 #: includes/mcp-uploads.php:209
 msgid "Use HTTPS to upload files."
 msgstr "Käytä HTTPS-yhteyttä tiedostojen lataamiseen."
+
+#: includes/mcp-uploads.php:32
+msgid "A successful upload returns JSON with status \"uploaded\" (HTTP 201). If you get an HTML page instead (for example \"request is being verified\"), the site’s security filter blocked the upload. Post the comment without the image and ask the user to allow /wp-json/alba-board/v1/mcp-upload/ (or the uploading computer’s IP) in their host firewall."
+msgstr "Onnistunut lataus palauttaa JSON-vastauksen, jonka tila on \"uploaded\" (HTTP 201). Jos saat sen sijaan HTML-sivun (esimerkiksi \"request is being verified\"), sivuston suojaussuodatin esti latauksen. Julkaise kommentti ilman kuvaa ja pyydä käyttäjää sallimaan /wp-json/alba-board/v1/mcp-upload/ (tai latausta tekevän tietokoneen IP-osoite) palveluntarjoajansa palomuurissa."
+
+#: includes/mcp-settings.php:109
+msgid "If your AI cannot upload screenshots or files, your host’s firewall or bot protection may be blocking them. Allow /wp-json/alba-board/v1/mcp-upload/ there."
+msgstr "Jos tekoälysi ei voi ladata kuvakaappauksia tai tiedostoja, palveluntarjoajasi palomuuri tai bottisuojaus voi estää ne. Salli siellä /wp-json/alba-board/v1/mcp-upload/."

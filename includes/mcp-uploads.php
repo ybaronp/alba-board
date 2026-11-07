@@ -27,6 +27,11 @@ function alba_board_mcp_upload_allowed( $card_id, $purpose ) {
     return $max_files > 0 && alba_board_mcp_permission( 'update-card', [ 'card_id' => $card_id ] );
 }
 
+/** Tell the AI how to recognize and report an upload blocked by a host firewall or bot protection. */
+function alba_board_mcp_blocked_upload_help() {
+    return __( 'A successful upload returns JSON with status "uploaded" (HTTP 201). If you get an HTML page instead (for example "request is being verified"), the site’s security filter blocked the upload. Post the comment without the image and ask the user to allow /wp-json/alba-board/v1/mcp-upload/ (or the uploading computer’s IP) in their host firewall.', 'alba-board' );
+}
+
 /** Create a pending upload link. Called from the create-upload ability after its permission check. */
 function alba_board_mcp_create_upload( $input ) {
     $purpose = $input['purpose'];
@@ -58,6 +63,7 @@ function alba_board_mcp_create_upload( $input ) {
         'id' => $card_id, 'board_id' => $item['board_id'], 'upload_id' => $id, 'purpose' => $purpose,
         'upload_url' => rest_url( 'alba-board/v1/mcp-upload/' . $id . '.' . $secret ),
         'method' => 'POST', 'form_field' => 'file', 'max_bytes' => $max_bytes, 'expires_in' => ALBA_BOARD_MCP_UPLOAD_TTL,
+        'blocked_upload_help' => alba_board_mcp_blocked_upload_help(),
         'next_step' => 'comment-image' === $purpose
             ? __( 'POST the image as multipart/form-data field "file" to upload_url, then call add-comment with this upload_id in image_upload_ids.', 'alba-board' )
             : __( 'POST the file as multipart/form-data field "file" to upload_url. The file is attached to the card when the upload succeeds.', 'alba-board' ),
