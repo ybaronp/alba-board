@@ -160,10 +160,18 @@ function alba_board_mcp_error( $code, $message, $status = 400 ) {
 function alba_board_mcp_cached_result( $cached, $fingerprint ) {
     if ( $cached['fingerprint'] !== $fingerprint ) return alba_board_mcp_error( 'alba_mcp_request_conflict', __( 'This request ID was already used for another action.', 'alba-board' ), 409 );
     $result = $cached['result'];
+    // Site-level add-on writes (for example tag settings) have no board or card. alba_board_mcp_execute()
+    // already re-checked the action permission for this caller, so the saved result can be returned.
+    if ( ! isset( $result['id'] ) && ! isset( $result['board_id'] ) ) return $result;
     $post = get_post( $result['id'] ?? 0 );
     if ( ! $post || 'publish' !== $post->post_status || ! alba_board_mcp_can_read_board( $result['board_id'] ?? 0 ) || ! alba_board_mcp_can_read_board( alba_board_mcp_board_id( $post ) )
         || ( 'alba_card' === $post->post_type && ! alba_board_can_view_shared_card( $post->ID ) ) ) return alba_board_mcp_error( 'alba_mcp_forbidden', __( 'The previous result is no longer accessible. Check the board before retrying.', 'alba-board' ), 403 );
     return $result;
+}
+
+/** Add-ons can check this before returning write results that are not tied to a board or card. */
+function alba_board_mcp_supports_site_results() {
+    return true;
 }
 
 /** Reject replay with changed arguments; serialize retries so concurrent delivery cannot duplicate writes. */
