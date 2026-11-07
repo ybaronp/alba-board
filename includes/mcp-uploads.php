@@ -74,6 +74,7 @@ function alba_board_mcp_create_upload( $input ) {
 
 /** True for a globally routable address. PHP's reserved-range flag misses loopback and shared (CGNAT) space, so check those too. */
 function alba_board_mcp_ip_is_public( $ip ) {
+    if ( ! is_string( $ip ) || false === filter_var( $ip, FILTER_VALIDATE_IP ) ) return false; // Also covers a failed DNS lookup.
     $bin = inet_pton( $ip );
     if ( false === $bin ) return false;
     if ( 16 === strlen( $bin ) ) {
