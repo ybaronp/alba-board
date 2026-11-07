@@ -47,13 +47,14 @@ function alba_board_mcp_definitions() {
     $core = alba_board_mcp_core_definitions();
     /**
      * Add-ons may add AI actions that run through Alba Board's permission checks, AI sign-in scopes,
-     * retry protection and locks. Each entry: [ label, description, input properties, required, readonly ].
+     * retry protection and locks. Each entry: [ label, description, input properties, required, readonly ],
+     * with an optional sixth item true for destructive writes (Alba Board 2.4.0+).
      * Core actions cannot be replaced. Handle new actions with the alba_board_mcp_permission and
      * alba_board_mcp_run filters.
      */
     $extra = apply_filters( 'alba_board_mcp_definitions', [] );
     foreach ( is_array( $extra ) ? $extra : [] as $action => $definition ) {
-        if ( isset( $core[ $action ] ) || ! is_string( $action ) || ! preg_match( '/^[a-z0-9-]{3,40}$/', $action ) || ! is_array( $definition ) || 5 !== count( $definition ) ) continue;
+        if ( isset( $core[ $action ] ) || ! is_string( $action ) || ! preg_match( '/^[a-z0-9-]{3,40}$/', $action ) || ! is_array( $definition ) || ! in_array( count( $definition ), [ 5, 6 ], true ) ) continue;
         $core[ $action ] = array_values( $definition );
     }
     return $core;
@@ -67,6 +68,7 @@ function alba_board_mcp_is_extension( $action ) {
 add_action( 'wp_abilities_api_init', function() {
     if ( ! function_exists( 'wp_register_ability' ) || empty( alba_board_mcp_settings()['enabled'] ) ) return;
     foreach ( alba_board_mcp_definitions() as $action => $definition ) {
+        // Optional sixth item: true marks an add-on write as destructive (for example deleting something).
         list( $label, $description, $properties, $required, $readonly ) = $definition;
         if ( ! $readonly ) {
             $properties['request_id'] = [ 'type' => 'string', 'minLength' => 8, 'maxLength' => 64, 'pattern' => '^[A-Za-z0-9_-]+$', 'description' => __( 'Unique request ID. Reuse it only to retry the same approved action within 24 hours.', 'alba-board' ) ];
@@ -78,7 +80,7 @@ add_action( 'wp_abilities_api_init', function() {
             'permission_callback' => function( $input ) use ( $action ) { return alba_board_mcp_permission( $action, $input ); },
             'execute_callback' => function( $input ) use ( $action ) { return alba_board_mcp_execute( $action, $input ); },
             // MCP discovery only; this does not expose content anonymously or via generic REST abilities.
-            'meta' => [ 'mcp' => [ 'public' => true, 'type' => 'tool' ], 'annotations' => [ 'readonly' => $readonly, 'destructive' => 'update-card' === $action, 'idempotent' => $readonly, 'openWorldHint' => false ] ],
+            'meta' => [ 'mcp' => [ 'public' => true, 'type' => 'tool' ], 'annotations' => [ 'readonly' => $readonly, 'destructive' => 'update-card' === $action || ! empty( $definition[5] ), 'idempotent' => $readonly, 'openWorldHint' => false ] ],
         ] );
     }
 } );
@@ -160,10 +162,18 @@ function alba_board_mcp_error( $code, $message, $status = 400 ) {
 function alba_board_mcp_cached_result( $cached, $fingerprint ) {
     if ( $cached['fingerprint'] !== $fingerprint ) return alba_board_mcp_error( 'alba_mcp_request_conflict', __( 'This request ID was already used for another action.', 'alba-board' ), 409 );
     $result = $cached['result'];
+    // Site-level add-on writes (for example tag settings) have no board or card. alba_board_mcp_execute()
+    // already re-checked the action permission for this caller, so the saved result can be returned.
+    if ( ! isset( $result['id'] ) && ! isset( $result['board_id'] ) ) return $result;
     $post = get_post( $result['id'] ?? 0 );
     if ( ! $post || 'publish' !== $post->post_status || ! alba_board_mcp_can_read_board( $result['board_id'] ?? 0 ) || ! alba_board_mcp_can_read_board( alba_board_mcp_board_id( $post ) )
         || ( 'alba_card' === $post->post_type && ! alba_board_can_view_shared_card( $post->ID ) ) ) return alba_board_mcp_error( 'alba_mcp_forbidden', __( 'The previous result is no longer accessible. Check the board before retrying.', 'alba-board' ), 403 );
     return $result;
+}
+
+/** Add-ons can check this before returning write results that are not tied to a board or card. */
+function alba_board_mcp_supports_site_results() {
+    return true;
 }
 
 /** Reject replay with changed arguments; serialize retries so concurrent delivery cannot duplicate writes. */
