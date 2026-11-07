@@ -9,6 +9,7 @@
 if ( ! defined( 'ABSPATH' ) ) exit;
 
 const ALBA_BOARD_MCP_UPLOAD_TTL = 600;
+const ALBA_BOARD_MCP_FETCH_PER_HOUR = 20;
 
 function alba_board_mcp_upload_key( $id ) {
     return 'alba_mcp_upload_' . $id;
@@ -49,6 +50,8 @@ function alba_board_mcp_create_upload( $input ) {
             return alba_board_mcp_error( 'alba_mcp_upload_limit', sprintf( __( 'This card already has the maximum of %d files.', 'alba-board' ), $max_files ) );
         }
     }
+    $max_bytes = 'comment-image' === $purpose ? 2 * MB_IN_BYTES : $max_size_mb * MB_IN_BYTES;
+    if ( isset( $input['source_url'] ) ) return alba_board_mcp_fetch_upload( $input, $card_id, $purpose, $max_bytes );
     $id = bin2hex( random_bytes( 16 ) );
     $secret = rtrim( strtr( base64_encode( random_bytes( 32 ) ), '+/', '-_' ), '=' );
     $ticket = [
@@ -57,7 +60,6 @@ function alba_board_mcp_create_upload( $input ) {
         'status' => 'pending', 'object_id' => 0, 'expires' => time() + ALBA_BOARD_MCP_UPLOAD_TTL,
     ];
     if ( ! set_transient( alba_board_mcp_upload_key( $id ), $ticket, ALBA_BOARD_MCP_UPLOAD_TTL ) ) return alba_board_mcp_error( 'alba_mcp_save_failed', __( 'Could not prepare the upload. Please retry.', 'alba-board' ), 500 );
-    $max_bytes = 'comment-image' === $purpose ? 2 * MB_IN_BYTES : $max_size_mb * MB_IN_BYTES;
     $item = alba_board_mcp_item( get_post( $card_id ) );
     return [
         'id' => $card_id, 'board_id' => $item['board_id'], 'upload_id' => $id, 'purpose' => $purpose,
@@ -68,6 +70,138 @@ function alba_board_mcp_create_upload( $input ) {
             ? __( 'POST the image as multipart/form-data field "file" to upload_url, then call add-comment with this upload_id in image_upload_ids.', 'alba-board' )
             : __( 'POST the file as multipart/form-data field "file" to upload_url. The file is attached to the card when the upload succeeds.', 'alba-board' ),
     ];
+}
+
+/** True for a globally routable address. PHP's reserved-range flag misses loopback and shared (CGNAT) space, so check those too. */
+function alba_board_mcp_ip_is_public( $ip ) {
+    if ( ! is_string( $ip ) || false === filter_var( $ip, FILTER_VALIDATE_IP ) ) return false; // Also covers a failed DNS lookup.
+    $bin = inet_pton( $ip );
+    if ( false === $bin ) return false;
+    if ( 16 === strlen( $bin ) ) {
+        if ( 0 === strncmp( $bin, str_repeat( "\0", 10 ) . "\xff\xff", 12 ) ) return alba_board_mcp_ip_is_public( inet_ntop( substr( $bin, 12 ) ) ); // IPv4-mapped IPv6.
+        $first = ord( $bin[0] );
+        // ::, ::1, fc00::/7 (private) and fe80::/10 (link-local).
+        if ( $bin === str_repeat( "\0", 16 ) || $bin === str_repeat( "\0", 15 ) . "\1" || ( $first & 0xfe ) === 0xfc || ( 0xfe === $first && ( ord( $bin[1] ) & 0xc0 ) === 0x80 ) ) return false;
+    } else {
+        $first = ord( $bin[0] );
+        if ( 127 === $first || ( 100 === $first && ord( $bin[1] ) >= 64 && ord( $bin[1] ) <= 127 ) ) return false; // Loopback and 100.64.0.0/10.
+    }
+    return false !== filter_var( $ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE );
+}
+
+/** True when every address the host resolves to is public. Core checks IPv4 too; this adds IPv6 and a second look. */
+function alba_board_mcp_host_is_public( $host, $url ) {
+    $host = trim( $host, '[]' );
+    $ips = [];
+    if ( false !== filter_var( $host, FILTER_VALIDATE_IP ) ) {
+        $ips[] = $host;
+    } else {
+        $ips = (array) gethostbynamel( $host );
+        if ( function_exists( 'dns_get_record' ) ) {
+            set_error_handler( '__return_true' ); // A failed lookup simply adds nothing; the download then fails.
+            $records = dns_get_record( $host, DNS_AAAA );
+            restore_error_handler();
+            foreach ( is_array( $records ) ? $records : [] as $record ) $ips[] = $record['ipv6'] ?? '';
+        }
+    }
+    foreach ( $ips as $ip ) {
+        if ( ! alba_board_mcp_ip_is_public( $ip ) && ! apply_filters( 'http_request_host_is_external', false, $host, $url ) ) return false;
+    }
+    return true;
+}
+
+/** Accept only a public https link without credentials or a custom port. */
+function alba_board_mcp_valid_source_url( $url ) {
+    $parts = is_string( $url ) && strlen( $url ) <= 2048 && ! preg_match( '/[\x00-\x20\x7f]/', $url ) ? wp_parse_url( $url ) : false;
+    return is_array( $parts ) && 'https' === strtolower( $parts['scheme'] ?? '' ) && ! empty( $parts['host'] ) && ! isset( $parts['user'] ) && ! isset( $parts['pass'] )
+        && ( ! isset( $parts['port'] ) || 443 === (int) $parts['port'] ) && alba_board_mcp_host_is_public( $parts['host'], $url );
+}
+
+/** Per-user hourly limit for server-side downloads. */
+function alba_board_mcp_fetch_rate() {
+    $key = 'alba_mcp_fetch_rate_' . get_current_user_id();
+    if ( ! alba_board_mcp_lock( $key . '_lock' ) ) return false;
+    try {
+        $value = get_transient( $key );
+        if ( ! is_array( $value ) || $value['until'] < time() ) $value = [ 'count' => 0, 'until' => time() + HOUR_IN_SECONDS ];
+        if ( $value['count'] >= ALBA_BOARD_MCP_FETCH_PER_HOUR ) return false;
+        $value['count']++;
+        set_transient( $key, $value, max( 1, $value['until'] - time() ) );
+        return true;
+    } finally { delete_option( $key . '_lock' ); }
+}
+
+/**
+ * Download a public https file into a temporary file. wp_safe_remote_get() refuses private, loopback and
+ * link-local addresses and checks every redirect again. Remote content and errors are never returned to the caller.
+ *
+ * @return string|WP_Error Temporary file path.
+ */
+function alba_board_mcp_download( $url, $max_bytes ) {
+    require_once ABSPATH . 'wp-admin/includes/file.php';
+    $failed = alba_board_mcp_error( 'alba_mcp_fetch_failed', __( 'WordPress could not download the file from this link. Use a public https link that opens the file itself.', 'alba-board' ), 502 );
+    $temporary = wp_tempnam( 'alba-fetch' );
+    if ( ! $temporary ) return $failed;
+    $response = wp_safe_remote_get( $url, [ 'timeout' => 10, 'redirection' => 3, 'stream' => true, 'filename' => $temporary, 'limit_response_size' => $max_bytes + 1, 'user-agent' => 'Alba Board; ' . home_url( '/' ) ] );
+    if ( is_wp_error( $response ) || 200 !== (int) wp_remote_retrieve_response_code( $response ) || ! is_file( $temporary ) || filesize( $temporary ) < 1 ) {
+        wp_delete_file( $temporary );
+        return $failed;
+    }
+    if ( filesize( $temporary ) > $max_bytes ) {
+        wp_delete_file( $temporary );
+        return alba_board_mcp_error( 'alba_mcp_fetch_size', __( 'The linked file is larger than the allowed size.', 'alba-board' ), 413 );
+    }
+    return $temporary;
+}
+
+/** create-upload with source_url: WordPress downloads the file itself and stores it through the normal upload paths. */
+function alba_board_mcp_fetch_upload( $input, $card_id, $purpose, $max_bytes ) {
+    if ( ! apply_filters( 'alba_board_mcp_allow_server_fetch', true, $input ) ) return alba_board_mcp_error( 'alba_mcp_fetch_disabled', __( 'Downloading files from a link is turned off on this site. Upload to upload_url instead.', 'alba-board' ), 403 );
+    if ( ! alba_board_mcp_valid_source_url( $input['source_url'] ) ) return alba_board_mcp_error( 'alba_mcp_fetch_url', __( 'source_url must be a public https link without a username, password or port.', 'alba-board' ) );
+    if ( ! alba_board_mcp_fetch_rate() ) return alba_board_mcp_error( 'alba_mcp_fetch_rate', __( 'Too many downloads from links. Try again later.', 'alba-board' ), 429 );
+    $temporary = alba_board_mcp_download( $input['source_url'], $max_bytes );
+    if ( is_wp_error( $temporary ) ) return $temporary;
+    $filename = sanitize_file_name( $input['filename'] );
+    try {
+        if ( 'comment-image' === $purpose ) {
+            $object_id = alba_board_store_card_image( $card_id, $temporary, $filename, function() use ( $card_id, $purpose ) {
+                return alba_board_mcp_upload_allowed( $card_id, $purpose );
+            } );
+        } else {
+            $object_id = alba_board_mcp_store_attachment( $card_id, [ 'name' => $filename, 'tmp_name' => $temporary, 'error' => 0, 'size' => (int) filesize( $temporary ) ], $filename );
+        }
+    } finally {
+        if ( file_exists( $temporary ) ) wp_delete_file( $temporary );
+    }
+    if ( is_wp_error( $object_id ) ) return $object_id;
+    $id = bin2hex( random_bytes( 16 ) );
+    $ticket = [
+        'user_id' => get_current_user_id(), 'connection' => alba_board_mcp_upload_connection(), 'card_id' => $card_id,
+        'purpose' => $purpose, 'filename' => $filename, 'secret_hash' => '', 'status' => 'uploaded', 'object_id' => (int) $object_id,
+        'expires' => time() + ALBA_BOARD_MCP_UPLOAD_TTL,
+    ];
+    if ( ! set_transient( alba_board_mcp_upload_key( $id ), $ticket, ALBA_BOARD_MCP_UPLOAD_TTL ) ) {
+        if ( 'comment-image' === $purpose ) {
+            wp_delete_post( $object_id, true );
+        } else {
+            delete_post_meta( $card_id, 'alba_card_attachments', $object_id );
+            wp_delete_attachment( $object_id, true );
+        }
+        return alba_board_mcp_error( 'alba_mcp_save_failed', __( 'Could not prepare the upload. Please retry.', 'alba-board' ), 500 );
+    }
+    alba_board_mcp_log_upload( $card_id, $purpose );
+    $item = alba_board_mcp_item( get_post( $card_id ) );
+    $response = [ 'id' => $card_id, 'board_id' => $item['board_id'], 'upload_id' => $id, 'purpose' => $purpose, 'status' => 'uploaded' ];
+    if ( 'attachment' === $purpose ) $response['attachment'] = alba_board_mcp_attachment_item( (int) $object_id );
+    else $response['next_step'] = __( 'Call add-comment with this upload_id in image_upload_ids.', 'alba-board' );
+    return $response;
+}
+
+function alba_board_mcp_log_upload( $card_id, $purpose ) {
+    $history = get_post_meta( $card_id, '_alba_mcp_activity', true );
+    $history = is_array( $history ) ? $history : [];
+    $history[] = [ 'user_id' => get_current_user_id(), 'action' => 'upload-' . $purpose, 'time' => current_time( 'mysql', true ) ];
+    update_post_meta( $card_id, '_alba_mcp_activity', array_slice( $history, -20 ) );
 }
 
 /** Load a ticket and run the request as the user and AI connection that created it, with their current access. */
@@ -126,10 +260,7 @@ function alba_board_mcp_receive_upload( $request ) {
         $ticket['object_id'] = (int) $object_id;
         // Keep the uploaded ticket until add-comment consumes it or the link expires.
         set_transient( $key, $ticket, max( 60, $ticket['expires'] - time() ) );
-        $history = get_post_meta( $card_id, '_alba_mcp_activity', true );
-        $history = is_array( $history ) ? $history : [];
-        $history[] = [ 'user_id' => get_current_user_id(), 'action' => 'upload-' . $ticket['purpose'], 'time' => current_time( 'mysql', true ) ];
-        update_post_meta( $card_id, '_alba_mcp_activity', array_slice( $history, -20 ) );
+        alba_board_mcp_log_upload( $card_id, $ticket['purpose'] );
         $response = [ 'upload_id' => $id, 'status' => 'uploaded', 'purpose' => $ticket['purpose'], 'card_id' => $card_id ];
         if ( 'attachment' === $ticket['purpose'] ) $response['attachment'] = alba_board_mcp_attachment_item( (int) $object_id );
         return new WP_REST_Response( $response, 201 );

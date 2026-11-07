@@ -3422,3 +3422,35 @@ msgstr "アップロードに成功すると、ステータスが \"uploaded\" �
 #: includes/mcp-settings.php:109
 msgid "If your AI cannot upload screenshots or files, your host’s firewall or bot protection may be blocking them. Allow /wp-json/alba-board/v1/mcp-upload/ there."
 msgstr "AI がスクリーンショットやファイルをアップロードできない場合は、ホスティング会社のファイアウォールまたはボット対策がブロックしている可能性があります。そこで /wp-json/alba-board/v1/mcp-upload/ を許可してください。"
+
+#: includes/mcp-abilities.php:40
+msgid "Alternatively pass source_url, a public https link, so WordPress downloads the file itself; use it when uploading to upload_url is blocked or the file is already online."
+msgstr "代わりに source_url(公開 https リンク)を指定すると、WordPress がファイルを自分でダウンロードします。upload_url へのアップロードがブロックされている場合や、ファイルがすでにオンラインにある場合に使用してください。"
+
+#: includes/mcp-abilities.php:43
+msgid "Optional public https link (no username, password or port). WordPress downloads the file itself and no upload_url is returned."
+msgstr "公開 https リンク(任意。ユーザー名・パスワード・ポートは不可)。WordPress がファイルを自分でダウンロードし、upload_url は返されません。"
+
+#: includes/mcp-uploads.php:158
+msgid "Downloading files from a link is turned off on this site. Upload to upload_url instead."
+msgstr "このサイトでは、リンクからのファイルのダウンロードが無効になっています。代わりに upload_url にアップロードしてください。"
+
+#: includes/mcp-uploads.php:159
+msgid "source_url must be a public https link without a username, password or port."
+msgstr "source_url には、ユーザー名・パスワード・ポートを含まない公開 https リンクを指定してください。"
+
+#: includes/mcp-uploads.php:160
+msgid "Too many downloads from links. Try again later."
+msgstr "リンクからのダウンロードが多すぎます。しばらくしてからもう一度お試しください。"
+
+#: includes/mcp-uploads.php:141
+msgid "WordPress could not download the file from this link. Use a public https link that opens the file itself."
+msgstr "WordPress はこのリンクからファイルをダウンロードできませんでした。ファイル自体を開く公開 https リンクを使用してください。"
+
+#: includes/mcp-uploads.php:151
+msgid "The linked file is larger than the allowed size."
+msgstr "リンク先のファイルが許可されているサイズを超えています。"
+
+#: includes/mcp-uploads.php:195
+msgid "Call add-comment with this upload_id in image_upload_ids."
+msgstr "この upload_id を image_upload_ids に指定して add-comment を呼び出してください。"

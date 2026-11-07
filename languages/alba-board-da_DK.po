@@ -3425,3 +3425,35 @@ msgstr "En vellykket upload returnerer JSON med status \"uploaded\" (HTTP 201). 
 #: includes/mcp-settings.php:109
 msgid "If your AI cannot upload screenshots or files, your host’s firewall or bot protection may be blocking them. Allow /wp-json/alba-board/v1/mcp-upload/ there."
 msgstr "Hvis din AI ikke kan uploade skærmbilleder eller filer, blokerer din værts firewall eller botbeskyttelse dem måske. Tillad /wp-json/alba-board/v1/mcp-upload/ dér."
+
+#: includes/mcp-abilities.php:40
+msgid "Alternatively pass source_url, a public https link, so WordPress downloads the file itself; use it when uploading to upload_url is blocked or the file is already online."
+msgstr "Alternativt kan du angive source_url, et offentligt https-link, så WordPress selv henter filen; brug det, når upload til upload_url er blokeret, eller filen allerede ligger online."
+
+#: includes/mcp-abilities.php:43
+msgid "Optional public https link (no username, password or port). WordPress downloads the file itself and no upload_url is returned."
+msgstr "Valgfrit offentligt https-link (uden brugernavn, adgangskode eller port). WordPress henter selv filen, og der returneres ingen upload_url."
+
+#: includes/mcp-uploads.php:158
+msgid "Downloading files from a link is turned off on this site. Upload to upload_url instead."
+msgstr "Download af filer fra et link er slået fra på dette websted. Upload i stedet til upload_url."
+
+#: includes/mcp-uploads.php:159
+msgid "source_url must be a public https link without a username, password or port."
+msgstr "source_url skal være et offentligt https-link uden brugernavn, adgangskode eller port."
+
+#: includes/mcp-uploads.php:160
+msgid "Too many downloads from links. Try again later."
+msgstr "For mange downloads fra links. Prøv igen senere."
+
+#: includes/mcp-uploads.php:141
+msgid "WordPress could not download the file from this link. Use a public https link that opens the file itself."
+msgstr "WordPress kunne ikke hente filen fra dette link. Brug et offentligt https-link, der åbner selve filen."
+
+#: includes/mcp-uploads.php:151
+msgid "The linked file is larger than the allowed size."
+msgstr "Den linkede fil er større end den tilladte størrelse."
+
+#: includes/mcp-uploads.php:195
+msgid "Call add-comment with this upload_id in image_upload_ids."
+msgstr "Kald add-comment med dette upload_id i image_upload_ids."
